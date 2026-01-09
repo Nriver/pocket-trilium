@@ -49,6 +49,7 @@ app.*.map.json
 
 assets/xa*
 assets/patch.tar.gz
+assets/trilium*
 
 android/app/src/main/jniLibs/*
 
