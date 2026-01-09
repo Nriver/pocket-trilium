@@ -106,7 +106,7 @@
   "faqUrl": "常見問題",
   "solutionUrl": "操作指南",
   "discussionUrl": "討論",
-  "firstLoadInstructions": "第一次加載大概需要5到10分鐘...並且不需要網絡。\n\n正常情況下，載入完成後軟體會自動跳轉到圖形介面。\n\n在圖形介面時：\n- 點擊為滑鼠左鍵\n- 長按為滑鼠右鍵\n- 雙指點擊可彈出鍵盤\n- 雙指滑動為滑鼠滾輪\n\n請不要在安裝時退出軟體。\n\n在等待時，可以點擊下面的按鈕申請權限。\n\n小小電腦的許多資料夾，比如下載、文件、圖片等等都和裝置的這些資料夾綁定，如果不授予這些權限會導致這些資料夾無權存取。\n\n但如果你不需要存取這些資料夾，也可以不授予檔案權限（可能導致火狐瀏覽器下載檔案失敗，因為無權存取下載資料夾）。",
+  "firstLoadInstructions": "首次啟動大約需要5到10分鐘，請耐心等待，整個過程離線進行，無需網路連線。\n\n載入完成後，應用程式會自動跳轉至主圖形介面。\n\nTrilium 的資料預設儲存在應用程式內部，若卸載應用程式，資料也會一併刪除。為確保持久保存，建議授予儲存權限，並在手機內部儲存的根目錄手動建立名為「trilium-data」的資料夾。這樣 Trilium 就會直接將資料寫入該資料夾中。\n\n如果你已經有電腦端的 Trilium 資料，可以直接將電腦上的「trilium-data」資料夾複製到手機內部儲存的根目錄，即可無縫接續使用，無需重新初始化與同步。若複製後未自動辨識，請嘗試重新啟動應用程式。\n\n首次載入期間請勿退出應用程式，以免中斷程序。\n\n等待時，你可以點擊下方按鈕提前申請儲存權限（推薦）。\n\n當然，如果你暫時不需要資料持久化，也可以選擇不授予檔案權限。\n\n感謝 Cateners 的 Tiny Computer 專案：https://github.com/Cateners/tiny_computer\n感謝 Zadam 創造的優秀 Trilium Notes：https://github.com/zadam/trilium\n感謝 Trilium 社群的所有貢獻者\n感謝我的腰（它承受了太多久坐寫程式的日子 :)）\n\n如果你喜歡這個專案，歡迎到 GitHub 給個 Star，也非常感謝大家的贊助支持～\nhttps://github.com/Nriver/pocket-trilium",
   "updateRequest": "請盡量使用最新版本。前往專案網址查看最新版本。",
   "avncScreenResize": "自適應螢幕尺寸",
   "avncResizeFactor": "螢幕縮放比",
