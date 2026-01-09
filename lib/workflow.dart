@@ -572,6 +572,11 @@ class Workflow {
     "assets/patch.tar.gz",
     "${G.dataPath}/patch.tar.gz",
     );
+    // 加入 trilium-cn
+    await Util.copyAsset(
+      "assets/trilium-cn-tiny.zip",
+      "${G.dataPath}/trilium-cn-tiny.zip",
+    );
     await Util.execute(
 """
 export DATA_DIR=${G.dataPath}
@@ -599,7 +604,8 @@ chmod -R +x bin/*
 chmod -R +x libexec/proot/*
 chmod 1777 tmp
 \$DATA_DIR/bin/tar zxf patch.tar.gz
-\$DATA_DIR/bin/busybox rm -rf assets.zip patch.tar.gz
+\$DATA_DIR/bin/busybox unzip -o trilium-cn-tiny.zip
+\$DATA_DIR/bin/busybox rm -rf assets.zip patch.tar.gz trilium-cn-tiny.zip
 """);
   }
 
