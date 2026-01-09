@@ -91,7 +91,7 @@ class MyApp extends StatelessWidget {
               colorScheme: darkDynamic,
               useMaterial3: true,
             ),
-            home: MyHomePage(title: "Pocket Trilium"),
+            home: MyHomePage(title: "Pocket Trilium by Nriver"),
           );
         }
     );

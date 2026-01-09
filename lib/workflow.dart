@@ -150,7 +150,7 @@ class Util {
       return m[key];
     }
     switch (key) {
-      case "name" : return (value){addCurrentProp(key, value); return value;}("Debian Bookworm");
+      case "name" : return (value){addCurrentProp(key, value); return value;}("Pocket Trilium by Nriver");
       case "boot" : return (value){addCurrentProp(key, value); return value;}(D.boot);
       case "vnc" : return (value){addCurrentProp(key, value); return value;}("startnovnc &");
       // case "vncUrl" : return (value){addCurrentProp(key, value); return value;}("http://localhost:36082/vnc.html?host=localhost&port=36082&autoconnect=true&resize=remote&password=12345678");
@@ -672,7 +672,7 @@ ${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? "" : "ec
     //$DATA_DIR是数据文件夹, $CONTAINER_DIR是容器根目录
     //Termux:X11的启动命令并不在这里面，而是写死了。这下成💩山代码了:P
     await G.prefs.setStringList("containersInfo", ["""{
-"name":"Debian Bookworm",
+"name":"Pocket Trilium by Nriver",
 "boot":"${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? D.boot : D.boot.replaceFirst('LANG=zh_CN.UTF-8', 'LANG=en_US.UTF-8').replaceFirst('公共', 'Public').replaceFirst('图片', 'Pictures').replaceFirst('音乐', 'Music').replaceFirst('视频', 'Videos').replaceFirst('下载', 'Downloads').replaceFirst('文档', 'Documents').replaceFirst('照片', 'Photos')}",
 "vnc":"cd /home/tiny/trilium-cn && ./trilium.sh \\n\\n#startnovnc &",
 "vncUrl":"http://127.0.0.1:8080",
