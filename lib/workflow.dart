@@ -671,7 +671,7 @@ ${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? "" : "ec
     await G.prefs.setStringList("containersInfo", ["""{
 "name":"Debian Bookworm",
 "boot":"${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? D.boot : D.boot.replaceFirst('LANG=zh_CN.UTF-8', 'LANG=en_US.UTF-8').replaceFirst('公共', 'Public').replaceFirst('图片', 'Pictures').replaceFirst('音乐', 'Music').replaceFirst('视频', 'Videos').replaceFirst('下载', 'Downloads').replaceFirst('文档', 'Documents').replaceFirst('照片', 'Photos')}",
-"vnc":"startnovnc &",
+"vnc":"cd /home/tiny/trilium-cn && ./trilium.sh \\n\\n#startnovnc &",
 "vncUrl":"http://localhost:36082/vnc.html?host=localhost&port=36082&autoconnect=true&resize=remote&password=12345678",
 "commands":${jsonEncode(Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? D.commands : D.commands4En)}
 }"""]);
