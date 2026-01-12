@@ -26,7 +26,7 @@ import 'package:retry/retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'package:xterm/xterm.dart';
 import 'package:flutter_pty/flutter_pty.dart';
@@ -43,6 +43,8 @@ import 'package:tiny_computer/l10n/app_localizations.dart';
 
 import 'package:avnc_flutter/avnc_flutter.dart';
 import 'package:x11_flutter/x11_flutter.dart';
+
+import 'fullScreenWebPage.dart';
 
 class Util {
 
@@ -516,7 +518,7 @@ WINEDLLOVERRIDES="d3d8=b,d3d9=b,d3d10core=b,d3d11=b,dxgi=b" wine reg add 'HKEY_C
 class G {
   static late final String dataPath;
   static Pty? audioPty;
-  static late WebViewController controller;
+  static InAppWebViewController? controller;
   static late BuildContext homePageStateContext;
   static late int currentContainer; //目前运行第几个容器
   static late Map<int, TermPty> termPtys; //为容器<int>存放TermPty数据
@@ -731,7 +733,7 @@ sed -i -E "s@^(VNC_RESOLUTION)=.*@\\1=${w}x${h}@" \$(command -v startvnc)""";
 
     G.termFontScale.value = Util.getGlobal("termFontScale") as double;
 
-    G.controller = WebViewController()..setJavaScriptMode(JavaScriptMode.unrestricted);
+    G.controller = null;
 
     //设置屏幕常亮
     WakelockPlus.toggle(enable: Util.getGlobal("wakelock"));
@@ -823,31 +825,14 @@ clear""");
   }
 
   static Future<void> launchBrowser() async {
-    G.controller.loadRequest(Uri.parse(Util.getCurrentProp("vncUrl")));
-    Navigator.push(G.homePageStateContext, MaterialPageRoute(builder: (context) {
-      return Focus(
-        onKeyEvent: (node, event) {
-          // Allow webview to handle cursor keys. Without this, the
-          // arrow keys seem to get "eaten" by Flutter and therefore
-          // never reach the webview.
-          // (https://github.com/flutter/flutter/issues/102505).
-          if (!kIsWeb) {
-            if ({
-              LogicalKeyboardKey.arrowLeft,
-              LogicalKeyboardKey.arrowRight,
-              LogicalKeyboardKey.arrowUp,
-              LogicalKeyboardKey.arrowDown,
-              LogicalKeyboardKey.tab
-            }.contains(event.logicalKey)) {
-              return KeyEventResult.skipRemainingHandlers;
-            }
-          }
-          return KeyEventResult.ignored;
-        },
-        child: GestureDetector(onSecondaryTap: () {
-        }, child: WebViewWidget(controller: G.controller))
-      );
-    }));
+    final String vncUrl = Util.getCurrentProp("vncUrl") as String;
+
+    Navigator.push(
+      G.homePageStateContext,
+      MaterialPageRoute(
+        builder: (context) => InAppWebViewFullScreenPage(url: vncUrl),
+      ),
+    );
   }
 
   static Future<void> launchAvnc() async {
