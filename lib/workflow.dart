@@ -351,6 +351,8 @@ class TermPty {
 //default values
 class D {
 
+  static const String triliumPackage = "trilium-cn-tiny.zip";
+
   //常用链接
   static const links = [
     {"name": "projectUrl", "value": "https://github.com/Cateners/tiny_computer"},
@@ -579,8 +581,8 @@ class Workflow {
     );
     // 加入 trilium-cn
     await Util.copyAsset(
-      "assets/trilium-cn-tiny.zip",
-      "${G.dataPath}/trilium-cn-tiny.zip",
+      "assets/${D.triliumPackage}",
+      "${G.dataPath}/${D.triliumPackage}",
     );
     await Util.execute(
 """
@@ -609,8 +611,8 @@ chmod -R +x bin/*
 chmod -R +x libexec/proot/*
 chmod 1777 tmp
 \$DATA_DIR/bin/tar zxf patch.tar.gz
-\$DATA_DIR/bin/busybox unzip -o trilium-cn-tiny.zip
-\$DATA_DIR/bin/busybox rm -rf assets.zip patch.tar.gz trilium-cn-tiny.zip
+\$DATA_DIR/bin/busybox unzip -o ${D.triliumPackage}
+\$DATA_DIR/bin/busybox rm -rf assets.zip patch.tar.gz ${D.triliumPackage}
 """);
   }
 
