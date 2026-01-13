@@ -124,15 +124,6 @@ class Util {
     }
   }
 
-//     await G.prefs.setStringList("containersInfo", ["""{
-// "name":"Debian Bookworm",
-// "boot":"${D.boot}",
-// "vnc":"startnovnc &",
-// "vncUrl":"http://localhost:36082/vnc.html?host=localhost&port=36082&autoconnect=true&resize=remote&password=12345678",
-// "commands":${jsonEncode(D.commands)}
-// }"""]);
-// case "lastDate" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("1970-01-01");
-
   static dynamic getCurrentProp(String key) {
     dynamic m = jsonDecode(Util.getGlobal("containersInfo")[G.currentContainer]);
     if (m.containsKey(key)) {
