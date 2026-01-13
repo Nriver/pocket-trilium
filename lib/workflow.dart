@@ -423,10 +423,6 @@ class G {
   static ValueNotifier<bool> bootTextChange = ValueNotifier(true); //更改值，用于刷新启动命令
   static ValueNotifier<String> updateText = ValueNotifier("随身Trilium"); //加载界面的说明文字
   static String postCommand = ""; //第一次进入容器时额外运行的命令
-  
-  static bool wasAvncEnabled = false;
-  static bool wasX11Enabled = false;
-
 
   static late SharedPreferences prefs;
 }
@@ -599,14 +595,6 @@ sed -i -E "s@^(VNC_RESOLUTION)=.*@\\1=${w}x${h}@" \$(command -v startvnc)""";
       G.prefs.setBool("reinstallBootstrap", false);
     }
 
-    //开启了什么图形界面？
-    if (Util.getGlobal("useX11")) {
-      G.wasX11Enabled = true;
-      Workflow.launchXServer();
-    } else if (Util.getGlobal("useAvnc")) {
-      G.wasAvncEnabled = true;
-    }
-
     G.termFontScale.value = Util.getGlobal("termFontScale") as double;
 
     G.controller = null;
@@ -706,14 +694,8 @@ clear""");
     setupAudio();
     launchCurrentContainer();
     if (Util.getGlobal("autoLaunchVnc") as bool) {
-      if (G.wasX11Enabled) {
-        await Util.waitForXServer();
-        launchGUIBackend();
-        launchX11();
-        return;
-      }
       launchGUIBackend();
-      waitForConnection().then((value) => G.wasAvncEnabled?launchAvnc():launchBrowser());
+      waitForConnection().then((value) => launchBrowser());
     }
   }
 }

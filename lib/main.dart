@@ -232,13 +232,6 @@ class _SettingPageState extends State<SettingPage> {
             OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.copyShareLink), onPressed: () async {
               final String? ip = await NetworkInfo().getWifiIP();
               if (!context.mounted) return;
-              if (G.wasX11Enabled) {
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(AppLocalizations.of(context)!.x11InvalidHint))
-                );
-                return;
-              }
               if (ip == null) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -1264,13 +1257,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: FloatingActionButton(
               tooltip: AppLocalizations.of(context)!.enterGUI,
               onPressed: () {
-                if (G.wasX11Enabled) {
-                  Workflow.launchX11();
-                } else if (G.wasAvncEnabled) {
-                  Workflow.launchAvnc();
-                } else {
-                  Workflow.launchBrowser();
-                }
+                Workflow.launchBrowser();
               },
               child: const Icon(Icons.play_arrow),
             ),
