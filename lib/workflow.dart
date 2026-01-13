@@ -84,11 +84,8 @@ class Util {
   //double termFontScale = 1 终端字体大小
   //bool isStickyKey = true 终端ctrl, shift, alt键是否粘滞
   //String defaultFFmpegCommand 默认推流命令
-  //String defaultVirglCommand 默认virgl参数
-  //String defaultVirglOpt 默认virgl环境变量
   //bool reinstallBootstrap = false 下次启动是否重装引导包
   //bool uos = false 是否伪装系统为UOS
-  //bool virgl = false 下次启动是否启用virgl
   //bool wakelock = false 屏幕常亮
   //bool isHidpiEnabled = false 是否开启高分辨率
   //bool useAvnc = false 是否默认使用AVNC
@@ -114,9 +111,6 @@ class Util {
       case "isStickyKey" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
       case "reinstallBootstrap" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "uos" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
-      case "virgl" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
-      case "turnip" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
-      case "dri3" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "wakelock" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isHidpiEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       // disable avnc to load webpage by default
@@ -125,9 +119,6 @@ class Util {
       case "avncScaleFactor" : return b ? G.prefs.getDouble(key)!.clamp(-1.0, 1.0) : (value){G.prefs.setDouble(key, value); return value;}(-0.5);
       case "useX11" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "defaultFFmpegCommand" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("-hide_banner -an -max_delay 1000000 -r 30 -f android_camera -camera_index 0 -i 0:0 -vf scale=iw/2:-1 -rtsp_transport udp -f rtsp rtsp://127.0.0.1:8554/stream");
-      case "defaultVirglCommand" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("--use-egl-surfaceless --use-gles --socket-path=\$CONTAINER_DIR/tmp/.virgl_test");
-      case "defaultVirglOpt" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("GALLIUM_DRIVER=virpipe");
-      case "defaultTurnipOpt" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("MESA_LOADER_DRIVER_OVERRIDE=zink VK_ICD_FILENAMES=/home/tiny/.local/share/tiny/extra/freedreno_icd.aarch64.json TU_DEBUG=noconform");
       case "defaultHidpiOpt" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("GDK_SCALE=2 QT_FONT_DPI=192");
       case "containersInfo" : return G.prefs.getStringList(key)!;
     }
@@ -438,7 +429,6 @@ class G {
   //static int? streamingPid;
   static String streamingOutput = "";
   static late Pty streamServerPty;
-  //static int? virglPid;
   static ValueNotifier<int> pageIndex = ValueNotifier(0); //主界面索引
   static ValueNotifier<bool> terminalPageChange = ValueNotifier(true); //更改值，用于刷新小键盘
   static ValueNotifier<bool> bootTextChange = ValueNotifier(true); //更改值，用于刷新启动命令
@@ -496,11 +486,9 @@ ln -sf ../applib/libexec_busybox.so \$DATA_DIR/bin/xz
 ln -sf ../applib/libexec_busybox.so \$DATA_DIR/bin/gzip
 ln -sf ../applib/libexec_proot.so \$DATA_DIR/bin/proot
 ln -sf ../applib/libexec_tar.so \$DATA_DIR/bin/tar
-ln -sf ../applib/libexec_virgl_test_server.so \$DATA_DIR/bin/virgl_test_server
 ln -sf ../applib/libexec_pulseaudio.so \$DATA_DIR/bin/pulseaudio
 ln -sf ../applib/libbusybox.so \$DATA_DIR/lib/libbusybox.so.1.37.0
 ln -sf ../applib/libtalloc.so \$DATA_DIR/lib/libtalloc.so.2
-ln -sf ../applib/libvirglrenderer.so \$DATA_DIR/lib/libvirglrenderer.so
 ln -sf ../applib/libepoxy.so \$DATA_DIR/lib/libepoxy.so
 ln -sf ../applib/libproot-loader32.so \$DATA_DIR/lib/loader32
 ln -sf ../applib/libproot-loader.so \$DATA_DIR/lib/loader
@@ -666,21 +654,6 @@ exit
     String extraOpt = "";
     if (Util.getGlobal("isHidpiEnabled")) {
       extraOpt += "${Util.getGlobal("defaultHidpiOpt")} ";
-    }
-    if (Util.getGlobal("virgl")) {
-      Util.execute("""
-export DATA_DIR=${G.dataPath}
-export PATH=\$DATA_DIR/bin:\$PATH
-export LD_LIBRARY_PATH=\$DATA_DIR/lib
-export CONTAINER_DIR=\$DATA_DIR/containers/${G.currentContainer}
-${G.dataPath}/bin/virgl_test_server ${Util.getGlobal("defaultVirglCommand")}""");
-      extraOpt += "${Util.getGlobal("defaultVirglOpt")} ";
-    }
-    if (Util.getGlobal("turnip")) {
-      extraOpt += "${Util.getGlobal("defaultTurnipOpt")} ";
-      if (!(Util.getGlobal("dri3"))) {
-        extraOpt += "MESA_VK_WSI_DEBUG=sw ";
-      }
     }
     Util.termWrite(
 """

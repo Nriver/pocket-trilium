@@ -457,9 +457,6 @@ sed -i -E "s@^(VNC_RESOLUTION)=.*@\\1=${w}x${h}@" \$(command -v startvnc)""");
           const SizedBox.square(dimension: 8),
           SwitchListTile(title: Text(AppLocalizations.of(context)!.useTermuxX11ByDefault), subtitle: Text(AppLocalizations.of(context)!.disableVNC), value: Util.getGlobal("useX11") as bool, onChanged:(value) {
             G.prefs.setBool("useX11", value);
-            if (!value && Util.getGlobal("dri3")) {
-              G.prefs.setBool("dri3", false);
-            }
             setState(() {});
           },),
           const SizedBox.square(dimension: 16),
@@ -482,62 +479,6 @@ sed -i -E "s@^(VNC_RESOLUTION)=.*@\\1=${w}x${h}@" \$(command -v startvnc)""");
               launchUrl(Uri.parse("https://gitee.com/caten/tc-hints/blob/master/pool/fileaccess.md"), mode: LaunchMode.externalApplication);
             }),
           ]),
-          const SizedBox.square(dimension: 16),
-        ],))),
-      ExpansionPanel(
-        isExpanded: _expandState[4],
-        headerBuilder: ((context, isExpanded) {
-          return ListTile(title: Text(AppLocalizations.of(context)!.graphicsAcceleration), subtitle: Text(AppLocalizations.of(context)!.experimentalFeature));
-        }), body: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-          Text(AppLocalizations.of(context)!.graphicsAccelerationHint),
-          const SizedBox.square(dimension: 16),
-          TextFormField(maxLines: null, initialValue: Util.getGlobal("defaultVirglCommand") as String, decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.virglServerParams),
-            onChanged: (value) async {
-              await G.prefs.setString("defaultVirglCommand", value);
-            },
-          ),
-          const SizedBox.square(dimension: 8),
-          TextFormField(maxLines: null, initialValue: Util.getGlobal("defaultVirglOpt") as String, decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.virglEnvVar),
-            onChanged: (value) async {
-              await G.prefs.setString("defaultVirglOpt", value);
-            },
-          ),
-          const SizedBox.square(dimension: 8),
-          SwitchListTile(title: Text(AppLocalizations.of(context)!.enableVirgl), subtitle: Text(AppLocalizations.of(context)!.applyOnNextLaunch), value: Util.getGlobal("virgl") as bool, onChanged:(value) {
-            G.prefs.setBool("virgl", value);
-            setState(() {});
-          },),
-          const SizedBox.square(dimension: 16),
-          const Divider(height: 2, indent: 8, endIndent: 8),
-          const SizedBox.square(dimension: 16),
-          Text(AppLocalizations.of(context)!.turnipAdvantages),
-          const SizedBox.square(dimension: 8),
-          TextFormField(maxLines: null, initialValue: Util.getGlobal("defaultTurnipOpt") as String, decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.turnipEnvVar),
-            onChanged: (value) async {
-              await G.prefs.setString("defaultTurnipOpt", value);
-            },
-          ),
-          const SizedBox.square(dimension: 8),
-          SwitchListTile(title: Text(AppLocalizations.of(context)!.enableTurnipZink), subtitle: Text(AppLocalizations.of(context)!.applyOnNextLaunch), value: Util.getGlobal("turnip") as bool, onChanged:(value) async {
-            G.prefs.setBool("turnip", value);
-            if (!value && Util.getGlobal("dri3")) {
-              G.prefs.setBool("dri3", false);
-            }
-            setState(() {});
-          },),
-          const SizedBox.square(dimension: 8),
-          SwitchListTile(title: Text(AppLocalizations.of(context)!.enableDRI3), subtitle: Text(AppLocalizations.of(context)!.applyOnNextLaunch), value: Util.getGlobal("dri3") as bool, onChanged:(value) async {
-            if (value && !(Util.getGlobal("turnip") && Util.getGlobal("useX11"))) {
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).hideCurrentSnackBar();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(context)!.dri3Requirement))
-              );
-              return;
-            }
-            G.prefs.setBool("dri3", value);
-            setState(() {});
-          },),
           const SizedBox.square(dimension: 16),
         ],))),
     ],);
