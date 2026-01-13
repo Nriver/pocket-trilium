@@ -85,7 +85,6 @@ class Util {
   //bool isStickyKey = true 终端ctrl, shift, alt键是否粘滞
   //String defaultFFmpegCommand 默认推流命令
   //bool reinstallBootstrap = false 下次启动是否重装引导包
-  //bool uos = false 是否伪装系统为UOS
   //bool wakelock = false 屏幕常亮
   //bool isHidpiEnabled = false 是否开启高分辨率
   //bool useAvnc = false 是否默认使用AVNC
@@ -110,7 +109,6 @@ class Util {
       case "termFontScale" : return b ? G.prefs.getDouble(key)! : (value){G.prefs.setDouble(key, value); return value;}(1.0);
       case "isStickyKey" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
       case "reinstallBootstrap" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
-      case "uos" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "wakelock" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isHidpiEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       // disable avnc to load webpage by default
