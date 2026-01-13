@@ -540,68 +540,6 @@ sed -i -E "s@^(VNC_RESOLUTION)=.*@\\1=${w}x${h}@" \$(command -v startvnc)""");
           },),
           const SizedBox.square(dimension: 16),
         ],))),
-      ExpansionPanel(
-        isExpanded: _expandState[5],
-        headerBuilder: ((context, isExpanded) {
-          return ListTile(title: Text(AppLocalizations.of(context)!.windowsAppSupport), subtitle: Text(AppLocalizations.of(context)!.experimentalFeature),);
-        }), body: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-          Text(AppLocalizations.of(context)!.hangoverDescription),
-          const SizedBox.square(dimension: 8),
-          Wrap(alignment: WrapAlignment.center, spacing: 4.0, runSpacing: 4.0, children: [
-            OutlinedButton(style: D.commandButtonStyle, child: Text("${AppLocalizations.of(context)!.installHangoverStable}（10.14）"), onPressed: () async {
-              Util.termWrite("bash ~/.local/share/tiny/extra/install-hangover-stable");
-              G.pageIndex.value = 0;
-            }),
-            OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.installHangoverLatest), onPressed: () async {
-              Util.termWrite("bash ~/.local/share/tiny/extra/install-hangover");
-              G.pageIndex.value = 0;
-            }),
-            OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.uninstallHangover), onPressed: () async {
-              Util.termWrite("sudo apt autoremove --purge -y hangover*");
-              G.pageIndex.value = 0;
-            }),
-            OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.clearWineData), onPressed: () async {
-              Util.termWrite("rm -rf ~/.wine");
-              G.pageIndex.value = 0;
-            }),
-          ]),
-          const SizedBox.square(dimension: 16),
-          const Divider(height: 2, indent: 8, endIndent: 8),
-          const SizedBox.square(dimension: 16),
-          Text(AppLocalizations.of(context)!.wineCommandsHint),
-          const SizedBox.square(dimension: 8),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 4.0,
-            runSpacing: 4.0,
-            children: (Localizations.localeOf(context).languageCode == 'zh' 
-                ? D.wineCommands 
-                : D.wineCommands4En
-            ).asMap().entries.map<Widget>((e) {
-              return OutlinedButton(
-                style: D.commandButtonStyle,
-                child: Text(e.value["name"]!),
-                onPressed: () {
-                  Util.termWrite("${e.value["command"]!} &");
-                  G.pageIndex.value = 0;
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox.square(dimension: 16),
-          const Divider(height: 2, indent: 8, endIndent: 8),
-          const SizedBox.square(dimension: 16),
-          Text(AppLocalizations.of(context)!.restartRequiredHint),
-          const SizedBox.square(dimension: 8),
-          SwitchListTile(title: Text(AppLocalizations.of(context)!.switchToJapanese), subtitle: const Text("システムを日本語に切り替える"), value: Util.getGlobal("isJpEnabled") as bool, onChanged:(value) async {
-            if (value) {
-                Util.termWrite("sudo localedef -c -i ja_JP -f UTF-8 ja_JP.UTF-8");
-                G.pageIndex.value = 0;
-            }
-            G.prefs.setBool("isJpEnabled", value);
-            setState(() {});
-          },),
-        ],))),
     ],);
   }
 }
