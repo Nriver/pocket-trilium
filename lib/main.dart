@@ -220,7 +220,7 @@ class _SettingPageState extends State<SettingPage> {
             });
           }),
           const SizedBox.square(dimension: 8),
-          TextFormField(maxLines: null, initialValue: Util.getCurrentProp("vnc"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.vncStartupCommand), onChanged: (value) async {
+          TextFormField(maxLines: null, initialValue: Util.getCurrentProp("vnc"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.triliumStartupCommand), onChanged: (value) async {
             await Util.setCurrentProp("vnc", value);
           }),
           const SizedBox.square(dimension: 8),

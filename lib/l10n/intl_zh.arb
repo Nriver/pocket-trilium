@@ -10,7 +10,7 @@
   "signal9ErrorPage": "Signal9错误页面",
   "containerName": "容器名称",
   "startupCommand": "启动命令",
-  "vncStartupCommand": "vnc启动命令",
+  "triliumStartupCommand": "Trilium启动命令",
   "shareUsageHint": "你可以在当前所有同一网络下的设备（如：连接同一WiFi的手机，电脑等）里使用小小电脑。\n\n点击下面的按钮分享链接到其他设备后使用浏览器打开即可。",
   "copyShareLink": "复制分享链接",
   "x11InvalidHint": "使用X11时此功能无效",
