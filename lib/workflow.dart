@@ -87,7 +87,6 @@ class Util {
   //String defaultVirglCommand 默认virgl参数
   //String defaultVirglOpt 默认virgl环境变量
   //bool reinstallBootstrap = false 下次启动是否重装引导包
-  //bool getifaddrsBridge = false 下次启动是否桥接getifaddrs
   //bool uos = false 是否伪装系统为UOS
   //bool virgl = false 下次启动是否启用virgl
   //bool wakelock = false 屏幕常亮
@@ -115,7 +114,6 @@ class Util {
       case "termFontScale" : return b ? G.prefs.getDouble(key)! : (value){G.prefs.setDouble(key, value); return value;}(1.0);
       case "isStickyKey" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
       case "reinstallBootstrap" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
-      case "getifaddrsBridge" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "uos" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "virgl" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "turnip" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
@@ -363,59 +361,19 @@ class D {
   ];
 
   //默认快捷指令
-  static const commands = [{"name":"检查更新并升级", "command":"sudo dpkg --configure -a && sudo apt update && sudo apt full-upgrade -y && sudo apt autoremove -y"},
+  static const commands = [
     {"name":"查看系统信息", "command":"neofetch -L && neofetch --off"},
     {"name":"清屏", "command":"clear"},
     {"name":"中断任务", "command":"\x03"},
-    {"name":"安装图形处理软件Krita", "command":"sudo apt update && sudo apt install -y krita krita-l10n"},
-    {"name":"卸载Krita", "command":"sudo apt autoremove --purge -y krita krita-l10n"},
-    {"name":"安装视频剪辑软件Kdenlive", "command":"sudo apt update && sudo apt install -y kdenlive"},
-    {"name":"卸载Kdenlive", "command":"sudo apt autoremove --purge -y kdenlive"},
-    {"name":"安装科学计算软件Octave", "command":"sudo apt update && sudo apt install -y octave"},
-    {"name":"卸载Octave", "command":"sudo apt autoremove --purge -y octave"},
-    {"name":"安装WPS", "command":r"""cat << 'EOF' | sh && sudo dpkg --configure -a && sudo apt update && sudo apt install -y /tmp/wps.deb
-wget https://github.akams.cn/https://github.com/tiny-computer/third-party-archives/releases/download/archives/wps-office_11.1.0.11720_arm64.deb -O /tmp/wps.deb
-EOF
-rm /tmp/wps.deb"""},
-    {"name":"卸载WPS", "command":"sudo apt autoremove --purge -y wps-office"},
-    {"name":"安装CAJViewer", "command":"wget https://download.cnki.net/net.cnki.cajviewer_1.3.20-1_arm64.deb -O /tmp/caj.deb && sudo apt update && sudo apt install -y /tmp/caj.deb && bash /home/tiny/.local/share/tiny/caj/postinst; rm /tmp/caj.deb"},
-    {"name":"卸载CAJViewer", "command":"sudo apt autoremove --purge -y net.cnki.cajviewer && bash /home/tiny/.local/share/tiny/caj/postrm"},
-    {"name":"安装亿图图示", "command":"wget https://cc-download.wondershare.cc/business/prd/edrawmax_13.1.0-1_arm64_binner.deb -O /tmp/edraw.deb && sudo apt update && sudo apt install -y /tmp/edraw.deb && bash /home/tiny/.local/share/tiny/edraw/postinst; rm /tmp/edraw.deb"},
-    {"name":"卸载亿图图示", "command":"sudo apt autoremove --purge -y edrawmax libldap-2.4-2"},
-    {"name":"安装QQ", "command":"""wget \$(curl -s https://cdn-go.cn/qq-web/im.qq.com_new/latest/rainbow/linuxConfig.js | grep -oP '"armDownloadUrl":{[^}]*"deb":"\\K[^"]+') -O /tmp/qq.deb && sudo apt update && sudo apt install -y /tmp/qq.deb && sed -i 's#Exec=/opt/QQ/qq %U#Exec=/opt/QQ/qq --no-sandbox %U#g' /usr/share/applications/qq.desktop; rm /tmp/qq.deb"""},
-    {"name":"卸载QQ", "command":"sudo apt autoremove --purge -y linuxqq"},
-    {"name":"安装微信", "command":"wget https://dldir1v6.qq.com/weixin/Universal/Linux/WeChatLinux_arm64.deb -O /tmp/wechat.deb && sudo apt update && sudo apt install -y /tmp/wechat.deb && echo '安装完成。如果你使用微信只是为了传输文件，那么可以考虑使用支持SAF的文件管理器（如：质感文件），直接访问小小电脑所有文件。'; rm /tmp/wechat.deb"},
-    {"name":"卸载微信", "command":"sudo apt autoremove --purge -y wechat"},
-    {"name":"安装钉钉", "command":"""wget \$(curl -sw %{redirect_url} https://www.dingtalk.com/win/d/qd=linux_arm64) -O /tmp/dingtalk.deb && sudo apt update && sudo apt install -y /tmp/dingtalk.deb libglut3.12 libglu1-mesa && sed -i 's#\\./com.alibabainc.dingtalk#\\./com.alibabainc.dingtalk --no-sandbox#g' /opt/apps/com.alibabainc.dingtalk/files/Elevator.sh; rm /tmp/dingtalk.deb"""},
-    {"name":"卸载钉钉", "command":"sudo apt autoremove --purge -y com.alibabainc.dingtalk"},
-    {"name":"启用回收站", "command":"sudo apt update && sudo apt install -y gvfs && echo '安装完成, 重启软件即可使用回收站。'"},
-    {"name":"清理包管理器缓存", "command":"sudo apt clean"},
     {"name":"关机", "command":"stopvnc\nexit\nexit"},
-    {"name":"???", "command":"timeout 8 cmatrix"}
   ];
 
   //默认快捷指令，英文版本
-  static const commands4En = [{"name":"Update Packages", "command":"sudo dpkg --configure -a && sudo apt update && sudo apt full-upgrade -y && sudo apt autoremove -y"},
+  static const commands4En = [
     {"name":"System Info", "command":"neofetch -L && neofetch --off"},
     {"name":"Clear", "command":"clear"},
     {"name":"Interrupt", "command":"\x03"},
-    {"name":"Install Painting Program Krita", "command":"sudo apt update && sudo apt install -y krita krita-l10n"},
-    {"name":"Uninstall Krita", "command":"sudo apt autoremove --purge -y krita krita-l10n"},
-    {"name":"Install KDE Non-Linear Video Editor", "command":"sudo apt update && sudo apt install -y kdenlive"},
-    {"name":"Uninstall Kdenlive", "command":"sudo apt autoremove --purge -y kdenlive"},
-    {"name":"Install LibreOffice", "command":"sudo apt update && sudo apt install -y libreoffice"},
-    {"name":"Uninstall LibreOffice", "command":"sudo apt autoremove --purge -y libreoffice"},
-    {"name":"Install WPS", "command":r"""cat << 'EOF' | sh && sudo dpkg --configure -a && sudo apt update && sudo apt install -y /tmp/wps.deb
-wget https://github.com/tiny-computer/third-party-archives/releases/download/archives/wps-office_11.1.0.11720_arm64.deb -O /tmp/wps.deb
-EOF
-rm /tmp/wps.deb"""},
-    {"name":"Uninstall WPS", "command":"sudo apt autoremove --purge -y wps-office"},
-    {"name":"Install EdrawMax", "command":"""wget https://cc-download.wondershare.cc/business/prd/edrawmax_13.1.0-1_arm64_binner.deb -O /tmp/edraw.deb && sudo apt update && sudo apt install -y /tmp/edraw.deb && bash /home/tiny/.local/share/tiny/edraw/postinst && sudo sed -i 's/<Language V="cn"\\/>/<Language V="en"\\/>/g' /opt/apps/edrawmax/config/settings.xml; rm /tmp/edraw.deb"""},
-    {"name":"Uninstall EdrawMax", "command":"sudo apt autoremove --purge -y edrawmax libldap-2.4-2"},
-    {"name":"Enable Recycle Bin", "command":"sudo apt update && sudo apt install -y gvfs && echo 'Restart the app to use Recycle Bin.'"},
-    {"name":"Clean Package Cache", "command":"sudo apt clean"},
     {"name":"Power Off", "command":"stopvnc\nexit\nexit"},
-    {"name":"???", "command":"timeout 8 cmatrix"}
   ];
 
   //默认wine快捷指令
@@ -573,12 +531,6 @@ class Workflow {
     "assets/assets.zip",
     "${G.dataPath}/assets.zip",
     );
-    //patch.tar.gz存放了tiny文件夹
-    //里面是一些补丁，会被挂载到~/.local/share/tiny
-    await Util.copyAsset(
-    "assets/patch.tar.gz",
-    "${G.dataPath}/patch.tar.gz",
-    );
     // 加入 trilium
     await Util.copyAsset(
       "assets/${D.triliumPackage}",
@@ -610,9 +562,8 @@ ln -sf ../applib/libproot-loader.so \$DATA_DIR/lib/loader
 chmod -R +x bin/*
 chmod -R +x libexec/proot/*
 chmod 1777 tmp
-\$DATA_DIR/bin/tar zxf patch.tar.gz
 \$DATA_DIR/bin/busybox tar -xJf ${D.triliumPackage}
-\$DATA_DIR/bin/busybox rm -rf assets.zip patch.tar.gz ${D.triliumPackage}
+\$DATA_DIR/bin/busybox rm -rf assets.zip ${D.triliumPackage}
 """);
   }
 
@@ -714,7 +665,6 @@ sed -i -E "s@^(VNC_RESOLUTION)=.*@\\1=${w}x${h}@" \$(command -v startvnc)""";
         await G.prefs.setBool("isStickyKey", false);
         await G.prefs.setBool("wakelock", true);
       }
-      await G.prefs.setBool("getifaddrsBridge", (await DeviceInfoPlugin().androidInfo).version.sdkInt >= 31);
     }
     G.currentContainer = Util.getGlobal("defaultContainer") as int;
 
@@ -767,10 +717,6 @@ exit
   static Future<void> launchCurrentContainer() async {
     String extraMount = ""; //mount options and other proot options
     String extraOpt = "";
-    if (Util.getGlobal("getifaddrsBridge")) {
-      Util.execute("${G.dataPath}/bin/getifaddrs_bridge_server ${G.dataPath}/containers/${G.currentContainer}/tmp/.getifaddrs-bridge");
-      extraOpt += "LD_PRELOAD=/home/tiny/.local/share/tiny/extra/getifaddrs_bridge_client_lib.so ";
-    }
     if (Util.getGlobal("isHidpiEnabled")) {
       extraOpt += "${Util.getGlobal("defaultHidpiOpt")} ";
     }
@@ -792,8 +738,6 @@ ${G.dataPath}/bin/virgl_test_server ${Util.getGlobal("defaultVirglCommand")}""")
     if (Util.getGlobal("isJpEnabled")) {
       extraOpt += "LANG=ja_JP.UTF-8 ";
     }
-    extraMount += "--mount=\$DATA_DIR/tiny/font:/usr/share/fonts/tiny ";
-    extraMount += "--mount=\$DATA_DIR/tiny/extra/cmatrix:/home/tiny/.local/bin/cmatrix ";
     Util.termWrite(
 """
 export DATA_DIR=${G.dataPath}

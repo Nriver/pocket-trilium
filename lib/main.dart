@@ -324,11 +324,6 @@ class _SettingPageState extends State<SettingPage> {
             setState(() {});
           },),
           const SizedBox.square(dimension: 8),
-          SwitchListTile(title: Text(AppLocalizations.of(context)!.getifaddrsBridge), subtitle: Text(AppLocalizations.of(context)!.fixGetifaddrsPermission), value: Util.getGlobal("getifaddrsBridge") as bool, onChanged:(value) {
-            G.prefs.setBool("getifaddrsBridge", value);
-            setState(() {});
-          },),
-          const SizedBox.square(dimension: 8),
           SwitchListTile(title: Text(AppLocalizations.of(context)!.fakeUOSSystem), value: Util.getGlobal("uos") as bool, onChanged:(value) {
             G.prefs.setBool("uos", value);
             setState(() {});
