@@ -331,11 +331,11 @@ class D {
 
   //常用链接
   static const links = [
-    {"name": "projectUrl", "value": "https://github.com/Cateners/tiny_computer"},
-    {"name": "issueUrl", "value": "https://github.com/Cateners/tiny_computer/issues"},
+    {"name": "projectUrl", "value": "https://github.com/Nriver/pocket_trilium"},
+    {"name": "issueUrl", "value": "https://github.com/Nriver/pocket_trilium/issues"},
     {"name": "faqUrl", "value": "https://gitee.com/caten/tc-hints/blob/master/pool/faq.md"},
     {"name": "solutionUrl", "value": "https://gitee.com/caten/tc-hints/blob/master/pool/solution.md"},
-    {"name": "discussionUrl", "value": "https://github.com/Cateners/tiny_computer/discussions"},
+    {"name": "discussionUrl", "value": "https://github.com/Nriver/pocket_trilium/discussions"},
   ];
 
   //默认快捷指令
