@@ -79,7 +79,7 @@
   "userManual": "User Manual",
   "openSourceLicenses": "Open Source Licenses",
   "permissionUsage": "Permission Usage",
-  "privacyStatement": "\nThis app does not collect your private information.\n\nHowever, I cannot control behaviors of apps you install/use inside the container system (including via shortcut commands).\n\nRequested permissions are used for:\nFile permissions: accessing phone directories\nNotifications & accessibility: Required by Termux:X11",
+  "privacyStatement": "\nThis software does not collect your private information.\n\nThe permissions requested by this software are used for the following purposes:\nFile-related permissions: to save Trilium data to the phone's internal storage.",
   "supportAuthor": "Support Developers",
   "recommendApp": "If you find it useful, please recommend to others!",
   "projectUrl": "Project URL",

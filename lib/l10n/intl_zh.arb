@@ -79,7 +79,7 @@
   "userManual": "使用说明",
   "openSourceLicenses": "开源许可",
   "permissionUsage": "权限使用说明",
-  "privacyStatement": "\n本软件不会收集你的隐私信息。\n\n当然，你在容器系统内部安装或使用的软件行为（包括通过快捷指令）就不受我控制了，我不对其负责。\n\n本软件申请的权限用于以下目的：\n文件相关权限：用于系统访问手机目录；\n通知和无障碍：Termux:X11需要。",
+  "privacyStatement": "\n本软件不会收集你的隐私信息。\n\n本软件申请的权限用于以下目的：\n文件相关权限：将Trilium数据保存到手机内部存储。",
   "supportAuthor": "支持作者",
   "recommendApp": "如果认为好用的话，可以推荐给其他人用噢！",
   "projectUrl": "项目地址",
