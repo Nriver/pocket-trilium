@@ -6,7 +6,7 @@ Please stand up and stretch your body for a while if you see this message :)
 
 [![Support Me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nriver)
 
-![logo](docs/logo.png)
+<img src="docs/logo.png" width="200" />
 
 This project is inspired by and heavily modified from the [Cateners/tiny_computer](https://github.com/Cateners/tiny_computer) project.
 
