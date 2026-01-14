@@ -172,8 +172,6 @@ class _SettingPageState extends State<SettingPage> {
 
   final List<bool> _expandState = [false, false, false];
 
-  double _avncScaleFactor = Util.getGlobal("avncScaleFactor") as double;
-
   @override
   Widget build(BuildContext context) {
     return ExpansionPanelList(
