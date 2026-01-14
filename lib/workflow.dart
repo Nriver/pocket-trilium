@@ -546,10 +546,11 @@ ${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? "" : "ec
     // 一些数据初始化
     // $DATA_DIR 是数据文件夹, $CONTAINER_DIR 是容器根目录
     // 启动前先杀掉旧的trilium进程, 防止快速多次关闭启动app时旧的进程没有退出导致的问题
+    // 判断挂载到手机内部存储的默认数据路径如果无法写入，则写入到app内部目录
     await G.prefs.setStringList("containersInfo", ["""{
 "name":"Pocket Trilium by Nriver",
 "boot":"${D.boot}",
-"vnc":"pkill -9 node \\n cd /home/tiny/trilium && ./trilium.sh \\n #sleep 10",
+"vnc":"pkill -9 node \\n clear \\n cd /home/tiny/trilium \\n [ -w \\"/home/tiny/.local/share/trilium-data\\" ] && export TRILIUM_DATA_DIR=\\"/home/tiny/.local/share/trilium-data\\" || export TRILIUM_DATA_DIR=\\"/home/tiny/trilium-data\\" \\n ./trilium.sh \\n #sleep 10",
 "vncUrl":"http://127.0.0.1:8080",
 "commands":${jsonEncode(Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? D.commands : D.commands4En)}
 }"""]);
