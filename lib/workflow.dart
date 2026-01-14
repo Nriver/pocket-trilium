@@ -339,18 +339,14 @@ class D {
 
   //默认快捷指令
   static const commands = [
-    {"name":"查看系统信息", "command":"neofetch -L && neofetch --off"},
     {"name":"清屏", "command":"clear"},
     {"name":"中断任务", "command":"\x03"},
-    {"name":"关机", "command":"stopvnc\nexit\nexit"},
   ];
 
   //默认快捷指令，英文版本
   static const commands4En = [
-    {"name":"System Info", "command":"neofetch -L && neofetch --off"},
-    {"name":"Clear", "command":"clear"},
+    {"name":"Clear Console", "command":"clear"},
     {"name":"Interrupt", "command":"\x03"},
-    {"name":"Power Off", "command":"stopvnc\nexit\nexit"},
   ];
 
   //默认小键盘
