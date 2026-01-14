@@ -753,7 +753,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           Padding(padding: EdgeInsets.all(8), child: Text(AppLocalizations.of(context)!.recommendApp)),
           ElevatedButton(
             onPressed: () {
-              launchUrl(Uri.parse("https://github.com/Cateners/tiny_computer"), mode: LaunchMode.externalApplication);
+              launchUrl(Uri.parse("https://github.com/Nriver/pocket-trilium"), mode: LaunchMode.externalApplication);
             },
             child: Text(AppLocalizations.of(context)!.projectUrl),
           ),
