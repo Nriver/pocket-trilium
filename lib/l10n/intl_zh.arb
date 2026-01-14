@@ -81,7 +81,7 @@
   "permissionUsage": "权限使用说明",
   "privacyStatement": "\n本软件不会收集你的隐私信息。\n\n本软件申请的权限用于以下目的：\n文件相关权限：将Trilium数据保存到手机内部存储。",
   "supportAuthor": "支持作者",
-  "recommendApp": "如果认为好用的话，可以推荐给其他人用噢！",
+  "supportAuthorDescription": "如果你喜欢我的作品，支持我的努力，我将不胜感激。你的赞助不仅能帮助我持续创作，也能让我为大家带来更多有价值的内容。谢谢你的支持与关注！",
   "projectUrl": "项目地址",
   "commandEdit": "指令编辑",
   "commandName": "指令名称",

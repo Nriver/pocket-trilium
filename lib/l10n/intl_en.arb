@@ -81,7 +81,7 @@
   "permissionUsage": "Permission Usage",
   "privacyStatement": "\nThis software does not collect your private information.\n\nThe permissions requested by this software are used for the following purposes:\nFile-related permissions: to save Trilium data to the phone's internal storage.",
   "supportAuthor": "Support Developers",
-  "recommendApp": "If you find it useful, please recommend to others!",
+  "supportAuthorDescription": "If you enjoy my work and want to support my efforts, I would be truly grateful. Your sponsorship will not only help me continue creating but also allow me to bring even more valuable content to everyone. Thank you for your support and attention!",
   "projectUrl": "Project URL",
   "commandEdit": "Command Edit",
   "commandName": "Command Name",
