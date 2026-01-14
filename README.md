@@ -10,6 +10,11 @@ This project is inspired by and heavily modified from the [Cateners/tiny_compute
 
 Pocket Trilium allows you to run the powerful [Trilium Notes](https://github.com/zadam/trilium) app on Android devices. While originally based on the [tiny_computer](https://github.com/Cateners/tiny_computer) project, this version has undergone significant modifications to better suit my needs.
 
+## Hints
+
+- Create a folder named trilium-data in your phone’s internal storage, or alternatively, copy the trilium-data folder from your desktop client to your phone.
+- For Android 12+ devices, you may need to disable the `Stop restricting child processes` option in `Developer Options` of your system.
+
 ## Known issues
 
 Sometimes the app will not start correctly, with error like `double free or corruption`, just kill the app and try to start again several times.
