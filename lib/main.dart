@@ -190,21 +190,6 @@ class _SettingPageState extends State<SettingPage> {
           return ListTile(title: Text(AppLocalizations.of(context)!.advancedSettings), subtitle: Text(AppLocalizations.of(context)!.restartAfterChange));
         }), body: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
           Wrap(alignment: WrapAlignment.center, spacing: 4.0, runSpacing: 4.0, children: [
-            OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.resetStartupCommand), onPressed: () {
-              showDialog(context: context, builder: (context) {
-                return AlertDialog(title: Text(AppLocalizations.of(context)!.attention), content: Text(AppLocalizations.of(context)!.confirmResetCommand), actions: [
-                  TextButton(onPressed:() {
-                    Navigator.of(context).pop();
-                  }, child: Text(AppLocalizations.of(context)!.cancel)),
-                  TextButton(onPressed:() async {
-                    await Util.setCurrentProp("boot", Localizations.localeOf(context).languageCode == 'zh' ? D.boot : D.boot.replaceFirst('LANG=zh_CN.UTF-8', 'LANG=en_US.UTF-8').replaceFirst('公共', 'Public').replaceFirst('图片', 'Pictures').replaceFirst('音乐', 'Music').replaceFirst('视频', 'Videos').replaceFirst('下载', 'Downloads').replaceFirst('文档', 'Documents').replaceFirst('照片', 'Photos'));
-                    G.bootTextChange.value = !G.bootTextChange.value;
-                    if (!context.mounted) return;
-                    Navigator.of(context).pop();
-                  }, child: Text(AppLocalizations.of(context)!.yes)),
-                ]);
-              });
-            }),
             OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.signal9ErrorPage), onPressed: () async {
               await D.androidChannel.invokeMethod("launchSignal9Page", {});
             }),
