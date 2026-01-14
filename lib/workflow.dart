@@ -205,10 +205,6 @@ class Util {
         return AppLocalizations.of(context)!.projectUrl;
       case 'issueUrl':
         return AppLocalizations.of(context)!.issueUrl;
-      case 'faqUrl':
-        return AppLocalizations.of(context)!.faqUrl;
-      case 'solutionUrl':
-        return AppLocalizations.of(context)!.solutionUrl;
       case 'discussionUrl':
         return AppLocalizations.of(context)!.discussionUrl;
       default:
@@ -332,8 +328,6 @@ class D {
   static const links = [
     {"name": "projectUrl", "value": "https://github.com/Nriver/pocket_trilium"},
     {"name": "issueUrl", "value": "https://github.com/Nriver/pocket_trilium/issues"},
-    {"name": "faqUrl", "value": "https://gitee.com/caten/tc-hints/blob/master/pool/faq.md"},
-    {"name": "solutionUrl", "value": "https://gitee.com/caten/tc-hints/blob/master/pool/solution.md"},
     {"name": "discussionUrl", "value": "https://github.com/Nriver/pocket_trilium/discussions"},
   ];
 

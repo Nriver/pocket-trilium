@@ -294,9 +294,6 @@ class _SettingPageState extends State<SettingPage> {
             OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.requestAllFilesAccess), onPressed: () {
               Permission.manageExternalStorage.request();
             }),
-            OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.fileAccessGuide), onPressed: () {
-              launchUrl(Uri.parse("https://gitee.com/caten/tc-hints/blob/master/pool/fileaccess.md"), mode: LaunchMode.externalApplication);
-            }),
           ]),
           const SizedBox.square(dimension: 16),
         ],))),
