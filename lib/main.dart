@@ -214,12 +214,6 @@ class _SettingPageState extends State<SettingPage> {
             await Util.setCurrentProp("name", value);
           }),
           const SizedBox.square(dimension: 8),
-          ValueListenableBuilder(valueListenable: G.bootTextChange, builder:(context, v, child) {
-            return TextFormField(maxLines: null, initialValue: Util.getCurrentProp("boot"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.startupCommand), onChanged: (value) async {
-              await Util.setCurrentProp("boot", value);
-            });
-          }),
-          const SizedBox.square(dimension: 8),
           TextFormField(maxLines: null, initialValue: Util.getCurrentProp("vnc"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.triliumStartupCommand), onChanged: (value) async {
             await Util.setCurrentProp("vnc", value);
           }),
@@ -251,10 +245,6 @@ class _SettingPageState extends State<SettingPage> {
           const SizedBox.square(dimension: 16),
           TextFormField(maxLines: null, initialValue: Util.getCurrentProp("vncUrl"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.webRedirectUrl), onChanged: (value) async {
             await Util.setCurrentProp("vncUrl", value);
-          }),
-          const SizedBox.square(dimension: 8),
-          TextFormField(maxLines: null, initialValue: Util.getCurrentProp("vncUri"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.vncLink), onChanged: (value) async {
-            await Util.setCurrentProp("vncUri", value);
           }),
           const SizedBox.square(dimension: 8),
         ],))),
