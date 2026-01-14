@@ -170,7 +170,7 @@ class SettingPage extends StatefulWidget {
 
 class _SettingPageState extends State<SettingPage> {
 
-  final List<bool> _expandState = [false, false, false, false, false, false];
+  final List<bool> _expandState = [false, false, false];
 
   double _avncScaleFactor = Util.getGlobal("avncScaleFactor") as double;
 
@@ -283,7 +283,7 @@ class _SettingPageState extends State<SettingPage> {
           },),
         ],))),
       ExpansionPanel(
-        isExpanded: _expandState[3],
+        isExpanded: _expandState[2],
         headerBuilder: ((context, isExpanded) {
           return ListTile(title: Text(AppLocalizations.of(context)!.fileAccess));
         }), body: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
