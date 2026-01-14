@@ -188,8 +188,8 @@ class _SettingPageState extends State<SettingPage> {
           return ListTile(title: Text(AppLocalizations.of(context)!.advancedSettings), subtitle: Text(AppLocalizations.of(context)!.restartAfterChange));
         }), body: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
           const SizedBox.square(dimension: 8),
-          TextFormField(maxLines: null, initialValue: Util.getCurrentProp("vnc"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.triliumStartupCommand), onChanged: (value) async {
-            await Util.setCurrentProp("vnc", value);
+          TextFormField(maxLines: null, initialValue: Util.getCurrentProp("appStartCommand"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.triliumStartupCommand), onChanged: (value) async {
+            await Util.setCurrentProp("appStartCommand", value);
           }),
           const SizedBox.square(dimension: 8),
           const Divider(height: 2, indent: 8, endIndent: 8),
@@ -207,7 +207,7 @@ class _SettingPageState extends State<SettingPage> {
                 );
                 return;
               }
-              FlutterClipboard.copy((Util.getCurrentProp("vncUrl") as String).replaceAll(RegExp.escape("localhost"), ip)).then((value) {
+              FlutterClipboard.copy((Util.getCurrentProp("webUrl") as String).replaceAll(RegExp.escape("localhost"), ip)).then((value) {
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -217,8 +217,8 @@ class _SettingPageState extends State<SettingPage> {
             }),
           ]),
           const SizedBox.square(dimension: 16),
-          TextFormField(maxLines: null, initialValue: Util.getCurrentProp("vncUrl"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.webRedirectUrl), onChanged: (value) async {
-            await Util.setCurrentProp("vncUrl", value);
+          TextFormField(maxLines: null, initialValue: Util.getCurrentProp("webUrl"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.webRedirectUrl), onChanged: (value) async {
+            await Util.setCurrentProp("webUrl", value);
           }),
           const SizedBox.square(dimension: 8),
         ],))),

@@ -92,7 +92,7 @@ class Util {
   //String defaultHidpiOpt 默认HiDPI环境变量
   //? int bootstrapVersion: 启动包版本
   //String[] containersInfo: 所有容器信息(json)
-  //{name, boot:"\$DATA_DIR/bin/proot ...", vnc:"startnovnc", vncUrl:"...", commands:[{name:"更新和升级", command:"apt update -y && apt upgrade -y"},
+  //{name, boot:"\$DATA_DIR/bin/proot ...", appStartCommand:"...", webUrl:"...", commands:[{name:"更新和升级", command:"apt update -y && apt upgrade -y"},
   // bind:[{name:"U盘", src:"/storage/xxxx", dst:"/media/meow"}]...]}
   //TODO: 这么写还是不对劲，有空改成类试试？
   static dynamic getGlobal(String key) {
@@ -129,16 +129,16 @@ class Util {
     switch (key) {
       case "name" : return (value){addCurrentProp(key, value); return value;}("Pocket Trilium by Nriver");
       case "boot" : return (value){addCurrentProp(key, value); return value;}(D.boot);
-      case "vnc" : return (value){addCurrentProp(key, value); return value;}("startnovnc &");
-      // case "vncUrl" : return (value){addCurrentProp(key, value); return value;}("http://localhost:36082/vnc.html?host=localhost&port=36082&autoconnect=true&resize=remote&password=12345678");
+      case "appStartCommand" : return (value){addCurrentProp(key, value); return value;}("""pkill -9 node \\n clear \\n cd /home/tiny/trilium \\n [ -w \\"/home/tiny/.local/share/trilium-data\\" ] && export TRILIUM_DATA_DIR=\\"/home/tiny/.local/share/trilium-data\\" || export TRILIUM_DATA_DIR=\\"/home/tiny/trilium-data\\" \\n ./trilium.sh \\n #sleep 10""");
+      // case "webUrl" : return (value){addCurrentProp(key, value); return value;}("http://localhost:36082/vnc.html?host=localhost&port=36082&autoconnect=true&resize=remote&password=12345678");
       // Trilium homepage
-      case "vncUrl" : return (value){addCurrentProp(key, value); return value;}("http://127.0.0.1:8080");
+      case "webUrl" : return (value){addCurrentProp(key, value); return value;}("http://127.0.0.1:8080");
       case "vncUri" : return (value){addCurrentProp(key, value); return value;}("vnc://127.0.0.1:5904?VncPassword=12345678&SecurityType=2");
       case "commands" : return (value){addCurrentProp(key, value); return value;}(jsonDecode(jsonEncode(D.commands)));
     }
   }
 
-  //用来设置name, boot, vnc, vncUrl等
+  //用来设置name, boot, vnc, webUrl等
   static Future<void> setCurrentProp(String key, dynamic value) async {
     await G.prefs.setStringList("containersInfo",
       Util.getGlobal("containersInfo")..setAll(G.currentContainer,
@@ -545,8 +545,8 @@ ${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? "" : "ec
     await G.prefs.setStringList("containersInfo", ["""{
 "name":"Pocket Trilium by Nriver",
 "boot":"${D.boot}",
-"vnc":"pkill -9 node \\n clear \\n cd /home/tiny/trilium \\n [ -w \\"/home/tiny/.local/share/trilium-data\\" ] && export TRILIUM_DATA_DIR=\\"/home/tiny/.local/share/trilium-data\\" || export TRILIUM_DATA_DIR=\\"/home/tiny/trilium-data\\" \\n ./trilium.sh \\n #sleep 10",
-"vncUrl":"http://127.0.0.1:8080",
+"appStartCommand":"pkill -9 node \\n clear \\n cd /home/tiny/trilium \\n [ -w \\"/home/tiny/.local/share/trilium-data\\" ] && export TRILIUM_DATA_DIR=\\"/home/tiny/.local/share/trilium-data\\" || export TRILIUM_DATA_DIR=\\"/home/tiny/trilium-data\\" \\n ./trilium.sh \\n #sleep 10",
+"webUrl":"http://127.0.0.1:8080",
 "commands":${jsonEncode(Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? D.commands : D.commands4En)}
 }"""]);
     G.updateText.value = AppLocalizations.of(G.homePageStateContext)!.installationComplete;
@@ -647,26 +647,26 @@ clear""");
   }
 
   static Future<void> launchGUIBackend() async {
-    Util.termWrite((Util.getGlobal("autoLaunchVnc") as bool)?((Util.getGlobal("useX11") as bool)?"""mkdir -p "\$HOME/.vnc" && bash /etc/X11/xinit/Xsession &> "\$HOME/.vnc/x.log" &""":Util.getCurrentProp("vnc")):"");
+    Util.termWrite((Util.getGlobal("autoLaunchVnc") as bool)?((Util.getGlobal("useX11") as bool)?"""mkdir -p "\$HOME/.vnc" && bash /etc/X11/xinit/Xsession &> "\$HOME/.vnc/x.log" &""":Util.getCurrentProp("appStartCommand")):"");
     Util.termWrite("clear");
   }
 
   static Future<void> waitForConnection() async {
     await retry(
       // Make a GET request
-      () => http.get(Uri.parse(Util.getCurrentProp("vncUrl"))).timeout(const Duration(milliseconds: 250)),
+      () => http.get(Uri.parse(Util.getCurrentProp("webUrl"))).timeout(const Duration(milliseconds: 250)),
       // Retry on SocketException or TimeoutException
       retryIf: (e) => e is SocketException || e is TimeoutException,
     );
   }
 
   static Future<void> launchBrowser() async {
-    final String vncUrl = Util.getCurrentProp("vncUrl") as String;
+    final String webUrl = Util.getCurrentProp("webUrl") as String;
 
     Navigator.push(
       G.homePageStateContext,
       MaterialPageRoute(
-        builder: (context) => InAppWebViewFullScreenPage(url: vncUrl),
+        builder: (context) => InAppWebViewFullScreenPage(url: webUrl),
       ),
     );
   }
