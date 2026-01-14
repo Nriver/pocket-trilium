@@ -37,7 +37,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 
 import 'package:tiny_computer/l10n/app_localizations.dart';
 
