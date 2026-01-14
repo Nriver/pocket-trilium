@@ -11,7 +11,7 @@
   "containerName": "Container Name",
   "startupCommand": "Startup Command",
   "triliumStartupCommand": "Trilium Startup Command",
-  "shareUsageHint": "You can use Tiny Computer on all devices in the same network (e.g., phones, computers connected to the same WiFi).\n\nClick the button below to share the link with other devices and open it in a browser.",
+  "shareUsageHint": "You can use Trilium on all devices in the same network (e.g., phones, computers connected to the same WiFi).\n\nClick the button below to share the link with other devices and open it in a browser.",
   "copyShareLink": "Copy Share Link",
   "x11InvalidHint": "This feature is unavailable when using X11",
   "cannotGetIpAddress": "Failed to get IP address",
