@@ -1047,101 +1047,6 @@ class TerminalPage extends StatelessWidget {
   }
 }
 
-class FastCommands extends StatefulWidget {
-  const FastCommands({super.key});
-
-  @override
-  State<FastCommands> createState() => _FastCommandsState();
-}
-
-class _FastCommandsState extends State<FastCommands> {
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(alignment: WrapAlignment.center, spacing: 4.0, runSpacing: 4.0, children: Util.getCurrentProp("commands")
-      .asMap().entries.map<Widget>((e) {
-      return OutlinedButton(style: D.commandButtonStyle, child: Text(e.value["name"]!), onPressed: () {
-        Util.termWrite(e.value["command"]!);
-        G.pageIndex.value = 0;
-      }, onLongPress: () {
-        String name = e.value["name"]!;
-        String command = e.value["command"]!;
-        showDialog(context: context, builder: (context) {
-          return AlertDialog(title: Text(AppLocalizations.of(context)!.commandEdit), content: SingleChildScrollView(child: Column(children: [
-            TextFormField(initialValue: name, decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.commandName), onChanged: (value) {
-              name = value;
-            }),
-            const SizedBox.square(dimension: 8),
-            TextFormField(maxLines: null, initialValue: command, decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.commandContent), onChanged: (value) {
-              command = value;
-            }),
-          ])), actions: [
-            TextButton(onPressed:() async {
-              await Util.setCurrentProp("commands", Util.getCurrentProp("commands")
-                ..removeAt(e.key));
-              setState(() {});
-              if (!context.mounted) return;
-              Navigator.of(context).pop();
-            }, child: Text(AppLocalizations.of(context)!.deleteItem)),
-            TextButton(onPressed:() {
-              Navigator.of(context).pop();
-            }, child: Text(AppLocalizations.of(context)!.cancel)),
-            TextButton(onPressed:() async {
-              await Util.setCurrentProp("commands", Util.getCurrentProp("commands")
-                ..setAll(e.key, [{"name": name, "command": command}]));
-              setState(() {});
-              if (!context.mounted) return;
-              Navigator.of(context).pop();
-            }, child: Text(AppLocalizations.of(context)!.save)),
-          ]);
-        },);
-      },);
-    }).toList()..add(OutlinedButton(style: D.commandButtonStyle, onPressed:() {
-        String name = "";
-        String command = "";
-        showDialog(context: context, builder: (context) {
-          return AlertDialog(title: Text(AppLocalizations.of(context)!.commandEdit), content: SingleChildScrollView(child: Column(children: [
-            TextFormField(initialValue: name, decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.commandName), onChanged: (value) {
-              name = value;
-            }),
-            const SizedBox.square(dimension: 8),
-            TextFormField(maxLines: null, initialValue: command, decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.commandContent), onChanged: (value) {
-              command = value;
-            }),
-          ])), actions: [
-            TextButton(onPressed:() {
-              launchUrl(Uri.parse("https://gitee.com/caten/tc-hints/blob/master/pool/extracommand.md"), mode: LaunchMode.externalApplication);
-            }, child: Text(AppLocalizations.of(context)!.more)),
-            TextButton(onPressed:() {
-              Navigator.of(context).pop();
-            }, child: Text(AppLocalizations.of(context)!.cancel)),
-            TextButton(onPressed:() async {
-              await Util.setCurrentProp("commands", Util.getCurrentProp("commands")
-                ..add({"name": name, "command": command}));
-              setState(() {});
-              if (!context.mounted) return;
-              Navigator.of(context).pop();
-            }, child: Text(AppLocalizations.of(context)!.add)),
-          ]);
-        },);
-    }, onLongPress: () {
-      showDialog(context: context, builder: (context) {
-        return AlertDialog(title: Text(AppLocalizations.of(context)!.resetCommand), content: Text(AppLocalizations.of(context)!.confirmResetAllCommands), actions: [
-          TextButton(onPressed:() {
-            Navigator.of(context).pop();
-          }, child: Text(AppLocalizations.of(context)!.cancel)),
-          TextButton(onPressed:() async {
-            await Util.setCurrentProp("commands", Localizations.localeOf(context).languageCode == 'zh' ? D.commands : D.commands4En);
-            setState(() {});
-            if (!context.mounted) return;
-            Navigator.of(context).pop();
-          }, child: Text(AppLocalizations.of(context)!.yes)),
-        ]);
-      });
-    }, child: Text(AppLocalizations.of(context)!.addShortcutCommand))));
-  }
-}
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -1204,7 +1109,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                     child: Image(image: AssetImage("images/icon.png")),
                                   ),
                                 ),
-                                FastCommands(),
                                 Padding(
                                   padding: EdgeInsets.all(8),
                                   child: Card(
