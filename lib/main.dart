@@ -189,11 +189,6 @@ class _SettingPageState extends State<SettingPage> {
         headerBuilder: ((context, isExpanded) {
           return ListTile(title: Text(AppLocalizations.of(context)!.advancedSettings), subtitle: Text(AppLocalizations.of(context)!.restartAfterChange));
         }), body: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-          Wrap(alignment: WrapAlignment.center, spacing: 4.0, runSpacing: 4.0, children: [
-            OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.signal9ErrorPage), onPressed: () async {
-              await D.androidChannel.invokeMethod("launchSignal9Page", {});
-            }),
-          ]),
           const SizedBox.square(dimension: 8),
           TextFormField(maxLines: null, initialValue: Util.getCurrentProp("vnc"), decoration: InputDecoration(border: OutlineInputBorder(), labelText: AppLocalizations.of(context)!.triliumStartupCommand), onChanged: (value) async {
             await Util.setCurrentProp("vnc", value);
@@ -264,6 +259,14 @@ class _SettingPageState extends State<SettingPage> {
             WakelockPlus.toggle(enable: value);
             setState(() {});
           },),
+          const SizedBox.square(dimension: 8),
+          const Divider(height: 2, indent: 8, endIndent: 8),
+          const SizedBox.square(dimension: 8),
+          Wrap(alignment: WrapAlignment.center, spacing: 4.0, runSpacing: 4.0, children: [
+            OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.signal9ErrorPage), onPressed: () async {
+              await D.androidChannel.invokeMethod("launchSignal9Page", {});
+            }),
+          ]),
           const SizedBox.square(dimension: 8),
           const Divider(height: 2, indent: 8, endIndent: 8),
           const SizedBox.square(dimension: 16),
