@@ -543,13 +543,13 @@ done
 \$DATA_DIR/bin/busybox rm -rf xa* tmp1 tmp2 tmp3
 ${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? "" : "echo 'LANG=en_US.UTF-8' > \$CONTAINER_DIR/usr/local/etc/tmoe-linux/locale.txt"}
 """);
-    //一些数据初始化
-    //$DATA_DIR是数据文件夹, $CONTAINER_DIR是容器根目录
-    //Termux:X11的启动命令并不在这里面，而是写死了。这下成💩山代码了:P
+    // 一些数据初始化
+    // $DATA_DIR 是数据文件夹, $CONTAINER_DIR 是容器根目录
+    // 启动前先杀掉旧的trilium进程, 防止快速多次关闭启动app时旧的进程没有退出导致的问题
     await G.prefs.setStringList("containersInfo", ["""{
 "name":"Pocket Trilium by Nriver",
 "boot":"${D.boot}",
-"vnc":"cd /home/tiny/trilium && ./trilium.sh \\n sleep 10",
+"vnc":"pkill -9 node \\n cd /home/tiny/trilium && ./trilium.sh \\n #sleep 10",
 "vncUrl":"http://127.0.0.1:8080",
 "commands":${jsonEncode(Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? D.commands : D.commands4En)}
 }"""]);
