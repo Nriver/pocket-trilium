@@ -369,7 +369,7 @@ class _InfoPageState extends State<InfoPage> {
         headerBuilder: ((context, isExpanded) {
           return ListTile(title: Text(AppLocalizations.of(context)!.openSourceLicenses));
         }), body: const Padding(padding: EdgeInsets.all(8), child: Text("""
-Flutter, path_provider, webview_flutter, url_launcher, shared_preferences
+Flutter, path_provider, flutter_inappwebview, url_launcher, shared_preferences
 
 Copyright 2014 The Flutter Authors. All rights reserved.
 
