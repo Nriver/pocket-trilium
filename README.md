@@ -12,7 +12,12 @@ Pocket Trilium allows you to run the powerful [Trilium Notes](https://github.com
 
 ## Known issues
 
-- Sometimes the app will not start correctly, with error like `double free or corruption`, just kill the app and try to start again several times.
+Sometimes the app will not start correctly, with error like `double free or corruption`, just kill the app and try to start again several times.
+
+## Improvements
+
+- The APK size has reduced from over 1GB with 4GB of data to approximately 360MB with 1GB of data. Additionally, the initial startup time has decreased dramatically.
+- Image upload is now working in the app.
 
 ## Credits
 
