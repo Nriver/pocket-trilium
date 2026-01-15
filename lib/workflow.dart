@@ -129,7 +129,7 @@ class Util {
     switch (key) {
       case "name" : return (value){addCurrentProp(key, value); return value;}("Pocket Trilium by Nriver");
       case "boot" : return (value){addCurrentProp(key, value); return value;}(D.boot);
-      case "appStartCommand" : return (value){addCurrentProp(key, value); return value;}("""pkill -9 node \\n clear \\n cd /home/tiny/trilium \\n [ -w \\"/home/tiny/.local/share/trilium-data\\" ] && export TRILIUM_DATA_DIR=\\"/home/tiny/.local/share/trilium-data\\" || export TRILIUM_DATA_DIR=\\"/home/tiny/trilium-data\\" \\n ./trilium.sh \\n #sleep 10""");
+      case "appStartCommand" : return (value){addCurrentProp(key, value); return value;}(D.triliumStartCommand);
       // case "webUrl" : return (value){addCurrentProp(key, value); return value;}("http://localhost:36082/vnc.html?host=localhost&port=36082&autoconnect=true&resize=remote&password=12345678");
       // Trilium homepage
       case "webUrl" : return (value){addCurrentProp(key, value); return value;}("http://127.0.0.1:8080");
@@ -323,6 +323,28 @@ class TermPty {
 class D {
 
   static const String triliumPackage = "trilium.tar.xz";
+
+  // 启动前先杀掉旧的trilium进程, 防止快速多次关闭启动app时旧的进程没有退出导致的问题
+  // 判断挂载到手机内部存储的默认数据路径如果无法写入，则写入到app内部目录
+  static const String triliumStartCommand = r"""
+#pkill -9 node 
+ 
+cd /home/tiny/trilium
+[ -w "/home/tiny/.local/share/trilium-data" ] && export TRILIUM_DATA_DIR="/home/tiny/.local/share/trilium-data" || export TRILIUM_DATA_DIR="/home/tiny/trilium-data" 
+
+LOG=/tmp/trilium.log
+for i in {1..10}; do
+    : > "$LOG"
+    ./trilium.sh 2>&1 | tee "$LOG"
+    if grep -q "double free or corruption" "$LOG"; then
+        echo "Retrying due to 'double free or corruption' ($i/10)"
+    else
+        exit
+    fi
+done
+
+sleep 10
+""";
 
   //常用链接
   static const links = [
@@ -534,15 +556,18 @@ ${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? "" : "ec
 """);
     // 一些数据初始化
     // $DATA_DIR 是数据文件夹, $CONTAINER_DIR 是容器根目录
-    // 启动前先杀掉旧的trilium进程, 防止快速多次关闭启动app时旧的进程没有退出导致的问题
-    // 判断挂载到手机内部存储的默认数据路径如果无法写入，则写入到app内部目录
-    await G.prefs.setStringList("containersInfo", ["""{
-"name":"Pocket Trilium by Nriver",
-"boot":"${D.boot}",
-"appStartCommand":"pkill -9 node \\n clear \\n cd /home/tiny/trilium \\n [ -w \\"/home/tiny/.local/share/trilium-data\\" ] && export TRILIUM_DATA_DIR=\\"/home/tiny/.local/share/trilium-data\\" || export TRILIUM_DATA_DIR=\\"/home/tiny/trilium-data\\" \\n ./trilium.sh \\n #sleep 10",
-"webUrl":"http://127.0.0.1:8080",
-"commands":${jsonEncode(Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? D.commands : D.commands4En)}
-}"""]);
+    await G.prefs.setStringList("containersInfo", [
+      jsonEncode({
+        "name": "Pocket Trilium by Nriver",
+        "boot": D.boot,
+        "appStartCommand": D.triliumStartCommand,
+        "webUrl": "http://127.0.0.1:8080",
+        "commands": Localizations.localeOf(G.homePageStateContext).languageCode == 'zh'
+            ? D.commands
+            : D.commands4En,
+      })
+    ]);
+
     G.updateText.value = AppLocalizations.of(G.homePageStateContext)!.installationComplete;
   }
 
