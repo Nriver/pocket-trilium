@@ -44,14 +44,10 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
   @override
   void initState() {
     super.initState();
-    // 进入页面时隐藏状态栏和导航栏，实现真·全屏
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   @override
   void dispose() {
-    // 退出页面时恢复系统 UI 模式
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 
@@ -92,10 +88,10 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
         // 去掉标题栏
         appBar: null,
 
-        // body 占满屏幕
+        // body 占满屏幕，edge-to-edge模式下使用 SafeArea 保护状态栏和导航栏区域
         body: SafeArea(
-          top: false,
-          bottom: false,
+          top: true,
+          bottom: true,
           child: InAppWebView(
             initialUrlRequest: URLRequest(url: WebUri(widget.url)),
 

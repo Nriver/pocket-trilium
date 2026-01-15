@@ -894,7 +894,7 @@ class _MyHomePageState extends State<MyHomePage> {
     Future.delayed(Duration.zero,() {
       _initializeWorkflow();
     });
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky, overlays: []);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: []);
   }
 
   Future<void> _initializeWorkflow() async {
