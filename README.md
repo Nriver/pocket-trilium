@@ -38,7 +38,9 @@ Pocket Trilium allows you to run the powerful [Trilium Notes](https://github.com
 
 ## ❌ App Fails to Start Occasionally
 
-If the app fails to start and you encounter an error such as `double free or corruption`, try the following:
+If the app fails to start and you encounter an error such as `double free or corruption`, I've added a retry mechanism to start trilium for 10 times automatically if this happens.
+
+If that does not work for you, try the following:
 
 1. Force close the app.
 2. Wait a few seconds to allow the system to terminate any associated processes.
