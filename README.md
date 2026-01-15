@@ -22,6 +22,7 @@ Pocket Trilium allows you to run the powerful [Trilium Notes](https://github.com
 - [x] Sync data with Trilium Server
 - [x] You can access pocket trilium with http://your-phone-ip:8080 on your computer in the same wifi
 - [x] Image upload from phone works now
+- [x] `Back` button/gesture works in Trilium page now
 
 # ⚙️ Setup Instructions
 
