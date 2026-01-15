@@ -14,6 +14,15 @@ This project is inspired by and heavily modified from the [Cateners/tiny_compute
 
 Pocket Trilium allows you to run the powerful [Trilium Notes](https://github.com/zadam/trilium) app on Android devices. While originally based on the [tiny_computer](https://github.com/Cateners/tiny_computer) project, this version has undergone significant modifications to better suit my needs.
 
+
+# Features
+
+- [x] Works offline
+- [x] Copy `trilium-data` to phone and use it directly
+- [x] Sync data with Trilium Server
+- [x] You can access pocket trilium with http://your-phone-ip:8080 on your computer in the same wifi
+- [x] Image upload from phone works now
+
 # ⚙️ Setup Instructions
 
 1. **Create the `trilium-data` Folder**:
