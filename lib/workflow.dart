@@ -127,12 +127,12 @@ class Util {
       return m[key];
     }
     switch (key) {
-      case "name" : return (value){addCurrentProp(key, value); return value;}("Pocket Trilium by Nriver");
+      case "name" : return (value){addCurrentProp(key, value); return value;}(D.containerName);
       case "boot" : return (value){addCurrentProp(key, value); return value;}(D.boot);
       case "appStartCommand" : return (value){addCurrentProp(key, value); return value;}(D.triliumStartCommand);
       // case "webUrl" : return (value){addCurrentProp(key, value); return value;}("http://localhost:36082/vnc.html?host=localhost&port=36082&autoconnect=true&resize=remote&password=12345678");
       // Trilium homepage
-      case "webUrl" : return (value){addCurrentProp(key, value); return value;}("http://127.0.0.1:8080");
+      case "webUrl" : return (value){addCurrentProp(key, value); return value;}(D.webUrl);
       case "vncUri" : return (value){addCurrentProp(key, value); return value;}("vnc://127.0.0.1:5904?VncPassword=12345678&SecurityType=2");
       case "commands" : return (value){addCurrentProp(key, value); return value;}(jsonDecode(jsonEncode(D.commands)));
     }
@@ -324,6 +324,8 @@ class D {
 
   static const String triliumPackage = "trilium.tar.xz";
 
+  static const String containerName = "Pocket Trilium by Nriver";
+
   // 启动前先杀掉旧的trilium进程, 防止快速多次关闭启动app时旧的进程没有退出导致的问题
   // 判断挂载到手机内部存储的默认数据路径如果无法写入，则写入到app内部目录
   static const String triliumStartCommand = r"""
@@ -345,6 +347,8 @@ done
 
 sleep 10
 """;
+
+  static const String webUrl = "http://127.0.0.1:8080";
 
   //常用链接
   static const links = [
@@ -558,10 +562,10 @@ ${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? "" : "ec
     // $DATA_DIR 是数据文件夹, $CONTAINER_DIR 是容器根目录
     await G.prefs.setStringList("containersInfo", [
       jsonEncode({
-        "name": "Pocket Trilium by Nriver",
+        "name": D.containerName,
         "boot": D.boot,
         "appStartCommand": D.triliumStartCommand,
-        "webUrl": "http://127.0.0.1:8080",
+        "webUrl": D.webUrl,
         "commands": Localizations.localeOf(G.homePageStateContext).languageCode == 'zh'
             ? D.commands
             : D.commands4En,
