@@ -29,6 +29,7 @@ Pocket Trilium allows you to run the powerful [Trilium Notes](https://github.com
 
     * On your phone’s internal storage, create a folder named `trilium-data`.
     * (Recommended) Alternatively, you can copy the `trilium-data` folder from your desktop client to your phone.
+    * Some device may need both `Storage` permission and `All Files Access` permission to make it work.
 
 2. **Developer Options (Android 12+ Only)**:
    If you're using an Android 12+ device, you may need to disable the "Stop restricting child processes" option in the `Developer Options` menu.
