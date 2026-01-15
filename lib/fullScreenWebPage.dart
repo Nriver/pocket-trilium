@@ -35,9 +35,11 @@ class InAppWebViewFullScreenPage extends StatefulWidget {
       _InAppWebViewFullScreenPageState();
 }
 
-class _InAppWebViewFullScreenPageState
-    extends State<InAppWebViewFullScreenPage> {
+class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage> {
   InAppWebViewController? webViewController;
+
+  // 用于实现「网页能后退就后退，不能后退再按一次才退出」
+  bool _isAtRoot = false;
 
   @override
   void initState() {
@@ -53,68 +55,108 @@ class _InAppWebViewFullScreenPageState
     super.dispose();
   }
 
+  Future<bool> _onWillPop() async {
+    if (webViewController == null) return true;
+
+    bool canGoBack = await webViewController!.canGoBack();
+
+    if (canGoBack) {
+      await webViewController!.goBack();
+      setState(() => _isAtRoot = false);
+      return false;
+    } else {
+      if (_isAtRoot) {
+        return true;
+      } else {
+        setState(() => _isAtRoot = true);
+        ScaffoldMessenger.of(context).removeCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("再按一次退出浏览器"),
+            duration: Duration(seconds: 2),
+          ),
+        );
+        return false;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // 让 Flutter 响应键盘高度变化
-      resizeToAvoidBottomInset: true,
+    return WillPopScope(
+      onWillPop: _onWillPop,
+      child: Scaffold(
+        // 让 Flutter 响应键盘高度变化
+        resizeToAvoidBottomInset: true,
 
-      // 去掉标题栏
-      appBar: null,
+        // 去掉标题栏
+        appBar: null,
 
-      // body 占满屏幕
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: InAppWebView(
-          initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+        // body 占满屏幕
+        body: SafeArea(
+          top: false,
+          bottom: false,
+          child: InAppWebView(
+            initialUrlRequest: URLRequest(url: WebUri(widget.url)),
 
-          initialSettings: InAppWebViewSettings(
-            javaScriptEnabled: true,
-            javaScriptCanOpenWindowsAutomatically: true,
-            useShouldOverrideUrlLoading: true,
-            mediaPlaybackRequiresUserGesture: false,
-            supportZoom: true,
-            clearCache: false,
+            initialSettings: InAppWebViewSettings(
+              javaScriptEnabled: true,
+              javaScriptCanOpenWindowsAutomatically: true,
+              useShouldOverrideUrlLoading: true,
+              mediaPlaybackRequiresUserGesture: false,
+              supportZoom: true,
+              clearCache: false,
 
-            useHybridComposition: true,
-            allowContentAccess: true,
-            builtInZoomControls: true,
-            supportMultipleWindows: true,
-            cacheMode: CacheMode.LOAD_DEFAULT,
+              useHybridComposition: true,
+              allowContentAccess: true,
+              builtInZoomControls: true,
+              supportMultipleWindows: true,
+              cacheMode: CacheMode.LOAD_DEFAULT,
 
-            allowsInlineMediaPlayback: true,
-            allowsBackForwardNavigationGestures: true,
+              allowsInlineMediaPlayback: true,
+              allowsBackForwardNavigationGestures: true,
 
-            iframeAllowFullscreen: true,
-            isInspectable: kDebugMode,
-            disableDefaultErrorPage: true,
+              iframeAllowFullscreen: true,
+              isInspectable: kDebugMode,
+              disableDefaultErrorPage: true,
+            ),
+
+            onWebViewCreated: (controller) {
+              webViewController = controller;
+              G.controller = controller; // 保持全局引用（如果 workflow.dart 还在用）
+            },
+
+            onProgressChanged: (controller, progress) {
+              // 可选：这里可以加进度条逻辑
+            },
+
+            onLoadStop: (controller, url) async {
+              print("页面加载完成: $url");
+              final can = await controller.canGoBack();
+              if (mounted) {
+                setState(() => _isAtRoot = !can);
+              }
+            },
+
+            shouldOverrideUrlLoading: (controller, navigationAction) async {
+              return NavigationActionPolicy.ALLOW;
+            },
+
+            onReceivedError: (controller, request, error) {
+              print("加载错误: ${error.description} (code: ${error.type})");
+            },
+
+            onReceivedHttpError: (controller, request, errorResponse) {
+              print("HTTP 错误: ${errorResponse.statusCode}");
+            },
+
+            onUpdateVisitedHistory: (controller, url, androidIsReload) async {
+              final can = await controller.canGoBack();
+              if (mounted) {
+                setState(() => _isAtRoot = !can);
+              }
+            },
           ),
-
-          onWebViewCreated: (controller) {
-            webViewController = controller;
-            G.controller = controller; // 保持全局引用（如果 workflow.dart 还在用）
-          },
-
-          onProgressChanged: (controller, progress) {
-            // 可选：这里可以加进度条逻辑
-          },
-
-          onLoadStop: (controller, url) async {
-            print("页面加载完成: $url");
-          },
-
-          shouldOverrideUrlLoading: (controller, navigationAction) async {
-            return NavigationActionPolicy.ALLOW;
-          },
-
-          onReceivedError: (controller, request, error) {
-            print("加载错误: ${error.description} (code: ${error.type})");
-          },
-
-          onReceivedHttpError: (controller, request, errorResponse) {
-            print("HTTP 错误: ${errorResponse.statusCode}");
-          },
         ),
       ),
     );
