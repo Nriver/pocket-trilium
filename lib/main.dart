@@ -41,26 +41,8 @@ class MyApp extends StatelessWidget {
               Locale.fromSubtags(
                 languageCode: 'zh',
                 scriptCode: 'Hans',
-              ), // generic simplified Chinese 'zh_Hans'
-              Locale.fromSubtags(
-                languageCode: 'zh',
-                scriptCode: 'Hant',
-              ), // generic traditional Chinese 'zh_Hant'
-              Locale.fromSubtags(
-                languageCode: 'zh',
-                scriptCode: 'Hans',
                 countryCode: 'CN',
               ), // 'zh_Hans_CN'
-              Locale.fromSubtags(
-                languageCode: 'zh',
-                scriptCode: 'Hant',
-                countryCode: 'TW',
-              ), // 'zh_Hant_TW'
-              Locale.fromSubtags(
-                languageCode: 'zh',
-                scriptCode: 'Hant',
-                countryCode: 'HK',
-              ), // 'zh_Hant_HK'
             ],
             theme: ThemeData(
               colorScheme: lightDynamic,
