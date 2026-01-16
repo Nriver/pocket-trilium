@@ -503,6 +503,7 @@ chmod -R +x bin/*
 chmod -R +x libexec/proot/*
 chmod 1777 tmp
 \$DATA_DIR/bin/busybox tar -xJf ${D.triliumPackage}
+mv TriliumNotes-Server-v* trilium 2>/dev/null || true
 \$DATA_DIR/bin/busybox rm -rf assets.zip ${D.triliumPackage}
 """);
   }
