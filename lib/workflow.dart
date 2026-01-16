@@ -455,7 +455,8 @@ class Workflow {
 
   static Future<void> grantPermissions() async {
     Permission.storage.request();
-    //Permission.manageExternalStorage.request();
+    // 请求 "所有文件访问权限"
+    Permission.manageExternalStorage.request();
   }
 
   static Future<void> setupBootstrap() async {
