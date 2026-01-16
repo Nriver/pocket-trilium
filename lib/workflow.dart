@@ -307,6 +307,32 @@ class D {
 
   static const String triliumPackage = "trilium.tar.xz";
 
+  // Trilium 可选版本列表
+  static const List<Map<String, String>> triliumVersions = [
+    {
+      'name': '0.63.7-cn (Built-in)',
+      'url': '内置',
+      'filename': 'assets/trilium.tar.xz',
+    },
+    {
+      'name': '0.101.3 (Github)',
+      'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.101.3/TriliumNotes-Server-v0.101.3-linux-arm64.tar.xz',
+    },
+    {
+      'name': '0.101.3 (Gitee)',
+      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.101.3-linux-arm64.tar.xz',
+    },
+    {
+      'name': '0.63.7 (Github)',
+      'url': 'https://github.com/Nriver/pocket-trilium-resources/releases/download/v1/trilium-0.63.7.tar.xz',
+    },
+    {
+      'name': '0.63.7 (Gitee)',
+      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/trilium-0.63.7.tar.xz',
+    },
+
+  ];
+
   static const String containerName = "Pocket Trilium by Nriver";
 
   // 启动前先杀掉旧的trilium进程, 防止快速多次关闭启动app时旧的进程没有退出导致的问题
@@ -452,11 +478,6 @@ class Workflow {
     "assets/assets.zip",
     "${G.dataPath}/assets.zip",
     );
-    // 加入 trilium
-    await Util.copyAsset(
-      "assets/${D.triliumPackage}",
-      "${G.dataPath}/${D.triliumPackage}",
-    );
     await Util.execute(
 """
 export DATA_DIR=${G.dataPath}
@@ -487,11 +508,124 @@ chmod 1777 tmp
 
   //初次启动要做的事情
   static Future<void> initForFirstTime() async {
-    //首先设置bootstrap
-    G.updateText.value = AppLocalizations.of(G.homePageStateContext)!.installingBootPackage;
+    // 提前保存 context，避免跨 async 使用失效的 context
+    final BuildContext? ctx = G.homePageStateContext;
+    if (ctx == null || !ctx.mounted) {
+      debugPrint("警告：初始化时 context 不可用，将使用内置版本继续");
+      await _copyBuiltInTrilium();
+      await setupBootstrap();
+      await _finishContainerSetup();
+      return;
+    }
+
+    // ──────────────────────────────
+    //      显示版本选择对话框
+    // ──────────────────────────────
+    String? selectedUrl;
+
+    await showDialog(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("选择 Trilium 版本"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: D.triliumVersions.map((ver) {
+              final isBuiltIn = ver['url'] == '内置';
+              return ListTile(
+                title: Text(ver['name']!),
+                subtitle: isBuiltIn
+                    ? const Text("内置版本", style: TextStyle(fontSize: 12))
+                    : Text("在线下载", style: TextStyle(fontSize: 12, color: Colors.blue)),
+                onTap: () {
+                  selectedUrl = ver['url'];
+                  Navigator.of(dialogContext).pop();
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+
+    // 如果用户关闭对话框没有选择，默认使用内置版本
+    selectedUrl ??= '内置';
+
+    // ──────────────────────────────
+    //      处理 trilium.tar.xz 文件
+    // ──────────────────────────────
+    final targetPath = "${G.dataPath}/${D.triliumPackage}";
+
+    if (selectedUrl == '内置') {
+      G.updateText.value = "正在使用内置版本 ${D.triliumVersions[0]['name']}...";
+      await _copyBuiltInTrilium(targetPath);
+    } else {
+      G.updateText.value = "正在下载 Trilium ${D.triliumVersions.firstWhere((v) => v['url'] == selectedUrl)['name']}...";
+      try {
+        final response = await http.get(Uri.parse(selectedUrl!));
+        if (response.statusCode == 200) {
+          await File(targetPath).writeAsBytes(response.bodyBytes);
+          G.updateText.value = "下载完成，正在准备环境...";
+        } else {
+          throw Exception("HTTP ${response.statusCode}");
+        }
+      } catch (e, stack) {
+        debugPrint("下载失败: $e\n$stack");
+
+        // 尽量在 context 还可用时提示用户
+        if (ctx.mounted) {
+          await showDialog(
+            context: ctx,
+            barrierDismissible: false, // 建议不让点外面关闭
+            builder: (alertCtx) => AlertDialog(
+              title: const Text("下载失败"),
+              content: const Text("无法下载所选版本，应用无法正常运行。\n\n将退出程序。"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(alertCtx);
+                    // 然后退出
+                    // SystemNavigator.pop();
+                    exit(0);
+                  },
+                  child: const Text("退出应用", style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // 回退使用内置版本
+        await _copyBuiltInTrilium(targetPath);
+      }
+    }
+
+    // ──────────────────────────────
+    //      继续原有的初始化流程
+    // ──────────────────────────────
+    G.updateText.value = AppLocalizations.of(ctx)!.installingBootPackage;
     await setupBootstrap();
-    
-    G.updateText.value = AppLocalizations.of(G.homePageStateContext)!.copyingContainerSystem;
+
+    G.updateText.value = AppLocalizations.of(ctx)!.copyingContainerSystem;
+
+    await _finishContainerSetup();
+
+    G.updateText.value = AppLocalizations.of(ctx)!.installationComplete;
+  }
+
+  // 辅助方法：复制内置版本
+  static Future<void> _copyBuiltInTrilium([String? customPath]) async {
+    final target = customPath ?? "${G.dataPath}/${D.triliumPackage}";
+
+    final builtIn = D.triliumVersions.firstWhere((v) => v['url'] == '内置');
+    final assetPath = builtIn['filename']!;
+
+    await Util.copyAsset(assetPath, target);
+  }
+
+  // 辅助方法：完成容器系统安装（原有的后半部分）
+  static Future<void> _finishContainerSetup() async {
     //存放容器的文件夹0和存放硬链接的文件夹.l2s
     Util.createDirFromString("${G.dataPath}/containers/0/.l2s");
     //这个是容器rootfs，被split命令分成了xa*，放在assets里
@@ -508,10 +642,8 @@ chmod 1777 tmp
     for (String name in xaFiles) {
       await Util.copyAsset("assets/$name", "${G.dataPath}/$name");
     }
-    //-J
-    G.updateText.value = AppLocalizations.of(G.homePageStateContext)!.installingContainerSystem;
-    await Util.execute(
-"""
+
+    await Util.execute("""
 export DATA_DIR=${G.dataPath}
 export PATH=\$DATA_DIR/bin:\$PATH
 export LD_LIBRARY_PATH=\$DATA_DIR/lib
@@ -554,8 +686,6 @@ ${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? "" : "ec
             : D.commands4En,
       })
     ]);
-
-    G.updateText.value = AppLocalizations.of(G.homePageStateContext)!.installationComplete;
   }
 
   static Future<void> initData() async {
