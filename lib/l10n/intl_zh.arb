@@ -106,7 +106,7 @@
   "faqUrl": "常见问题",
   "solutionUrl": "典型场景使用指南",
   "discussionUrl": "论坛与讨论",
-  "firstLoadInstructions": "首次加载需要大约5到10分钟，请耐心等待，整个过程无需网络连接。\n\n加载完成后，软件会自动跳转到主图形界面。\n\nTrilium 的数据默认保存在应用内部，如果卸载应用，数据也会一并删除。为确保持久保存，建议授予存储权限，并在手机内部存储根目录手动创建名为「trilium-data」的文件夹。这样 Trilium 会将数据直接写入该文件夹中。\n\n如果你已有电脑端的 Trilium 数据，可以直接将电脑上的「trilium-data」文件夹复制到手机内部存储根目录，即可无缝继续使用，无需重新初始化和同步。若复制后未自动识别，请尝试重启应用。\n\n首次加载期间请勿退出软件，以免中断进程。\n\n等待时，你可以点击下方按钮提前申请存储权限（推荐）。\n\n当然，如果你暂时不需要持久化数据，也可以选择不授予权限。\n\n感谢 Cateners 的 Tiny Computer 项目：https://github.com/Cateners/tiny_computer\n感谢 Zadam 创造的优秀 Trilium Notes：https://github.com/zadam/trilium\n感谢 Trilium 社区的所有贡献者\n感谢我的腰（它承受了太多久坐的码农生活 :)）\n\n如果你喜欢这个项目，欢迎给仓库点个 Star，也非常感谢大家的赞助支持~\nhttps://github.com/Nriver/pocket-trilium",
+  "firstLoadInstructions": "首次加载需要大约5到10分钟，请耐心等待 :)\n\n加载完成后，软件会自动跳转到主图形界面。\n\nTrilium 的数据默认保存在应用内部，如果卸载应用，数据也会一并删除。为确保持久保存，建议授予存储权限，并在手机内部存储根目录手动创建名为「trilium-data」的文件夹。这样 Trilium 会将数据直接写入该文件夹中。\n\n如果你已有电脑端的 Trilium 数据，可以直接将电脑上的「trilium-data」文件夹复制到手机内部存储根目录，即可无缝继续使用，无需重新初始化和同步。若复制后未自动识别，请尝试重启应用。\n\n首次加载期间请勿退出软件，以免中断进程。\n\n等待时，你可以点击下方按钮提前申请存储权限（推荐）。\n\n当然，如果你暂时不需要持久化数据，也可以选择不授予权限。\n\n感谢 Cateners 的 Tiny Computer 项目：https://github.com/Cateners/tiny_computer\n感谢 Zadam 创造的优秀 Trilium Notes：https://github.com/zadam/trilium\n感谢 Trilium 社区的所有贡献者\n感谢我的腰（它承受了太多久坐的码农生活 :)）\n\n如果你喜欢这个项目，欢迎给仓库点个 Star，也非常感谢大家的赞助支持~\nhttps://github.com/Nriver/pocket-trilium",
   "updateRequest": "请尽量使用最新版本。前往项目地址可查看最新版本。",
   "avncScreenResize": "自适应屏幕尺寸",
   "avncResizeFactor": "屏幕缩放比",
