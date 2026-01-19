@@ -816,7 +816,7 @@ clear""");
   }
 
   static Future<void> workflow() async {
-    grantPermissions();
+    // grantPermissions();
     await initData();
     await initTerminalForCurrent();
     setupAudio();
