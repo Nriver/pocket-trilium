@@ -33,7 +33,6 @@ dependencies:
   xterm: ^4.0.0
   flutter_pty: ^0.4.2
   path_provider: ^2.1.5
-#  webview_flutter: ^4.13.0
   flutter_inappwebview: ^6.1.5
   permission_handler: ^12.0.1
   http: ^1.5.0
@@ -51,14 +50,6 @@ dependencies:
     git:
       url: https://github.com/tiny-computer/x11_flutter.git
       ref: 3b92b515b1ebc32c93e18e8b3a2983656713e4dd
-  avnc_flutter:
-    git:
-      url: https://github.com/tiny-computer/avnc_flutter.git
-      ref: 4008565259f88fe4613b885979f79e439bc5a420
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  # cupertino_icons: ^1.0.2
 
 dev_dependencies:
 #  flutter_test:
