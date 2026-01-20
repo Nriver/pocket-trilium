@@ -8,9 +8,11 @@ import android.graphics.Point;
 import android.os.Build;
 import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
+import android.provider.DocumentsContract;
 import android.provider.DocumentsContract.Document;
 import android.provider.DocumentsContract.Root;
 import android.provider.DocumentsProvider;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import nriver.pocket.trilium.R;
@@ -21,24 +23,15 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 
-//This file is mainly copied from Termux :P
+// This file is mainly copied from Termux :P
 
 /**
  * A document provider for the Storage Access Framework which exposes the files in the
  * $HOME/ directory to other apps.
- * <p/>
- * Note that this replaces providing an activity matching the ACTION_GET_CONTENT intent:
- * <p/>
- * "A document provider and ACTION_GET_CONTENT should be considered mutually exclusive. If you
- * support both of them simultaneously, your app will appear twice in the system picker UI,
- * offering two different ways of accessing your stored data. This would be confusing for users."
- * - http://developer.android.com/guide/topics/providers/document-provider.html#43
  */
 public class PocketDocumentsProvider extends DocumentsProvider {
 
     private static final String ALL_MIME_TYPES = "*/*";
-
-
 
     // The default columns to return information about a root if no specific
     // columns are requested in a query.
@@ -69,6 +62,7 @@ public class PocketDocumentsProvider extends DocumentsProvider {
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : DEFAULT_ROOT_PROJECTION);
         final String applicationName = getContext().getString(R.string.pt_app_name);
         final File BASE_DIR = new File(getContext().getFilesDir(), "containers");
+
         final MatrixCursor.RowBuilder row = result.newRow();
         row.add(Root.COLUMN_ROOT_ID, getDocIdForFile(BASE_DIR));
         row.add(Root.COLUMN_DOCUMENT_ID, getDocIdForFile(BASE_DIR));
@@ -92,8 +86,11 @@ public class PocketDocumentsProvider extends DocumentsProvider {
     public Cursor queryChildDocuments(String parentDocumentId, String[] projection, String sortOrder) throws FileNotFoundException {
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : DEFAULT_DOCUMENT_PROJECTION);
         final File parent = getFileForDocId(parentDocumentId);
-        for (File file : parent.listFiles()) {
-            includeFile(result, null, file);
+        File[] files = parent.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                includeFile(result, null, file);
+            }
         }
         return result;
     }
@@ -119,33 +116,68 @@ public class PocketDocumentsProvider extends DocumentsProvider {
 
     @Override
     public String createDocument(String parentDocumentId, String mimeType, String displayName) throws FileNotFoundException {
-        File newFile = new File(parentDocumentId, displayName);
+        File parent = getFileForDocId(parentDocumentId);
+        File newFile = new File(parent, displayName);
         int noConflictId = 2;
         while (newFile.exists()) {
-            newFile = new File(parentDocumentId, displayName + " (" + noConflictId++ + ")");
+            newFile = new File(parent, displayName + " (" + noConflictId++ + ")");
         }
         try {
             boolean succeeded;
             if (Document.MIME_TYPE_DIR.equals(mimeType)) {
-                succeeded = newFile.mkdir();
+                succeeded = newFile.mkdirs();
             } else {
                 succeeded = newFile.createNewFile();
             }
             if (!succeeded) {
-                throw new FileNotFoundException("Failed to create document with id " + newFile.getPath());
+                throw new FileNotFoundException("Failed to create document: " + newFile.getPath());
             }
         } catch (IOException e) {
-            throw new FileNotFoundException("Failed to create document with id " + newFile.getPath());
+            throw new FileNotFoundException("Failed to create document: " + newFile.getPath() + " - " + e.getMessage());
         }
-        return newFile.getPath();
+        return newFile.getAbsolutePath();
     }
 
     @Override
     public void deleteDocument(String documentId) throws FileNotFoundException {
         File file = getFileForDocId(documentId);
-        if (!file.delete()) {
+        if (!deleteRecursive(file)) {
             throw new FileNotFoundException("Failed to delete document with id " + documentId);
         }
+
+        // 通知父目录内容已变更（让文件管理器刷新）
+        File parentFile = file.getParentFile();
+        if (parentFile != null && parentFile.exists()) {
+            String parentDocId = getDocIdForFile(parentFile);
+            getContext().getContentResolver().notifyChange(
+                    DocumentsContract.buildChildDocumentsUri("nriver.pocket.trilium.filepicker", parentDocId),
+                    null
+            );
+        }
+    }
+
+    private boolean deleteRecursive(File fileOrDir) {
+        if (fileOrDir == null || !fileOrDir.exists()) {
+            return true;
+        }
+
+        if (fileOrDir.isDirectory()) {
+            File[] children = fileOrDir.listFiles();
+            if (children != null) {
+                for (File child : children) {
+                    if (!deleteRecursive(child)) {
+                        Log.w("PocketDocs", "Failed to delete child: " + child.getAbsolutePath());
+                        return false;
+                    }
+                }
+            }
+        }
+
+        boolean deleted = fileOrDir.delete();
+        if (!deleted) {
+            Log.w("PocketDocs", "Failed to delete: " + fileOrDir.getAbsolutePath());
+        }
+        return deleted;
     }
 
     @Override
@@ -159,29 +191,29 @@ public class PocketDocumentsProvider extends DocumentsProvider {
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : DEFAULT_DOCUMENT_PROJECTION);
         final File parent = getFileForDocId(rootId);
 
-        // This example implementation searches file names for the query and doesn't rank search
-        // results, so we can stop as soon as we find a sufficient number of matches.  Other
-        // implementations might rank results and use other data about files, rather than the file
-        // name, to produce a match.
         final LinkedList<File> pending = new LinkedList<>();
         pending.add(parent);
 
         final int MAX_SEARCH_RESULTS = 50;
         while (!pending.isEmpty() && result.getCount() < MAX_SEARCH_RESULTS) {
             final File file = pending.removeFirst();
-            // Avoid directories outside the $HOME directory linked with symlinks (to avoid e.g. search
-            // through the whole SD card).
+
             boolean isInsideHome;
             try {
-                isInsideHome = file.getCanonicalPath().startsWith(new File(getContext().getFilesDir(), "containers").getAbsolutePath());
+                isInsideHome = file.getCanonicalPath().startsWith(
+                        new File(getContext().getFilesDir(), "containers").getAbsolutePath());
             } catch (IOException e) {
                 isInsideHome = true;
             }
+
             if (isInsideHome) {
                 if (file.isDirectory()) {
-                    Collections.addAll(pending, file.listFiles());
+                    File[] children = file.listFiles();
+                    if (children != null) {
+                        Collections.addAll(pending, children);
+                    }
                 } else {
-                    if (file.getName().toLowerCase().contains(query)) {
+                    if (file.getName().toLowerCase().contains(query.toLowerCase())) {
                         includeFile(result, null, file);
                     }
                 }
@@ -196,47 +228,32 @@ public class PocketDocumentsProvider extends DocumentsProvider {
         return documentId.startsWith(parentDocumentId);
     }
 
-    /**
-     * Get the document id given a file. This document id must be consistent across time as other
-     * applications may save the ID and use it to reference documents later.
-     * <p/>
-     * The reverse of @{link #getFileForDocId}.
-     */
     private static String getDocIdForFile(File file) {
         return file.getAbsolutePath();
     }
 
-    /**
-     * Get the file given a document id (the reverse of {@link #getDocIdForFile(File)}).
-     */
     private static File getFileForDocId(String docId) throws FileNotFoundException {
         final File f = new File(docId);
-        if (!f.exists()) throw new FileNotFoundException(f.getAbsolutePath() + " not found");
+        if (!f.exists()) {
+            throw new FileNotFoundException("File not found: " + docId);
+        }
         return f;
     }
 
     private static String getMimeType(File file) {
         if (file.isDirectory()) {
             return Document.MIME_TYPE_DIR;
-        } else {
-            final String name = file.getName();
-            final int lastDot = name.lastIndexOf('.');
-            if (lastDot >= 0) {
-                final String extension = name.substring(lastDot + 1).toLowerCase();
-                final String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-                if (mime != null) return mime;
-            }
-            return "application/octet-stream";
         }
+        final String name = file.getName();
+        final int lastDot = name.lastIndexOf('.');
+        if (lastDot >= 0) {
+            final String extension = name.substring(lastDot + 1).toLowerCase();
+            final String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            if (mime != null) return mime;
+        }
+        return "application/octet-stream";
     }
 
-    /**
-     * Add a representation of a file to a cursor.
-     *
-     * @param result the cursor to modify
-     * @param docId  the document ID representing the desired file (may be null if given file)
-     * @param file   the File object representing the desired file (may be null if given docID)
-     */
     private void includeFile(MatrixCursor result, String docId, File file)
             throws FileNotFoundException {
         if (docId == null) {
@@ -251,11 +268,15 @@ public class PocketDocumentsProvider extends DocumentsProvider {
         } else if (file.canWrite()) {
             flags |= Document.FLAG_SUPPORTS_WRITE;
         }
-        if (file.getParentFile().canWrite()) flags |= Document.FLAG_SUPPORTS_DELETE;
+        if (file.getParentFile().canWrite()) {
+            flags |= Document.FLAG_SUPPORTS_DELETE;
+        }
 
         final String displayName = file.getName();
         final String mimeType = getMimeType(file);
-        if (mimeType.startsWith("image/")) flags |= Document.FLAG_SUPPORTS_THUMBNAIL;
+        if (mimeType.startsWith("image/")) {
+            flags |= Document.FLAG_SUPPORTS_THUMBNAIL;
+        }
 
         final MatrixCursor.RowBuilder row = result.newRow();
         row.add(Document.COLUMN_DOCUMENT_ID, docId);
@@ -264,7 +285,5 @@ public class PocketDocumentsProvider extends DocumentsProvider {
         row.add(Document.COLUMN_MIME_TYPE, mimeType);
         row.add(Document.COLUMN_LAST_MODIFIED, file.lastModified());
         row.add(Document.COLUMN_FLAGS, flags);
-        row.add(Document.COLUMN_ICON, R.mipmap.ic_launcher);
     }
-
 }
