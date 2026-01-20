@@ -33,6 +33,7 @@ dependencies:
   xterm: ^4.0.0
   flutter_pty: ^0.4.2
   path_provider: ^2.1.5
+  # 内置webview
   flutter_inappwebview: ^6.1.5
   permission_handler: ^12.0.1
   http: ^1.5.0
@@ -45,6 +46,7 @@ dependencies:
   network_info_plus: ^6.1.4
   flutter_localizations:
     sdk: flutter
+  # 国际化
   intl: any
 
 
