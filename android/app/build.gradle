@@ -103,9 +103,6 @@ android {
 
     packagingOptions {
         pickFirst 'lib/arm64-v8a/libc++_shared.so'
-        pickFirst 'lib/x86_64/libc++_shared.so'
-        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
-        pickFirst 'lib/arm64-v8a/libc++_shared.so'
     }
 }
 
@@ -117,5 +114,4 @@ dependencies {
     implementation "androidx.core:core-ktx:1.15.0"
     implementation "androidx.appcompat:appcompat:1.7.0"
     implementation "com.google.android.material:material:1.7.0"
-    implementation 'com.github.tiann:FreeReflection:3.2.2'
 }
