@@ -19,24 +19,24 @@ class Signal9Activity : AppCompatActivity() {
         setContentView(binding.root)
         
         // 设置状态栏和导航栏颜色匹配蓝屏背景
-        window.statusBarColor = ContextCompat.getColor(this, R.color.tc_s9a_blue_screen_blue)
-        window.navigationBarColor = ContextCompat.getColor(this, R.color.tc_s9a_blue_screen_blue)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.pt_s9a_blue_screen_blue)
+        window.navigationBarColor = ContextCompat.getColor(this, R.color.pt_s9a_blue_screen_blue)
         
         setupContent()
     }
 
     private fun setupContent() {
         // 设置错误信息
-        binding.errorDetails.text = getString(R.string.tc_s9a_error_message)
+        binding.errorDetails.text = getString(R.string.pt_s9a_error_message)
         
         // 根据Android版本显示不同的解决方案
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             // Android 14以下版本
             binding.preAndroid14Layout.isVisible = true
-            binding.solutionIntro.text = getString(R.string.tc_s9a_solution_intro)
-            binding.solutionAlternative.text = getString(R.string.tc_s9a_solution_alternative)
-            binding.toolButton.text = getString(R.string.tc_s9a_tool_button)
-            binding.tutorialButton.text = getString(R.string.tc_s9a_tutorial_button)
+            binding.solutionIntro.text = getString(R.string.pt_s9a_solution_intro)
+            binding.solutionAlternative.text = getString(R.string.pt_s9a_solution_alternative)
+            binding.toolButton.text = getString(R.string.pt_s9a_tool_button)
+            binding.tutorialButton.text = getString(R.string.pt_s9a_tutorial_button)
 
             binding.toolButton.setOnClickListener {
                 openBrowserLink("https://www.vmos.cn/zhushou.htm")
@@ -48,7 +48,7 @@ class Signal9Activity : AppCompatActivity() {
         } else {
             // Android 14及以上版本
             binding.solutionAndroid14.isVisible = true
-            binding.solutionAndroid14.text = getString(R.string.tc_s9a_solution_android14)
+            binding.solutionAndroid14.text = getString(R.string.pt_s9a_solution_android14)
         }
     }
 
