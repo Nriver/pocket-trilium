@@ -67,7 +67,7 @@ public class PocketDocumentsProvider extends DocumentsProvider {
     @Override
     public Cursor queryRoots(String[] projection) {
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : DEFAULT_ROOT_PROJECTION);
-        final String applicationName = "随身Trilium";
+        final String applicationName = getContext().getString(R.string.pt_app_name);
         final File BASE_DIR = new File(getContext().getFilesDir(), "containers");
         final MatrixCursor.RowBuilder row = result.newRow();
         row.add(Root.COLUMN_ROOT_ID, getDocIdForFile(BASE_DIR));
