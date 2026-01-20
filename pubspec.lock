@@ -826,15 +826,6 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "5.15.0"
-  x11_flutter:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "3b92b515b1ebc32c93e18e8b3a2983656713e4dd"
-      resolved-ref: "3b92b515b1ebc32c93e18e8b3a2983656713e4dd"
-      url: "https://github.com/tiny-computer/x11_flutter.git"
-    source: git
-    version: "0.0.1"
   xdg_directories:
     dependency: transitive
     description:

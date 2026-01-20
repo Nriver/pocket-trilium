@@ -46,10 +46,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
-  x11_flutter:
-    git:
-      url: https://github.com/tiny-computer/x11_flutter.git
-      ref: 3b92b515b1ebc32c93e18e8b3a2983656713e4dd
+
 
 dev_dependencies:
 #  flutter_test:

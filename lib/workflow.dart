@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:http/http.dart' as http;
 import 'package:retry/retry.dart';
@@ -20,8 +19,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:wakelock_plus/wakelock_plus.dart';
-
-import 'package:x11_flutter/x11_flutter.dart';
 
 import 'fullScreenWebPage.dart';
 import 'l10n/app_localizations.dart';
@@ -88,7 +85,6 @@ class Util {
       case "reinstallBootstrap" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "wakelock" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isHidpiEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
-      case "useX11" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "defaultFFmpegCommand" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("-hide_banner -an -max_delay 1000000 -r 30 -f android_camera -camera_index 0 -i 0:0 -vf scale=iw/2:-1 -rtsp_transport udp -f rtsp rtsp://127.0.0.1:8554/stream");
       case "defaultHidpiOpt" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("GDK_SCALE=2 QT_FONT_DPI=192");
       case "containersInfo" : return G.prefs.getStringList(key)!;
@@ -769,8 +765,10 @@ clear""");
   }
 
   static Future<void> launchGUIBackend() async {
-    Util.termWrite((Util.getGlobal("autoLaunchVnc") as bool)?((Util.getGlobal("useX11") as bool)?"""mkdir -p "\$HOME/.vnc" && bash /etc/X11/xinit/Xsession &> "\$HOME/.vnc/x.log" &""":Util.getCurrentProp("appStartCommand")):"");
-    Util.termWrite("clear");
+    Util.termWrite((Util.getGlobal("autoLaunchVnc") as bool)
+        ? Util.getCurrentProp("appStartCommand")
+        : "");
+    // Util.termWrite("clear");
   }
 
   static Future<void> waitForConnection() async {
@@ -791,14 +789,6 @@ clear""");
         builder: (context) => InAppWebViewFullScreenPage(url: webUrl),
       ),
     );
-  }
-
-  static Future<void> launchXServer() async {
-    await X11Flutter.launchXServer("${G.dataPath}/containers/${G.currentContainer}/tmp", "${G.dataPath}/containers/${G.currentContainer}/usr/share/X11/xkb", [":4"]);
-  }
-
-  static Future<void> launchX11() async {
-    await X11Flutter.launchX11Page();
   }
 
   static Future<void> workflow() async {
