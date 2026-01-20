@@ -14,7 +14,6 @@ import 'package:xterm/xterm.dart';
 import 'package:flutter_pty/flutter_pty.dart';
 
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -318,11 +317,20 @@ class D {
 #pkill -9 node 
  
 cd /home/pocket/trilium
-[ -w "/home/pocket/.local/share/trilium-data" ] && export TRILIUM_DATA_DIR="/home/pocket/.local/share/trilium-data" || export TRILIUM_DATA_DIR="/home/pocket/trilium-data" 
+
+if [ -d "/home/pocket/trilium-data" ] && [ -w "/home/pocket/trilium-data" ]; then
+    export TRILIUM_DATA_DIR="/home/pocket/trilium-data"
+    echo "Data dir: /home/pocket/trilium-data"
+else
+    export TRILIUM_DATA_DIR="/home/pocket/.local/share/trilium-data"
+    echo "Data dir: /home/pocket/.local/share/trilium-data"
+    mkdir -p /home/pocket/.local/share/trilium-data
+fi 
 
 LOG=/tmp/trilium.log
 for i in {1..10}; do
     : > "$LOG"
+    echo "Starting trilium..."
     ./trilium.sh 2>&1 | tee "$LOG"
     if grep -q "double free or corruption" "$LOG"; then
         echo "Retrying due to 'double free or corruption' ($i/10)"
@@ -382,7 +390,7 @@ sleep 10
     {"name": "F12", "key": TerminalKey.f12},
   ];
 
-  static const String boot = "\$DATA_DIR/bin/proot -H --change-id=1000:1000 --pwd=/home/pocket --rootfs=\$CONTAINER_DIR --mount=/system --mount=/apex --mount=/sys --mount=/data --kill-on-exit --mount=/storage --sysvipc -L --link2symlink --mount=/proc --mount=/dev --mount=\$CONTAINER_DIR/tmp:/dev/shm --mount=/dev/urandom:/dev/random --mount=/proc/self/fd:/dev/fd --mount=/proc/self/fd/0:/dev/stdin --mount=/proc/self/fd/1:/dev/stdout --mount=/proc/self/fd/2:/dev/stderr --mount=/dev/null:/dev/tty0 --mount=/dev/null:/proc/sys/kernel/cap_last_cap --mount=/storage/self/primary:/media/sd --mount=/storage/self/primary/trilium-data:/home/pocket/.local/share/trilium-data --mount=\$DATA_DIR/trilium:/home/pocket/trilium \$EXTRA_MOUNT /usr/bin/env -i HOSTNAME=POCKET HOME=/home/pocket USER=pocket TERM=xterm-256color SDL_IM_MODULE=fcitx XMODIFIERS=@im=fcitx QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx TMOE_CHROOT=false TMOE_PROOT=true TMPDIR=/tmp MOZ_FAKE_NO_SANDBOX=1 QTWEBENGINE_DISABLE_SANDBOX=1 DISPLAY=:4 LANG=zh_CN.UTF-8 SHELL=/bin/bash PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games /bin/bash -l";
+  static const String boot = "\$DATA_DIR/bin/proot -H --change-id=1000:1000 --pwd=/home/pocket --rootfs=\$CONTAINER_DIR --mount=/system --mount=/apex --mount=/sys --mount=/data --kill-on-exit --mount=/storage --sysvipc -L --link2symlink --mount=/proc --mount=/dev --mount=\$CONTAINER_DIR/tmp:/dev/shm --mount=/dev/urandom:/dev/random --mount=/proc/self/fd:/dev/fd --mount=/proc/self/fd/0:/dev/stdin --mount=/proc/self/fd/1:/dev/stdout --mount=/proc/self/fd/2:/dev/stderr --mount=/dev/null:/dev/tty0 --mount=/dev/null:/proc/sys/kernel/cap_last_cap --mount=\$DATA_DIR/trilium:/home/pocket/trilium \$EXTRA_MOUNT /usr/bin/env -i HOSTNAME=POCKET HOME=/home/pocket USER=pocket TERM=xterm-256color SDL_IM_MODULE=fcitx XMODIFIERS=@im=fcitx QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx TMOE_CHROOT=false TMOE_PROOT=true TMPDIR=/tmp MOZ_FAKE_NO_SANDBOX=1 QTWEBENGINE_DISABLE_SANDBOX=1 DISPLAY=:4 LANG=zh_CN.UTF-8 SHELL=/bin/bash PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games /bin/bash -l";
 
   static final ButtonStyle commandButtonStyle = OutlinedButton.styleFrom(
     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -428,12 +436,6 @@ class G {
 }
 
 class Workflow {
-
-  static Future<void> grantPermissions() async {
-    Permission.storage.request();
-    // 请求 "所有文件访问权限"
-    Permission.manageExternalStorage.request();
-  }
 
   static Future<void> setupBootstrap() async {
     //用来共享数据文件的文件夹
@@ -757,7 +759,6 @@ clear""");
   }
 
   static Future<void> workflow() async {
-    // grantPermissions();
     await initData();
     await initTerminalForCurrent();
     launchCurrentContainer();

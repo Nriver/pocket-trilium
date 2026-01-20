@@ -243,23 +243,6 @@ class _SettingPageState extends State<SettingPage> {
             setState(() {});
           },),
         ],))),
-      ExpansionPanel(
-        isExpanded: _expandState[2],
-        headerBuilder: ((context, isExpanded) {
-          return ListTile(title: Text(AppLocalizations.of(context)!.fileAccess));
-        }), body: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-          Text(AppLocalizations.of(context)!.fileAccessHint),
-          const SizedBox.square(dimension: 16),
-          Wrap(alignment: WrapAlignment.center, spacing: 4.0, runSpacing: 4.0, children: [
-            OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.requestStoragePermission), onPressed: () {
-              Permission.storage.request();
-            }),
-            OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.requestAllFilesAccess), onPressed: () {
-              Permission.manageExternalStorage.request();
-            }),
-          ]),
-          const SizedBox.square(dimension: 16),
-        ],))),
     ],);
   }
 }
@@ -301,12 +284,6 @@ class _InfoPageState extends State<InfoPage> {
             Text(AppLocalizations.of(context)!.firstLoadInstructions),
             const SizedBox.square(dimension: 16),
             Wrap(alignment: WrapAlignment.center, spacing: 4.0, runSpacing: 4.0, children: [
-              OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.requestStoragePermission), onPressed: () {
-                Permission.storage.request();
-              }),
-              OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.requestAllFilesAccess), onPressed: () {
-                Permission.manageExternalStorage.request();
-              }),
               OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.ignoreBatteryOptimization), onPressed: () {
                 Permission.ignoreBatteryOptimizations.request();
               }),
