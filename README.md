@@ -32,6 +32,7 @@ You can choose your Trilium version on first start.
 
 # Features
 
+- [x] Choose Trilium version
 - [x] Works offline
 - [x] Copy `trilium-data` to phone and use it directly
 - [x] Sync data with Trilium Server
