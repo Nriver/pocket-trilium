@@ -44,9 +44,12 @@ You can choose your Trilium version on first start.
 
 1. **The `trilium-data` Folder**:
 
-    * You can copy the `trilium-data` folder from your desktop client to your phone.
-    * With Pocket Trilium open in the background, open android system's built-in File Manager (com.android.documentsui), you can find Pocket Trilium container storage in the left hamburger.
-    * Copy your `trilium-data` into Pocket Trilium's `/0/home/pocket/` folder, restart Pocket Trilium, it will read the data from `/0/home/pocket/trilium-data`.
+  * You can setup the sync like other Trilium client do. Or, you can copy the `trilium-data` folder from your desktop client to your phone.
+  * With Pocket Trilium open in the background, open android system's built-in File Manager (com.android.documentsui), you can find Pocket Trilium's container storage in the left hamburger.
+
+<img src="docs/screenshot_documents_provider.jpg" width="200"/>
+ 
+  * Copy your `trilium-data` into Pocket Trilium's `/0/home/pocket/` folder, restart Pocket Trilium, it will read the data from `/0/home/pocket/trilium-data`.
 
 # 🚧 Known issues
 
