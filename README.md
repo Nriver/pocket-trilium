@@ -6,7 +6,7 @@ Please stand up and stretch your body for a while if you see this message :)
 
 [![Support Me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nriver)
 
-<img src="docs/play_store_banner.png" width="200" />
+<img src="docs/logo.png" width="200" />
 
 This project is inspired by and heavily modified from the [Cateners/tiny_computer](https://github.com/Cateners/tiny_computer) project.
 
@@ -17,13 +17,16 @@ Pocket Trilium allows you to run the powerful [Trilium Notes](https://github.com
 # Screenshots
 
 Run Trilium on your phone.
-<img src="docs/screenshot_1.jpg" width="300"/>
+
+<img src="docs/screenshot_1.jpg" width="200"/>
 
 You can choose your Trilium version on first start.
-<img src="docs/screenshot_2.jpg" width="300"/>
 
-<img src="docs/screenshot_3.jpg" width="300"/>
-<img src="docs/screenshot_4.jpg" width="300"/>
+<img src="docs/screenshot_2.jpg" width="200"/>
+
+<img src="docs/screenshot_3.jpg" width="200"/>
+
+<img src="docs/screenshot_4.jpg" width="200"/>
 
 
 
