@@ -42,14 +42,11 @@ You can choose your Trilium version on first start.
 
 # ⚙️ Setup Instructions
 
-1. **Create the `trilium-data` Folder**:
+1. **The `trilium-data` Folder**:
 
-    * On your phone’s internal storage, create a folder named `trilium-data`.
-    * (Recommended) Alternatively, you can copy the `trilium-data` folder from your desktop client to your phone.
-    * Some device may need both `Storage` permission and `All Files Access` permission to make it work.
-
-2. **Developer Options (Android 12+ Only)**:
-   If you're using an Android 12+ device, you may need to disable the "Stop restricting child processes" option in the `Developer Options` menu.
+    * You can copy the `trilium-data` folder from your desktop client to your phone.
+    * With Pocket Trilium open in the background, open android system's built-in File Manager (com.android.documentsui), you can find Pocket Trilium container storage in the left hamburger.
+    * Copy your `trilium-data` into Pocket Trilium's `/0/home/pocket/` folder, restart Pocket Trilium, it will read the data from `/0/home/pocket/trilium-data`.
 
 # 🚧 Known issues
 
@@ -64,6 +61,10 @@ If that does not work for you, try the following:
 3. Restart the app.
 
 If needed, repeat this process a few times. The app should eventually start successfully.
+
+## Child process limitation
+
+If you're using an Android 12+ device, you may need to disable the "Stop restricting child processes" option in the `Developer Options` menu.
 
 # 🚀 Improvements
 
