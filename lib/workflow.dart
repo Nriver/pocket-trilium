@@ -52,14 +52,13 @@ class Util {
 
   //所有key
   //int defaultContainer = 0: 默认启动第0个容器
-  //bool autoLaunchGUI = true: 是否自动启动图形界面并跳转 以前只支持VNC就这么起名了
+  //bool autoLaunchGUI = true: 是否自动启动图形界面并跳转
   //String lastDate: 上次启动软件的日期，yyyy-MM-dd
   //bool isTerminalWriteEnabled = false
   //bool isTerminalCommandsEnabled = false 
   //int termMaxLines = 4095 终端最大行数
   //double termFontScale = 1 终端字体大小
   //bool isStickyKey = true 终端ctrl, shift, alt键是否粘滞
-  //String defaultFFmpegCommand 默认推流命令
   //bool reinstallBootstrap = false 下次启动是否重装引导包
   //bool wakelock = false 屏幕常亮
   //? int bootstrapVersion: 启动包版本
@@ -80,7 +79,6 @@ class Util {
       case "isStickyKey" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
       case "reinstallBootstrap" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "wakelock" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
-      case "defaultFFmpegCommand" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("-hide_banner -an -max_delay 1000000 -r 30 -f android_camera -camera_index 0 -i 0:0 -vf scale=iw/2:-1 -rtsp_transport udp -f rtsp rtsp://127.0.0.1:8554/stream");
       case "containersInfo" : return G.prefs.getStringList(key)!;
     }
   }
@@ -94,14 +92,13 @@ class Util {
       case "name" : return (value){addCurrentProp(key, value); return value;}(D.containerName);
       case "boot" : return (value){addCurrentProp(key, value); return value;}(D.boot);
       case "appStartCommand" : return (value){addCurrentProp(key, value); return value;}(D.triliumStartCommand);
-      // case "webUrl" : return (value){addCurrentProp(key, value); return value;}("http://localhost:36082/vnc.html?host=localhost&port=36082&autoconnect=true&resize=remote&password=12345678");
       // Trilium homepage
       case "webUrl" : return (value){addCurrentProp(key, value); return value;}(D.webUrl);
       case "commands" : return (value){addCurrentProp(key, value); return value;}(jsonDecode(jsonEncode(D.commands)));
     }
   }
 
-  //用来设置name, boot, vnc, webUrl等
+  //用来设置name, boot, webUrl等
   static Future<void> setCurrentProp(String key, dynamic value) async {
     await G.prefs.setStringList("containersInfo",
       Util.getGlobal("containersInfo")..setAll(G.currentContainer,
