@@ -52,8 +52,7 @@ class Util {
 
   //所有key
   //int defaultContainer = 0: 默认启动第0个容器
-  //int defaultAudioPort = 4718: 默认pulseaudio端口(为了避免和其它软件冲突改成4718了，原默认4713)
-  //bool autoLaunchVnc = true: 是否自动启动图形界面并跳转 以前只支持VNC就这么起名了
+  //bool autoLaunchGUI = true: 是否自动启动图形界面并跳转 以前只支持VNC就这么起名了
   //String lastDate: 上次启动软件的日期，yyyy-MM-dd
   //bool isTerminalWriteEnabled = false
   //bool isTerminalCommandsEnabled = false 
@@ -74,8 +73,7 @@ class Util {
     bool b = G.prefs.containsKey(key);
     switch (key) {
       case "defaultContainer" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(0);
-      case "defaultAudioPort" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(4718);
-      case "autoLaunchVnc" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
+      case "autoLaunchGUI" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
       case "lastDate" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("1970-01-01");
       case "isTerminalWriteEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isTerminalCommandsEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
@@ -391,7 +389,7 @@ sleep 10
     {"name": "F12", "key": TerminalKey.f12},
   ];
 
-  static const String boot = "\$DATA_DIR/bin/proot -H --change-id=1000:1000 --pwd=/home/pocket --rootfs=\$CONTAINER_DIR --mount=/system --mount=/apex --mount=/sys --mount=/data --kill-on-exit --mount=/storage --sysvipc -L --link2symlink --mount=/proc --mount=/dev --mount=\$CONTAINER_DIR/tmp:/dev/shm --mount=/dev/urandom:/dev/random --mount=/proc/self/fd:/dev/fd --mount=/proc/self/fd/0:/dev/stdin --mount=/proc/self/fd/1:/dev/stdout --mount=/proc/self/fd/2:/dev/stderr --mount=/dev/null:/dev/tty0 --mount=/dev/null:/proc/sys/kernel/cap_last_cap --mount=/storage/self/primary:/media/sd --mount=/storage/self/primary/trilium-data:/home/pocket/.local/share/trilium-data --mount=\$DATA_DIR/trilium:/home/pocket/trilium \$EXTRA_MOUNT /usr/bin/env -i HOSTNAME=POCKET HOME=/home/pocket USER=pocket TERM=xterm-256color SDL_IM_MODULE=fcitx XMODIFIERS=@im=fcitx QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx TMOE_CHROOT=false TMOE_PROOT=true TMPDIR=/tmp MOZ_FAKE_NO_SANDBOX=1 QTWEBENGINE_DISABLE_SANDBOX=1 DISPLAY=:4 PULSE_SERVER=tcp:127.0.0.1:4718 LANG=zh_CN.UTF-8 SHELL=/bin/bash PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games \$EXTRA_OPT /bin/bash -l";
+  static const String boot = "\$DATA_DIR/bin/proot -H --change-id=1000:1000 --pwd=/home/pocket --rootfs=\$CONTAINER_DIR --mount=/system --mount=/apex --mount=/sys --mount=/data --kill-on-exit --mount=/storage --sysvipc -L --link2symlink --mount=/proc --mount=/dev --mount=\$CONTAINER_DIR/tmp:/dev/shm --mount=/dev/urandom:/dev/random --mount=/proc/self/fd:/dev/fd --mount=/proc/self/fd/0:/dev/stdin --mount=/proc/self/fd/1:/dev/stdout --mount=/proc/self/fd/2:/dev/stderr --mount=/dev/null:/dev/tty0 --mount=/dev/null:/proc/sys/kernel/cap_last_cap --mount=/storage/self/primary:/media/sd --mount=/storage/self/primary/trilium-data:/home/pocket/.local/share/trilium-data --mount=\$DATA_DIR/trilium:/home/pocket/trilium \$EXTRA_MOUNT /usr/bin/env -i HOSTNAME=POCKET HOME=/home/pocket USER=pocket TERM=xterm-256color SDL_IM_MODULE=fcitx XMODIFIERS=@im=fcitx QT_IM_MODULE=fcitx GTK_IM_MODULE=fcitx TMOE_CHROOT=false TMOE_PROOT=true TMPDIR=/tmp MOZ_FAKE_NO_SANDBOX=1 QTWEBENGINE_DISABLE_SANDBOX=1 DISPLAY=:4 LANG=zh_CN.UTF-8 SHELL=/bin/bash PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games \$EXTRA_OPT /bin/bash -l";
 
   static final ButtonStyle commandButtonStyle = OutlinedButton.styleFrom(
     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -415,7 +413,6 @@ sleep 10
 // Global variables
 class G {
   static late final String dataPath;
-  static Pty? audioPty;
   static InAppWebViewController? controller;
   static late BuildContext homePageStateContext;
   static late int currentContainer; //目前运行第几个容器
@@ -456,10 +453,8 @@ class Workflow {
     Util.createDirFromString("${G.dataPath}/tmp");
     //给proot的tmp文件夹，虽然我不知道为什么proot要这个
     Util.createDirFromString("${G.dataPath}/proot_tmp");
-    //给pulseaudio的tmp文件夹
-    Util.createDirFromString("${G.dataPath}/pulseaudio_tmp");
     //解压后得到bin文件夹和libexec文件夹
-    //bin存放了proot, pulseaudio, tar等
+    //bin存放了proot, tar等
     //libexec存放了proot loader
     await Util.copyAsset(
     "assets/assets.zip",
@@ -477,7 +472,6 @@ ln -sf ../applib/libexec_busybox.so \$DATA_DIR/bin/xz
 ln -sf ../applib/libexec_busybox.so \$DATA_DIR/bin/gzip
 ln -sf ../applib/libexec_proot.so \$DATA_DIR/bin/proot
 ln -sf ../applib/libexec_tar.so \$DATA_DIR/bin/tar
-ln -sf ../applib/libexec_pulseaudio.so \$DATA_DIR/bin/pulseaudio
 ln -sf ../applib/libbusybox.so \$DATA_DIR/lib/libbusybox.so.1.37.0
 ln -sf ../applib/libtalloc.so \$DATA_DIR/lib/libtalloc.so.2
 ln -sf ../applib/libepoxy.so \$DATA_DIR/lib/libepoxy.so
@@ -723,23 +717,6 @@ ${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? "" : "ec
     }
   }
 
-  static Future<void> setupAudio() async {
-    G.audioPty?.kill();
-    G.audioPty = Pty.start(
-      "/system/bin/sh"
-    );
-    G.audioPty!.write(const Utf8Encoder().convert("""
-export DATA_DIR=${G.dataPath}
-export PATH=\$DATA_DIR/bin:\$PATH
-export LD_LIBRARY_PATH=\$DATA_DIR/lib
-\$DATA_DIR/bin/busybox sed "s/4713/${Util.getGlobal("defaultAudioPort") as int}/g" \$DATA_DIR/bin/pulseaudio.conf > \$DATA_DIR/bin/pulseaudio.conf.tmp
-rm -rf \$DATA_DIR/pulseaudio_tmp/*
-TMPDIR=\$DATA_DIR/pulseaudio_tmp HOME=\$DATA_DIR/pulseaudio_tmp XDG_CONFIG_HOME=\$DATA_DIR/pulseaudio_tmp LD_LIBRARY_PATH=\$DATA_DIR/bin:\$LD_LIBRARY_PATH \$DATA_DIR/bin/pulseaudio -F \$DATA_DIR/bin/pulseaudio.conf.tmp
-exit
-"""));
-  await G.audioPty?.exitCode;
-  }
-
   static Future<void> launchCurrentContainer() async {
     String extraMount = ""; //mount options and other proot options
     String extraOpt = "";
@@ -765,7 +742,7 @@ clear""");
   }
 
   static Future<void> launchGUIBackend() async {
-    Util.termWrite((Util.getGlobal("autoLaunchVnc") as bool)
+    Util.termWrite((Util.getGlobal("autoLaunchGUI") as bool)
         ? Util.getCurrentProp("appStartCommand")
         : "");
     // Util.termWrite("clear");
@@ -795,9 +772,8 @@ clear""");
     // grantPermissions();
     await initData();
     await initTerminalForCurrent();
-    setupAudio();
     launchCurrentContainer();
-    if (Util.getGlobal("autoLaunchVnc") as bool) {
+    if (Util.getGlobal("autoLaunchGUI") as bool) {
       launchGUIBackend();
       waitForConnection().then((value) => launchBrowser());
     }

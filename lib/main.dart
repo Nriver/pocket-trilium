@@ -233,8 +233,8 @@ class _SettingPageState extends State<SettingPage> {
           const SizedBox.square(dimension: 16),
           Text(AppLocalizations.of(context)!.restartRequiredHint),
           const SizedBox.square(dimension: 8),
-          SwitchListTile(title: Text(AppLocalizations.of(context)!.startWithGUI), value: Util.getGlobal("autoLaunchVnc") as bool, onChanged:(value) {
-            G.prefs.setBool("autoLaunchVnc", value);
+          SwitchListTile(title: Text(AppLocalizations.of(context)!.startWithGUI), value: Util.getGlobal("autoLaunchGUI") as bool, onChanged:(value) {
+            G.prefs.setBool("autoLaunchGUI", value);
             setState(() {});
           },),
           const SizedBox.square(dimension: 8),
