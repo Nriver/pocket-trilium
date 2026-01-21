@@ -462,8 +462,20 @@ ln -sf ../applib/libexec_busybox.so \$DATA_DIR/bin/sh
 ln -sf ../applib/libexec_busybox.so \$DATA_DIR/bin/cat
 ln -sf ../applib/libexec_busybox.so \$DATA_DIR/bin/xz
 ln -sf ../applib/libexec_busybox.so \$DATA_DIR/bin/gzip
+
 ln -sf ../applib/libexec_proot.so \$DATA_DIR/bin/proot
+
 ln -sf ../applib/libexec_tar.so \$DATA_DIR/bin/tar
+
+# new dependencies for busybox and tar due to acl and selinux change
+ln -sf ../applib/libacl.so \$DATA_DIR/lib/libacl.so
+ln -sf ../applib/libandroid-selinux.so \$DATA_DIR/lib/libandroid-selinux.so
+ln -sf ../applib/libandroid-glob.so \$DATA_DIR/lib/libandroid-glob.so
+ln -sf ../applib/libiconv.so \$DATA_DIR/lib/libiconv.so
+ln -sf ../applib/libcharset.so \$DATA_DIR/lib/libcharset.so
+ln -sf ../applib/libattr.so \$DATA_DIR/lib/libattr.so
+ln -sf ../applib/libpcre2-8.so \$DATA_DIR/lib/libpcre2-8.so
+
 ln -sf ../applib/libbusybox.so \$DATA_DIR/lib/libbusybox.so.1.37.0
 ln -sf ../applib/libtalloc.so \$DATA_DIR/lib/libtalloc.so.2
 ln -sf ../applib/libproot-loader.so \$DATA_DIR/lib/loader
