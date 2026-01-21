@@ -469,8 +469,6 @@ ln -sf ../applib/libexec_proot.so \$DATA_DIR/bin/proot
 ln -sf ../applib/libexec_tar.so \$DATA_DIR/bin/tar
 ln -sf ../applib/libbusybox.so \$DATA_DIR/lib/libbusybox.so.1.37.0
 ln -sf ../applib/libtalloc.so \$DATA_DIR/lib/libtalloc.so.2
-ln -sf ../applib/libepoxy.so \$DATA_DIR/lib/libepoxy.so
-ln -sf ../applib/libproot-loader32.so \$DATA_DIR/lib/loader32
 ln -sf ../applib/libproot-loader.so \$DATA_DIR/lib/loader
 
 \$DATA_DIR/bin/busybox unzip -o assets.zip
@@ -629,7 +627,6 @@ cd \$DATA_DIR
 export PATH=\$DATA_DIR/bin:\$PATH
 export PROOT_TMP_DIR=\$DATA_DIR/proot_tmp
 export PROOT_LOADER=\$DATA_DIR/applib/libproot-loader.so
-export PROOT_LOADER_32=\$DATA_DIR/applib/libproot-loader32.so
 #export PROOT_L2S_DIR=\$CONTAINER_DIR/.l2s
 \$DATA_DIR/bin/proot --link2symlink sh -c "cat xa* | \$DATA_DIR/bin/tar x -J --delay-directory-restore --preserve-permissions -v -C containers/0"
 #Script from proot-distro
@@ -725,7 +722,6 @@ export EXTRA_MOUNT="$extraMount"
 cd \$DATA_DIR
 export PROOT_TMP_DIR=\$DATA_DIR/proot_tmp
 export PROOT_LOADER=\$DATA_DIR/applib/libproot-loader.so
-export PROOT_LOADER_32=\$DATA_DIR/applib/libproot-loader32.so
 ${Util.getCurrentProp("boot")}
 ${G.postCommand}
 clear""");
