@@ -451,10 +451,7 @@ class Workflow {
     //解压后得到bin文件夹和libexec文件夹
     //bin存放了proot, tar等
     //libexec存放了proot loader
-    await Util.copyAsset(
-    "assets/assets.zip",
-    "${G.dataPath}/assets.zip",
-    );
+
     await Util.execute(
 """
 export DATA_DIR=${G.dataPath}
@@ -471,13 +468,12 @@ ln -sf ../applib/libbusybox.so \$DATA_DIR/lib/libbusybox.so.1.37.0
 ln -sf ../applib/libtalloc.so \$DATA_DIR/lib/libtalloc.so.2
 ln -sf ../applib/libproot-loader.so \$DATA_DIR/lib/loader
 
-\$DATA_DIR/bin/busybox unzip -o assets.zip
 chmod -R +x bin/*
 chmod -R +x libexec/proot/*
 chmod 1777 tmp
 \$DATA_DIR/bin/busybox tar -xJf ${D.triliumPackage}
 mv TriliumNotes-Server-* trilium 2>/dev/null || true
-\$DATA_DIR/bin/busybox rm -rf assets.zip ${D.triliumPackage}
+\$DATA_DIR/bin/busybox rm -rf ${D.triliumPackage}
 """);
   }
 
