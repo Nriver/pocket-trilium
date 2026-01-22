@@ -49,5 +49,6 @@
   "issueUrl": "问题反馈",
   "discussionUrl": "论坛与讨论",
   "firstLoadInstructions": "首次加载需要大约5到10分钟，请耐心等待 :)\n\n首次加载期间请勿退出软件，以免中断进程。 你可以先看看下面的说明。\n\n加载完成后，软件会自动跳转到主图形界面。\n\nPocket Trilium 的数据默认保存在应用容器内部，如果卸载应用，数据也会一并删除。\n\n如果你已有电脑端的 Trilium 数据，可以直接将电脑上的「trilium-data」文件夹复制到手机内部存储，然后在打开Pocket Trilium的状态下通过系统自带的文件应用将数据复制到Pocket Trilium内部容器里的 /0/home/pocket 目录里。重启应用就会从 /0/home/pocket/trilium-data 获取到你的数据，无需重新初始化和同步。若复制后未自动识别，请尝试重启应用或检查文件路径。\n\n感谢 Cateners 的 Tiny Computer 项目：https://github.com/Cateners/tiny_computer\n感谢 Zadam 创造的优秀 Trilium Notes：https://github.com/zadam/trilium\n感谢 Trilium 社区的所有贡献者\n感谢我的腰，它承受了太多久坐的码农生活 :)\n\n如果你喜欢这个项目，欢迎给仓库点个 Star，也非常感谢大家的赞助支持~\nhttps://github.com/Nriver/pocket-trilium",
-  "updateRequest": "请尽量使用最新版本。前往项目地址可查看最新版本。"
+  "updateRequest": "请尽量使用最新版本。前往项目地址可查看最新版本。",
+  "pressAgainToExitBrowser": "再按一次退出浏览器"
 }

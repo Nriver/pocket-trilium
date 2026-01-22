@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'workflow.dart';
+import 'l10n/app_localizations.dart';
 
 
 class InAppWebViewFullScreenPage extends StatefulWidget {
@@ -49,10 +50,13 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
       } else {
         setState(() => _isAtRoot = true);
         ScaffoldMessenger.of(context).removeCurrentSnackBar();
+
+        final l10n = AppLocalizations.of(context)!;
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("再按一次退出浏览器"),
-            duration: Duration(seconds: 2),
+          SnackBar(
+            content: Text(l10n.pressAgainToExitBrowser),
+            duration: const Duration(seconds: 2),
           ),
         );
         return false;
