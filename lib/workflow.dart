@@ -92,7 +92,6 @@ class Util {
       case "appStartCommand" : return (value){addCurrentProp(key, value); return value;}(D.triliumStartCommand);
       // Trilium homepage
       case "webUrl" : return (value){addCurrentProp(key, value); return value;}(D.webUrl);
-      case "commands" : return (value){addCurrentProp(key, value); return value;}(jsonDecode(jsonEncode(D.commands)));
     }
   }
 
@@ -348,18 +347,6 @@ sleep 10
     {"name": "projectUrl", "value": "https://github.com/Nriver/pocket_trilium"},
     {"name": "issueUrl", "value": "https://github.com/Nriver/pocket_trilium/issues"},
     {"name": "discussionUrl", "value": "https://github.com/Nriver/pocket_trilium/discussions"},
-  ];
-
-  //默认快捷指令
-  static const commands = [
-    {"name":"清屏", "command":"clear"},
-    {"name":"中断任务", "command":"\x03"},
-  ];
-
-  //默认快捷指令，英文版本
-  static const commands4En = [
-    {"name":"Clear Console", "command":"clear"},
-    {"name":"Interrupt", "command":"\x03"},
   ];
 
   //默认小键盘
@@ -662,9 +649,6 @@ ${Localizations.localeOf(G.homePageStateContext).languageCode == 'zh' ? "" : "ec
         "boot": D.boot,
         "appStartCommand": D.triliumStartCommand,
         "webUrl": D.webUrl,
-        "commands": Localizations.localeOf(G.homePageStateContext).languageCode == 'zh'
-            ? D.commands
-            : D.commands4En,
       })
     ]);
   }
