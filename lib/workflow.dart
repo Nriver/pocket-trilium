@@ -498,7 +498,7 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
       barrierDismissible: false,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text("选择 Trilium 版本"),
+          title: Text(AppLocalizations.of(dialogContext)!.selectTriliumVersion),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: D.triliumVersions.map((ver) {
@@ -506,8 +506,8 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
               return ListTile(
                 title: Text(ver['name']!),
                 subtitle: isBuiltIn
-                    ? const Text("内置版本", style: TextStyle(fontSize: 12))
-                    : Text("在线下载", style: TextStyle(fontSize: 12, color: Colors.blue)),
+                    ? Text(AppLocalizations.of(dialogContext)!.builtInVersion, style: const TextStyle(fontSize: 12))
+                    : Text(AppLocalizations.of(dialogContext)!.onlineDownload, style: TextStyle(fontSize: 12, color: Colors.blue)),
                 onTap: () {
                   selectedUrl = ver['url'];
                   Navigator.of(dialogContext).pop();
@@ -549,8 +549,8 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
             context: ctx,
             barrierDismissible: false, // 建议不让点外面关闭
             builder: (alertCtx) => AlertDialog(
-              title: const Text("下载失败"),
-              content: const Text("无法下载所选版本，应用无法正常运行。\n\n将退出程序。"),
+              title: Text(AppLocalizations.of(alertCtx)!.downloadFailed),
+              content: Text(AppLocalizations.of(alertCtx)!.downloadFailedMessage),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -559,7 +559,7 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
                     // SystemNavigator.pop();
                     exit(0);
                   },
-                  child: const Text("退出应用", style: TextStyle(color: Colors.red)),
+                  child: Text(AppLocalizations.of(alertCtx)!.exitApp, style: TextStyle(color: Colors.red)),
                 ),
               ],
             ),
