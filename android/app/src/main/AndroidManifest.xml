@@ -39,7 +39,7 @@
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
         <provider
             android:name="nriver.pocket.trilium.filepicker.PocketDocumentsProvider"
-            android:authorities="nriver.pocket.trilium.filepicker"
+            android:authorities="nriver.pocket.trilium.documents"
             android:exported="true"
             android:grantUriPermissions="true"
             android:permission="android.permission.MANAGE_DOCUMENTS">

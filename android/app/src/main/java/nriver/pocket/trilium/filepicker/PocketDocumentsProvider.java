@@ -150,7 +150,7 @@ public class PocketDocumentsProvider extends DocumentsProvider {
         if (parentFile != null && parentFile.exists()) {
             String parentDocId = getDocIdForFile(parentFile);
             getContext().getContentResolver().notifyChange(
-                    DocumentsContract.buildChildDocumentsUri("nriver.pocket.trilium.filepicker", parentDocId),
+                    DocumentsContract.buildChildDocumentsUri("nriver.pocket.trilium.documents", parentDocId),
                     null
             );
         }
