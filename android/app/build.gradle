@@ -59,6 +59,11 @@ android {
 
         buildConfigField "String", "COMMIT", "\"" + ("git rev-parse HEAD\n".execute().getText().trim() ?: (System.getenv('CURRENT_COMMIT') ?: "NO_COMMIT")) + "\""
 
+        ndk {
+            // 只保留 arm64-v8a 架构
+            abiFilters 'arm64-v8a'
+        }
+
     }
     signingConfigs {
         release {
