@@ -39,12 +39,7 @@ class MyApp extends StatelessWidget {
             ],
             supportedLocales: const [
               Locale('en'),
-              Locale.fromSubtags(languageCode: 'zh'), // generic Chinese 'zh'
-              Locale.fromSubtags(
-                languageCode: 'zh',
-                scriptCode: 'Hans',
-                countryCode: 'CN',
-              ), // 'zh_Hans_CN'
+              Locale('zh'),
             ],
             theme: ThemeData(
               colorScheme: lightDynamic,
