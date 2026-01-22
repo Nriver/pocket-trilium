@@ -57,5 +57,8 @@
   "onlineDownload": "在线下载",
   "downloadFailed": "下载失败",
   "downloadFailedMessage": "无法下载所选版本，应用无法正常运行。\n\n将退出程序。",
-  "exitApp": "退出应用"
+  "exitApp": "退出应用",
+  "usingBuiltInVersion": "正在使用内置版本 {version}...",
+  "downloadingTrilium": "正在下载 Trilium {version}...",
+  "downloadCompletePreparing": "下载完成，正在准备环境..."
 }

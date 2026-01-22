@@ -528,15 +528,15 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
     final targetPath = "${G.dataPath}/${D.triliumPackage}";
 
     if (selectedUrl == 'built-in') {
-      G.updateText.value = "正在使用内置版本 ${D.triliumVersions[0]['name']}...";
+      G.updateText.value = AppLocalizations.of(ctx)!.usingBuiltInVersion(D.triliumVersions[0]['name']!);
       await _copyBuiltInTrilium(targetPath);
     } else {
-      G.updateText.value = "正在下载 Trilium ${D.triliumVersions.firstWhere((v) => v['url'] == selectedUrl)['name']}...";
+      G.updateText.value = AppLocalizations.of(ctx)!.downloadingTrilium(D.triliumVersions.firstWhere((v) => v['url'] == selectedUrl)['name']!);
       try {
         final response = await http.get(Uri.parse(selectedUrl!));
         if (response.statusCode == 200) {
           await File(targetPath).writeAsBytes(response.bodyBytes);
-          G.updateText.value = "下载完成，正在准备环境...";
+          G.updateText.value = AppLocalizations.of(ctx)!.downloadCompletePreparing;
         } else {
           throw Exception("HTTP ${response.statusCode}");
         }

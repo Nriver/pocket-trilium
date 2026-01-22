@@ -57,5 +57,8 @@
   "onlineDownload": "Online download",
   "downloadFailed": "Download Failed",
   "downloadFailedMessage": "Unable to download the selected version, the app cannot run properly.\n\nExiting the program.",
-  "exitApp": "Exit App"
+  "exitApp": "Exit App",
+  "usingBuiltInVersion": "Using built-in version {version}...",
+  "downloadingTrilium": "Downloading Trilium {version}...",
+  "downloadCompletePreparing": "Download complete, preparing environment..."
 }
