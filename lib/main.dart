@@ -852,7 +852,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isLoadingComplete ? Util.getCurrentProp("name") : widget.title),
+        title: Text(D.containerName),
       ),
       body: isLoadingComplete
           ? ValueListenableBuilder(

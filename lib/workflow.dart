@@ -88,7 +88,6 @@ class Util {
       return m[key];
     }
     switch (key) {
-      case "name" : return (value){addCurrentProp(key, value); return value;}(D.containerName);
       case "boot" : return (value){addCurrentProp(key, value); return value;}(D.boot);
       case "appStartCommand" : return (value){addCurrentProp(key, value); return value;}(D.triliumStartCommand);
       // Trilium homepage
