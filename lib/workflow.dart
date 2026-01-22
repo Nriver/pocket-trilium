@@ -287,7 +287,7 @@ class D {
   static const List<Map<String, String>> triliumVersions = [
     {
       'name': '0.63.7-cn (Built-in)',
-      'url': '内置',
+      'url': 'built-in',
       'filename': 'assets/trilium.tar.xz',
     },
     {
@@ -516,7 +516,7 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: D.triliumVersions.map((ver) {
-              final isBuiltIn = ver['url'] == '内置';
+              final isBuiltIn = ver['url'] == 'built-in';
               return ListTile(
                 title: Text(ver['name']!),
                 subtitle: isBuiltIn
@@ -534,14 +534,14 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
     );
 
     // 如果用户关闭对话框没有选择，默认使用内置版本
-    selectedUrl ??= '内置';
+    selectedUrl ??= 'built-in';
 
     // ──────────────────────────────
     //      处理 trilium.tar.xz 文件
     // ──────────────────────────────
     final targetPath = "${G.dataPath}/${D.triliumPackage}";
 
-    if (selectedUrl == '内置') {
+    if (selectedUrl == 'built-in') {
       G.updateText.value = "正在使用内置版本 ${D.triliumVersions[0]['name']}...";
       await _copyBuiltInTrilium(targetPath);
     } else {
@@ -602,7 +602,7 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
   static Future<void> _copyBuiltInTrilium([String? customPath]) async {
     final target = customPath ?? "${G.dataPath}/${D.triliumPackage}";
 
-    final builtIn = D.triliumVersions.firstWhere((v) => v['url'] == '内置');
+    final builtIn = D.triliumVersions.firstWhere((v) => v['url'] == 'built-in');
     final assetPath = builtIn['filename']!;
 
     await Util.copyAsset(assetPath, target);
