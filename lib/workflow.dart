@@ -667,14 +667,6 @@ done
     //如果没有这个key，说明是初次启动
     if (!G.prefs.containsKey("defaultContainer")) {
       await initForFirstTime();
-      if (Localizations.localeOf(G.homePageStateContext).languageCode != 'zh') {
-        G.postCommand += "\nlocaledef -c -i en_US -f UTF-8 en_US.UTF-8";
-        // For English users, assume they need to enable terminal write
-        await G.prefs.setBool("isTerminalWriteEnabled", true);
-        await G.prefs.setBool("isTerminalCommandsEnabled", true);
-        await G.prefs.setBool("isStickyKey", false);
-        await G.prefs.setBool("wakelock", true);
-      }
     }
     G.currentContainer = Util.getGlobal("defaultContainer") as int;
 
