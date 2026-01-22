@@ -470,7 +470,8 @@ ln -sf ../applib/libexec_tar.so \$DATA_DIR/bin/tar
 # new dependencies for busybox and tar due to acl and selinux change
 ln -sf ../applib/libacl.so \$DATA_DIR/lib/libacl.so
 ln -sf ../applib/libandroid-selinux.so \$DATA_DIR/lib/libandroid-selinux.so
-ln -sf ../applib/libandroid-glob.so \$DATA_DIR/lib/libandroid-glob.so
+# This libandroid-glob.so file is broken https://github.com/termux/termux-packages/issues/27315
+#ln -sf ../applib/libandroid-glob.so \$DATA_DIR/lib/libandroid-glob.so
 ln -sf ../applib/libiconv.so \$DATA_DIR/lib/libiconv.so
 ln -sf ../applib/libcharset.so \$DATA_DIR/lib/libcharset.so
 ln -sf ../applib/libattr.so \$DATA_DIR/lib/libattr.so
