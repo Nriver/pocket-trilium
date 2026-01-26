@@ -15,6 +15,7 @@ import android.provider.DocumentsProvider;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 
+import nriver.pocket.trilium.BuildConfig;
 import nriver.pocket.trilium.R;
 
 import java.io.File;
@@ -32,6 +33,10 @@ import java.util.LinkedList;
 public class PocketDocumentsProvider extends DocumentsProvider {
 
     private static final String ALL_MIME_TYPES = "*/*";
+
+    // Get authority dynamically，avoid hardcoded package name
+    private static final String AUTHORITY = BuildConfig.APPLICATION_ID + ".documents";
+
 
     // The default columns to return information about a root if no specific
     // columns are requested in a query.
@@ -150,7 +155,7 @@ public class PocketDocumentsProvider extends DocumentsProvider {
         if (parentFile != null && parentFile.exists()) {
             String parentDocId = getDocIdForFile(parentFile);
             getContext().getContentResolver().notifyChange(
-                    DocumentsContract.buildChildDocumentsUri("nriver.pocket.trilium.documents", parentDocId),
+                    DocumentsContract.buildChildDocumentsUri(AUTHORITY, parentDocId),
                     null
             );
         }
