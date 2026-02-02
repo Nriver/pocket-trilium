@@ -171,6 +171,37 @@ class Util {
     }
   }
 
+
+  static Future<void> clearAppCache() async {
+    try {
+      // 1. 清除临时目录（内部缓存 + WebView 等大部分缓存都在这里）
+      final tempDir = await getTemporaryDirectory();
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+
+      // 2. 清除外部缓存目录（Android/data/<package>/cache）
+      final externalCacheDir = await getExternalCacheDirectories();
+      if (externalCacheDir != null) {
+        for (var dir in externalCacheDir) {
+          if (dir.existsSync()) {
+            dir.deleteSync(recursive: true);
+          }
+        }
+      }
+
+      // 3. 额外强制清理 InAppWebView 的缓存（你之前的问题根源）
+      await InAppWebViewController.clearAllCache(includeDiskFiles: true);
+      final cookieManager = CookieManager.instance();
+      await cookieManager.deleteAllCookies();
+      await cookieManager.removeSessionCookies();
+
+      debugPrint("App 缓存清理完成");
+    } catch (e) {
+      debugPrint("清理缓存失败: $e");
+    }
+  }
+
 }
 
 //来自xterms关于操作ctrl, shift, alt键的示例
@@ -667,6 +698,9 @@ done
   }
 
   static Future<void> _reinstallTrilium() async {
+    // 清理缓存
+    await Util.clearAppCache();
+
     // 提前保存 context，避免跨 async 使用失效的 context
     final BuildContext? ctx = G.homePageStateContext;
     if (ctx == null || !ctx.mounted) {

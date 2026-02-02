@@ -23,6 +23,7 @@
   "reinstallBootPackage": "Reinstall Boot Package",
   "reinstallTrilium": "Reinstall Trilium",
   "installingTrilium": "Installing Trilium",
+  "clearAppCache": "Clear App Cache",
   "width": "Width",
   "height": "Height",
   "fileAccess": "File Access",
