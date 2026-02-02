@@ -222,6 +222,12 @@ class _SettingPageState extends State<SettingPage> {
           const Divider(height: 2, indent: 8, endIndent: 8),
           const SizedBox.square(dimension: 8),
           Wrap(alignment: WrapAlignment.center, spacing: 4.0, runSpacing: 4.0, children: [
+            OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.ignoreBatteryOptimization), onPressed: () {
+              Permission.ignoreBatteryOptimizations.request();
+            }),
+          ]),
+          const SizedBox.square(dimension: 8),
+          Wrap(alignment: WrapAlignment.center, spacing: 4.0, runSpacing: 4.0, children: [
             OutlinedButton(style: D.commandButtonStyle, child: Text(AppLocalizations.of(context)!.signal9ErrorPage), onPressed: () async {
               await D.androidChannel.invokeMethod("launchSignal9Page", {});
             }),
