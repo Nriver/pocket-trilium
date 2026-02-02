@@ -21,6 +21,8 @@
   "restartRequiredHint": "The following options will take effect on next launch.",
   "startWithGUI": "Launch with GUI enabled",
   "reinstallBootPackage": "Reinstall Boot Package",
+  "reinstallTrilium": "Reinstall Trilium",
+  "installingTrilium": "Installing Trilium",
   "width": "Width",
   "height": "Height",
   "fileAccess": "File Access",

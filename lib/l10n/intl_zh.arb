@@ -21,6 +21,8 @@
   "restartRequiredHint": "以下选项修改后将在下次启动软件时生效。",
   "startWithGUI": "开启时启动图形界面",
   "reinstallBootPackage": "重新安装引导包",
+  "reinstallTrilium": "重新安装Trilium",
+  "installingTrilium": "正在安装Trilium",
   "width": "宽",
   "height": "高",
   "fileAccess": "文件访问",

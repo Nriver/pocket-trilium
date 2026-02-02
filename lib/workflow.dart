@@ -59,6 +59,7 @@ class Util {
   //double termFontScale = 1 终端字体大小
   //bool isStickyKey = true 终端ctrl, shift, alt键是否粘滞
   //bool reinstallBootstrap = false 下次启动是否重装引导包
+  //bool reinstallTrilium = false 下次启动是否重装/升级Trilium
   //bool wakelock = false 屏幕常亮
   //? int bootstrapVersion: 启动包版本
   //String[] containersInfo: 所有容器信息(json)
@@ -77,6 +78,7 @@ class Util {
       case "termFontScale" : return b ? G.prefs.getDouble(key)! : (value){G.prefs.setDouble(key, value); return value;}(1.0);
       case "isStickyKey" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
       case "reinstallBootstrap" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
+      case "reinstallTrilium" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "wakelock" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "containersInfo" : return G.prefs.getStringList(key)!;
     }
@@ -470,6 +472,14 @@ ln -sf ../applib/libproot-loader.so \$DATA_DIR/lib/loader
 chmod -R +x bin/*
 chmod -R +x libexec/proot/*
 chmod 1777 tmp
+""");
+  }
+
+  static Future<void> installTrilium() async {
+    await Util.execute("""
+export DATA_DIR=${G.dataPath}
+export LD_LIBRARY_PATH=\$DATA_DIR/lib
+cd \$DATA_DIR
 \$DATA_DIR/bin/busybox tar -xJf ${D.triliumPackage}
 mv TriliumNotes-Server-* trilium 2>/dev/null || true
 \$DATA_DIR/bin/busybox rm -rf ${D.triliumPackage}
@@ -484,6 +494,7 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
       debugPrint("警告：初始化时 context 不可用，将使用内置版本继续");
       await _copyBuiltInTrilium();
       await setupBootstrap();
+      await installTrilium();
       await _finishContainerSetup();
       return;
     }
@@ -577,6 +588,9 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
     G.updateText.value = AppLocalizations.of(ctx)!.installingBootPackage;
     await setupBootstrap();
 
+    G.updateText.value = AppLocalizations.of(ctx)!.installingTrilium;
+    await installTrilium();
+
     G.updateText.value = AppLocalizations.of(ctx)!.copyingContainerSystem;
 
     await _finishContainerSetup();
@@ -633,10 +647,10 @@ id -G | tr ' ' '\\n' > tmp2
 \$DATA_DIR/bin/busybox paste tmp1 tmp2 > tmp3
 local group_name group_id
 cat tmp3 | while read -r group_name group_id; do
-	echo "aid_\${group_name}:x:\${group_id}:root,aid_\$(id -un)" >> "\$CONTAINER_DIR/etc/group"
-	if [ -f "\$CONTAINER_DIR/etc/gshadow" ]; then
-		echo "aid_\${group_name}:*::root,aid_\$(id -un)" >> "\$CONTAINER_DIR/etc/gshadow"
-	fi
+  echo "aid_\${group_name}:x:\${group_id}:root,aid_\$(id -un)" >> "\$CONTAINER_DIR/etc/group"
+  if [ -f "\$CONTAINER_DIR/etc/gshadow" ]; then
+   echo "aid_\${group_name}:*::root,aid_\$(id -un)" >> "\$CONTAINER_DIR/etc/gshadow"
+  fi
 done
 \$DATA_DIR/bin/busybox rm -rf xa* tmp1 tmp2 tmp3
 """);
@@ -652,6 +666,106 @@ done
     ]);
   }
 
+  static Future<void> _reinstallTrilium() async {
+    // 提前保存 context，避免跨 async 使用失效的 context
+    final BuildContext? ctx = G.homePageStateContext;
+    if (ctx == null || !ctx.mounted) {
+      debugPrint("警告：初始化时 context 不可用，将使用内置版本继续");
+      await _copyBuiltInTrilium();
+      await installTrilium();
+      return;
+    }
+
+    // ──────────────────────────────
+    //      显示版本选择对话框
+    // ──────────────────────────────
+    String? selectedUrl;
+
+    await showDialog(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(dialogContext)!.selectTriliumVersion),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: D.triliumVersions.map((ver) {
+              final isBuiltIn = ver['url'] == 'built-in';
+              return ListTile(
+                title: Text(ver['name']!),
+                subtitle: isBuiltIn
+                    ? Text(AppLocalizations.of(dialogContext)!.builtInVersion, style: const TextStyle(fontSize: 12))
+                    : Text(AppLocalizations.of(dialogContext)!.onlineDownload, style: TextStyle(fontSize: 12, color: Colors.blue)),
+                onTap: () {
+                  selectedUrl = ver['url'];
+                  Navigator.of(dialogContext).pop();
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+
+    // 如果用户关闭对话框没有选择，默认使用内置版本
+    selectedUrl ??= 'built-in';
+
+    // ──────────────────────────────
+    //      处理 trilium.tar.xz 文件
+    // ──────────────────────────────
+    final targetPath = "${G.dataPath}/${D.triliumPackage}";
+
+    if (selectedUrl == 'built-in') {
+      G.updateText.value = AppLocalizations.of(ctx)!.usingBuiltInVersion(D.triliumVersions[0]['name']!);
+      await _copyBuiltInTrilium(targetPath);
+    } else {
+      G.updateText.value = AppLocalizations.of(ctx)!.downloadingTrilium(D.triliumVersions.firstWhere((v) => v['url'] == selectedUrl)['name']!);
+      try {
+        final response = await http.get(Uri.parse(selectedUrl!));
+        if (response.statusCode == 200) {
+          await File(targetPath).writeAsBytes(response.bodyBytes);
+          G.updateText.value = AppLocalizations.of(ctx)!.downloadCompletePreparing;
+        } else {
+          throw Exception("HTTP ${response.statusCode}");
+        }
+      } catch (e, stack) {
+        debugPrint("下载失败: $e\n$stack");
+
+        // 尽量在 context 还可用时提示用户
+        if (ctx.mounted) {
+          await showDialog(
+            context: ctx,
+            barrierDismissible: false, // 建议不让点外面关闭
+            builder: (alertCtx) => AlertDialog(
+              title: Text(AppLocalizations.of(alertCtx)!.downloadFailed),
+              content: Text(AppLocalizations.of(alertCtx)!.downloadFailedMessage),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(alertCtx);
+                    // 然后退出
+                    // SystemNavigator.pop();
+                    exit(0);
+                  },
+                  child: Text(AppLocalizations.of(alertCtx)!.exitApp, style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // 回退使用内置版本
+        await _copyBuiltInTrilium(targetPath);
+      }
+    }
+
+    // ──────────────────────────────
+    //      继续原有的初始化流程
+    // ──────────────────────────────
+    G.updateText.value = AppLocalizations.of(ctx)!.installingTrilium;
+    await installTrilium();
+  }
+
   static Future<void> initData() async {
 
     G.dataPath = (await getApplicationSupportDirectory()).path;
@@ -659,7 +773,7 @@ done
     G.termPtys = {};
 
     G.keyboard = VirtualKeyboard(defaultInputHandler);
-    
+
     G.prefs = await SharedPreferences.getInstance();
 
     await Util.execute("ln -sf ${await D.androidChannel.invokeMethod("getNativeLibraryPath", {})} ${G.dataPath}/applib");
@@ -667,6 +781,16 @@ done
     //如果没有这个key，说明是初次启动
     if (!G.prefs.containsKey("defaultContainer")) {
       await initForFirstTime();
+    } else {
+      //检查是否需要重新安装/升级Trilium
+      if (Util.getGlobal("reinstallTrilium")) {
+        final triliumDir = Directory("${G.dataPath}/trilium");
+        if (triliumDir.existsSync()) {
+          triliumDir.deleteSync(recursive: true);
+        }
+        await _reinstallTrilium();
+        G.prefs.setBool("reinstallTrilium", false);
+      }
     }
     G.currentContainer = Util.getGlobal("defaultContainer") as int;
 
@@ -747,5 +871,3 @@ clear""");
     }
   }
 }
-
-
