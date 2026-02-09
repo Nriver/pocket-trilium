@@ -1,5 +1,9 @@
 # 📱 Pocket Trilium
 
+<p align="center">
+** English ** | <a href="README_CN.md">简体中文</a>
+</p>
+
 **Run full-featured Trilium on Android. Take your second brain with you, right in your pocket :)**
 
 Please stand up and stretch your body for a while if you see this message :)
