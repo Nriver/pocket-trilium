@@ -6,6 +6,8 @@
 
 **Run full-featured Trilium on Android. Take your second brain with you, right in your pocket :)**
 
+[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="58">](https://play.google.com/store/apps/details?id=nriver.pocket.trilium)
+
 Please stand up and stretch your body for a while if you see this message :)
 
 [![Support Me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nriver)
