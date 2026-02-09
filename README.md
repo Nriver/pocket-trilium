@@ -35,7 +35,6 @@ You can choose your Trilium version on first start.
 <img src="docs/screenshot_4.jpg" width="200"/>
 
 
-
 # Features
 
 - [x] Choose Trilium version
@@ -93,6 +92,14 @@ If you're using an Android 12+ device, you may need to disable the "Stop restric
 
 - The APK size has reduced from over 1GB with 4GB of data to approximately 360MB with 1GB of data. Additionally, the first time startup time has decreased dramatically.
 - Image upload is now working in the app.
+
+## 🛠️ Development
+
+To keep the repository size reasonable, several large files are **not included** in this repo. You will need to build them yourself.
+
+- **`assets/xa*`** files (rootfs) — Build them by following the instructions in [rootfs.md](docs/rootfs.md).
+- **`assets/trilium.tar.xz`** — Built-in Trilium Notes. The original 0.63.7 version requires recompilation for arm64 platforms. The included version is a recompiled Chinese localization from [Nriver/trilium-translation](https://github.com/Nriver/trilium-translation).
+- **`android/app/src/main/jniLibs/arm64-v8a/*.so`** — Native libraries compiled and extracted from termux-packages. See detailed instructions in [jniLibs.md](docs/jniLibs.md).
 
 # 🎉 Credits
 
