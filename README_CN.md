@@ -55,13 +55,19 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
   * 你可以像其他 Trilium 客户端一样设置同步，也可以直接把桌面端的 `trilium-data` 文件夹复制到手机。
   * 在 Pocket Trilium 保持后台运行的状态下，打开 Android 系统自带的文件管理器（com.android.documentsui）。一些系统会隐藏这个应用，你可以通过这个App来访问它 https://github.com/sdex/ActivityManager
 
-<img src="docs/activity_manager_1.jpg" width="200"/>
+<p align="center">
+<img src="docs/activity_manager_1.jpg" width="400"/>
+</p>
 
-<img src="docs/activity_manager_2.jpg" width="200"/>
+<p align="center">
+<img src="docs/activity_manager_2.jpg" width="400"/>
+</p>
  
   * 在左侧侧边栏即可找到 Pocket Trilium 的存储空间。
 
+<p align="center">
 <img src="docs/screenshot_documents_provider.jpg" width="200"/>
+</p>
 
   * 将你的 `trilium-data` 文件夹复制到 Pocket Trilium 的 `/0/home/pocket/` 目录下，重启应用即可从 `/0/home/pocket/trilium-data` 读取数据。
 
