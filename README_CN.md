@@ -63,7 +63,7 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
 <img src="docs/activity_manager_2.jpg" width="400"/>
 </p>
  
-  * 在左侧侧边栏即可找到 Pocket Trilium 的存储空间。
+  * 在左上角汉堡按钮打开侧边栏即可找到 Pocket Trilium 的存储空间。
 
 <p align="center">
 <img src="docs/screenshot_documents_provider.jpg" width="200"/>

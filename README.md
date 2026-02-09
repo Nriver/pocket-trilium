@@ -63,10 +63,10 @@ You can choose your Trilium version on first start.
 <img src="docs/activity_manager_2.jpg" width="400"/>
 </p>
 
-  * You can find Pocket Trilium's container storage in the left hamburger.
+  * You can find Pocket Trilium's container storage in the top left hamburger button.
 
 <p align="center">
-<img src="docs/screenshot_documents_provider.jpg" width="200"/>
+<img src="docs/screenshot_documents_provider.jpg" width="300"/>
 </p>
 
   * Copy your `trilium-data` into Pocket Trilium's `/0/home/pocket/` folder, restart Pocket Trilium, it will read the data from `/0/home/pocket/trilium-data`.
