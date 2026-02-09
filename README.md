@@ -55,9 +55,9 @@ You can choose your Trilium version on first start.
   * You can setup the sync like other Trilium client do. Or, you can copy the `trilium-data` folder from your desktop client to your phone.
   * With Pocket Trilium open in the background, open android system's built-in File Manager (com.android.documentsui). Some system may hide this app by default, you can access it with https://github.com/sdex/ActivityManager
 
-<img src="docs/activity_manager_1.jpg.jpg" width="200"/>
+<img src="docs/activity_manager_1.jpg" width="200"/>
 
-<img src="docs/activity_manager_2.jpgc.jpg" width="200"/>
+<img src="docs/activity_manager_2.jpg" width="200"/>
 
   * You can find Pocket Trilium's container storage in the left hamburger.
 
