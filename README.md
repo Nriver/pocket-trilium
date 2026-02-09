@@ -86,6 +86,52 @@ Thank [Zadam](https://github.com/zadam) for creating the wonderful Trilium in th
 
 And some credit to my old studies years ago :) [Tutorial to Run Trilium Server in Termux on Android](https://github.com/orgs/TriliumNext/discussions/4542) and [Tutorial: Run TriliumNext Server in Termux on Android](https://github.com/orgs/TriliumNext/discussions/5992).
 
+# 🙏 Closed Testing Thanks
+
+A big thank you to everyone who participated in the Google Play closed testing of **Pocket Trilium**.
+
+Your feedback, bug reports, and suggestions were incredibly helpful and directly influenced the stability and usability of the app before its public release.
+
+The following names are provided voluntarily by the testers (nicknames or real names), listed in no particular order:
+
+- Icixy
+- 2sr.fun
+- hishuxs
+- ziven要加油啊
+- 蓝天龙
+- 辰星
+- zm
+- hikit
+- YIGEHAOR8.
+- Neuro
+- 刘世杰
+- catalpa
+- 信
+- 阿华田
+- 欧神小白
+- 腐草
+- 风中笑
+- Yida
+- Cleavory
+- AT
+- 天涯056
+- 卑以自牧
+- joshooear
+- 1v7w
+- 李重茂
+- Black bat 3625
+- TonyMin
+- 冰
+- 小辉哥
+- 浸月
+- T_L
+- Bry
+- sang
+- nsf
+
+And thanks as well to all testers who chose to remain anonymous — your support is equally appreciated ❤️
+
+
 # 📝 License
 
 This project is licensed under the **GNU Affero General Public License v3.0**. See the [LICENSE](LICENSE) file for more details.
