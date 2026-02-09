@@ -39,6 +39,8 @@ You can choose your Trilium version on first start.
 - [x] You can access pocket trilium with http://your-phone-ip:8080 on your computer in the same wifi
 - [x] Image upload from phone works now
 - [x] `Back` button/gesture works in Trilium page now
+- [x] Reinstall Trilium to upgrade
+- [x] Manually clear cache
 
 # ⚙️ Setup Instructions
 
