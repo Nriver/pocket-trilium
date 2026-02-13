@@ -377,9 +377,9 @@ sleep 10
 
   //常用链接
   static const links = [
-    {"name": "projectUrl", "value": "https://github.com/Nriver/pocket_trilium"},
-    {"name": "issueUrl", "value": "https://github.com/Nriver/pocket_trilium/issues"},
-    {"name": "discussionUrl", "value": "https://github.com/Nriver/pocket_trilium/discussions"},
+    {"name": "projectUrl", "value": "https://github.com/Nriver/pocket-trilium"},
+    {"name": "issueUrl", "value": "https://github.com/Nriver/pocket-trilium/issues"},
+    {"name": "discussionUrl", "value": "https://github.com/Nriver/pocket-trilium/discussions"},
   ];
 
   //默认小键盘
