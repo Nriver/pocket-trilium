@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:url_launcher/url_launcher.dart';  // 新增导入
 
 import 'workflow.dart';
 import 'l10n/app_localizations.dart';
-
 
 class InAppWebViewFullScreenPage extends StatefulWidget {
   final String url;
@@ -121,8 +121,32 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
               }
             },
 
+            // 拦截普通链接导航（非 target="_blank"）
             shouldOverrideUrlLoading: (controller, navigationAction) async {
+              final uri = navigationAction.request.url;
+
+              if (uri == null) {
+                return NavigationActionPolicy.ALLOW;
+              }
+
+              // 默认允许在 WebView 内加载
               return NavigationActionPolicy.ALLOW;
+            },
+
+            // 处理 target="_blank" 或 window.open()，用系统浏览器打开
+            onCreateWindow: (controller, createWindowAction) async {
+              final url = createWindowAction.request.url;
+
+              if (url != null && await canLaunchUrl(url)) {
+                await launchUrl(
+                  url,
+                  mode: LaunchMode.externalApplication,  // 用系统默认浏览器
+                );
+                return true;  // 已处理，不要创建新 WebView 窗口
+              }
+
+              // 不处理就返回 false
+              return false;
             },
 
             onReceivedError: (controller, request, error) {
