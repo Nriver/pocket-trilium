@@ -28,11 +28,11 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
 
 首次启动时可以选择 Trilium 版本：
 
-<img src="docs/screenshot_2.jpg" width="200"/>
-
-<img src="docs/screenshot_3.jpg" width="200"/>
-
-<img src="docs/screenshot_4.jpg" width="200"/>
+<div style="display:flex; gap:12px;">
+    <img src="docs/screenshot_2.jpg" width="200"/>
+    <img src="docs/screenshot_3.jpg" width="200"/>
+    <img src="docs/screenshot_4.jpg" width="200"/>
+</div>
 
 
 
