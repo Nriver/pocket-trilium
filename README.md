@@ -45,6 +45,7 @@ You can choose your Trilium version on first start.
 - [x] `Back` button/gesture works in Trilium page now
 - [x] Reinstall Trilium to upgrade
 - [x] Manually clear cache
+- [x] Open links in note with system default browser app 
 
 # ⚙️ Setup Instructions
 
@@ -68,6 +69,20 @@ You can choose your Trilium version on first start.
 </p>
 
   * Copy your `trilium-data` into Pocket Trilium's `/0/home/pocket/` folder, restart Pocket Trilium, it will read the data from `/0/home/pocket/trilium-data`.
+
+# ❓ FAQ
+
+## Can not connect to Trilium behind Traefik — "unable to resolve internal DNS" or "cert mismatch" error
+
+2 ways to solve this.
+- Use server IP and Port instead of domain (works without SSL cert).
+- If you need ssl, go to `Control - Advanced Settings - Trilium Startup Command` set your own dns server like this:
+
+```
+echo "nameserver 10.20.30.40" > /etc/resolv.conf
+```
+
+Refer to this [Reddit comment](https://www.reddit.com/r/Trilium/comments/1re0bf1/comment/o7bvaiz/)
 
 # 🚧 Known issues
 
