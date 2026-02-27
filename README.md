@@ -46,6 +46,7 @@ You can choose your Trilium version on first start.
 - [x] Reinstall Trilium to upgrade
 - [x] Manually clear cache
 - [x] Open links in note with system default browser app 
+- [x] Switch between mobile and desktop mode without restarting Pocket Trilium
 
 # ⚙️ Setup Instructions
 
