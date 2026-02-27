@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
-import 'package:url_launcher/url_launcher.dart';  // 新增导入
+import 'package:url_launcher/url_launcher.dart';
 
 import 'workflow.dart';
 import 'l10n/app_localizations.dart';
@@ -124,9 +124,14 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
             // 拦截普通链接导航（非 target="_blank"）
             shouldOverrideUrlLoading: (controller, navigationAction) async {
               final uri = navigationAction.request.url;
+              if (uri == null) return NavigationActionPolicy.ALLOW;
 
-              if (uri == null) {
-                return NavigationActionPolicy.ALLOW;
+              // 额外保险，如果 URL 完全相同，也可以在这里强制 reload
+              // 在需要刷新页面的场景下有用，比如手动刷新页面的按钮，切换移动模式和桌面模式等
+              final current = await controller.getUrl();
+              if (uri.toString() == current?.toString()) {
+                await controller.reload();
+                return NavigationActionPolicy.CANCEL;
               }
 
               // 默认允许在 WebView 内加载
