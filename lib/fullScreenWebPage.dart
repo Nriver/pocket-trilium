@@ -88,17 +88,15 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
               useShouldOverrideUrlLoading: true,
               mediaPlaybackRequiresUserGesture: false,
               supportZoom: true,
-              clearCache: false,
-
+              clearCache: true,  // Clear existing cache on initialization
+              cacheEnabled: false,  // Disable caching entirely
+              cacheMode: CacheMode.LOAD_NO_CACHE,  // Force loads from network, ignoring cache
               useHybridComposition: true,
               allowContentAccess: true,
               builtInZoomControls: true,
               supportMultipleWindows: true,
-              cacheMode: CacheMode.LOAD_DEFAULT,
-
               allowsInlineMediaPlayback: true,
               allowsBackForwardNavigationGestures: true,
-
               iframeAllowFullscreen: true,
               isInspectable: kDebugMode,
               disableDefaultErrorPage: true,
