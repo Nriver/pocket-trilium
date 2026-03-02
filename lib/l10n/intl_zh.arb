@@ -58,10 +58,20 @@
   "selectTriliumVersion": "选择 Trilium 版本",
   "builtInVersion": "内置版本",
   "onlineDownload": "在线下载",
+  "downloadSuccess": "下载成功",
   "downloadFailed": "下载失败",
+  "downloadError": "下载错误",
   "downloadFailedMessage": "无法下载所选版本，应用无法正常运行。\n\n将退出程序。",
   "exitApp": "退出应用",
   "usingBuiltInVersion": "正在使用内置版本 {version}...",
   "downloadingTrilium": "正在下载 Trilium {version}...",
-  "downloadCompletePreparing": "下载完成，正在准备环境..."
+  "downloadCompletePreparing": "下载完成，正在准备环境...",
+  "downloadFile": "下载文件",
+  "fileName": "文件名",
+  "confirm": "确认",
+  "cancel": "取消",
+  "fileExists": "文件已存在",
+  "overwriteWarning": "文件已存在。您要覆盖它吗？",
+  "yes": "是",
+  "no": "否"
 }
