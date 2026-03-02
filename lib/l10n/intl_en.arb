@@ -73,5 +73,6 @@
   "fileExists": "File Exists",
   "overwriteWarning": "The file already exists. Do you want to overwrite it?",
   "yes": "Yes",
-  "no": "No"
+  "no": "No",
+  "confirm": "Confirm"
 }
