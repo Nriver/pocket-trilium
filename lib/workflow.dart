@@ -546,24 +546,81 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
       context: ctx,
       barrierDismissible: false,
       builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(AppLocalizations.of(dialogContext)!.selectTriliumVersion),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: D.triliumVersions.map((ver) {
-              final isBuiltIn = ver['url'] == 'built-in';
-              return ListTile(
-                title: Text(ver['name']!),
-                subtitle: isBuiltIn
-                    ? Text(AppLocalizations.of(dialogContext)!.builtInVersion, style: const TextStyle(fontSize: 12))
-                    : Text(AppLocalizations.of(dialogContext)!.onlineDownload, style: TextStyle(fontSize: 12, color: Colors.blue)),
-                onTap: () {
-                  selectedUrl = ver['url'];
-                  Navigator.of(dialogContext).pop();
-                },
-              );
-            }).toList(),
-          ),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(
+                AppLocalizations.of(dialogContext)!.selectTriliumVersion,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                height: MediaQuery.of(dialogContext).size.height * 0.55,
+                child: ListView.builder(
+                  itemCount: D.triliumVersions.length,
+                  itemBuilder: (context, index) {
+                    final ver = D.triliumVersions[index];
+                    final isBuiltIn = ver['url'] == 'built-in';
+                    final isSelected = selectedUrl == ver['url'];
+
+                    return ListTile(
+                      dense: true,
+                      visualDensity: VisualDensity.compact,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                      selected: isSelected,
+                      selectedTileColor: Colors.blue.withOpacity(0.1),
+                      title: Text(
+                        ver['name']!,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      subtitle: isBuiltIn
+                          ? Text(
+                        AppLocalizations.of(dialogContext)!.builtInVersion,
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      )
+                          : Text(
+                        AppLocalizations.of(dialogContext)!.onlineDownload,
+                        style: const TextStyle(fontSize: 12, color: Colors.blue),
+                      ),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle, color: Colors.green, size: 24)
+                          : null,
+                      onTap: () {
+                        setDialogState(() {
+                          selectedUrl = ver['url'];
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+              contentPadding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+              actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+              actions: [
+                TextButton(
+                  onPressed: selectedUrl == null
+                      ? null
+                      : () {
+                    Navigator.of(dialogContext).pop();
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: selectedUrl == null ? Colors.grey : null,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  ),
+                  child: Text(
+                    AppLocalizations.of(dialogContext)!.confirm,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            );
+          },
         );
       },
     );

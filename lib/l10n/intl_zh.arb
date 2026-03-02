@@ -73,5 +73,6 @@
   "fileExists": "文件已存在",
   "overwriteWarning": "文件已存在。您要覆盖它吗？",
   "yes": "是",
-  "no": "否"
+  "no": "否",
+  "confirm": "确认"
 }
