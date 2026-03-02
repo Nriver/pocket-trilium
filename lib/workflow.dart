@@ -322,6 +322,14 @@ class D {
       'filename': 'assets/trilium.tar.xz',
     },
     {
+      'name': '0.102.0 (Github)',
+      'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.102.0/TriliumNotes-Server-v0.102.0-linux-arm64.tar.xz',
+    },
+    {
+      'name': '0.102.0 (Gitee)',
+      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.102.0-linux-arm64.tar.xz',
+    },
+    {
       'name': '0.101.3 (Github)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.101.3/TriliumNotes-Server-v0.101.3-linux-arm64.tar.xz',
     },
@@ -337,7 +345,6 @@ class D {
       'name': '0.63.7 (Gitee)',
       'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/trilium-0.63.7.tar.xz',
     },
-
   ];
 
   static const String containerName = "Pocket Trilium by Nriver";
