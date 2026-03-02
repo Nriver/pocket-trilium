@@ -58,10 +58,20 @@
   "selectTriliumVersion": "Select Trilium Version",
   "builtInVersion": "Built-in version",
   "onlineDownload": "Online download",
-  "downloadFailed": "Download Failed",
+  "downloadSuccess": "Download success",
+  "downloadFailed": "Download failed",
+  "downloadError": "Download error",
   "downloadFailedMessage": "Unable to download the selected version, the app cannot run properly.\n\nExiting the program.",
   "exitApp": "Exit App",
   "usingBuiltInVersion": "Using built-in version {version}...",
   "downloadingTrilium": "Downloading Trilium {version}...",
-  "downloadCompletePreparing": "Download complete, preparing environment..."
+  "downloadCompletePreparing": "Download complete, preparing environment...",
+  "downloadFile": "Download File",
+  "fileName": "File Name",
+  "confirm": "Confirm",
+  "cancel": "Cancel",
+  "fileExists": "File Exists",
+  "overwriteWarning": "The file already exists. Do you want to overwrite it?",
+  "yes": "Yes",
+  "no": "No"
 }
