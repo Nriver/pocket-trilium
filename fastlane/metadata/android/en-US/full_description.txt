@@ -1,0 +1,9 @@
+Pocket Trilium lets you run the **full-featured Trilium Notes** directly on your Android device.
+
+Features:
+- Full Trilium functionality in your pocket
+- Works offline
+- Sync with your desktop/server when online
+- ...
+
+Built with love for second-brain enthusiasts!
