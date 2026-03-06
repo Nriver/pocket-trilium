@@ -30,6 +30,7 @@ You can choose your Trilium version on first start.
 
 <div style="display:flex; gap:12px;">
     <img src="docs/screenshot_2.jpg" width="200"/>
+    <img src="docs/screenshot_2_2.jpg" width="200"/>
     <img src="docs/screenshot_3.jpg" width="200"/>
     <img src="docs/screenshot_4.jpg" width="200"/>
 </div>
