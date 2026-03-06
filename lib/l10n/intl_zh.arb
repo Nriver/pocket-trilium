@@ -74,5 +74,9 @@
   "overwriteWarning": "文件已存在。您要覆盖它吗？",
   "yes": "是",
   "no": "否",
-  "confirm": "确认"
+  "confirm": "确认",
+  "versionLangZhOnly": "仅中文",
+  "versionLangEnOnly": "仅英文",
+  "versionLangMulti": "多语言支持",
+  "versionLangBuiltIn": "内置版本"
 }

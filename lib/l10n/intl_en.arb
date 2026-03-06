@@ -74,5 +74,9 @@
   "overwriteWarning": "The file already exists. Do you want to overwrite it?",
   "yes": "Yes",
   "no": "No",
-  "confirm": "Confirm"
+  "confirm": "Confirm",
+  "versionLangZhOnly": "Chinese only",
+  "versionLangEnOnly": "English only",
+  "versionLangMulti": "Multi-language",
+  "versionLangBuiltIn": "Built-in"
 }

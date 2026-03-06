@@ -202,6 +202,32 @@ class Util {
     }
   }
 
+  static String _getLangLabel(String langKey, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (langKey) {
+      case 'zh-only':
+        return l10n.versionLangZhOnly;
+      case 'en-only':
+        return l10n.versionLangEnOnly;
+      case 'multi':
+        return l10n.versionLangMulti;
+      default:
+        return '';
+    }
+  }
+
+  static Color _getLangColor(String langKey) {
+    switch (langKey) {
+      case 'zh-only':
+        return Colors.red.shade700;
+      case 'en-only':
+        return Colors.red.shade700;
+      case 'multi':
+        return Colors.green.shade700;
+      default:
+        return Colors.grey;
+    }
+  }
 }
 
 //来自xterms关于操作ctrl, shift, alt键的示例
@@ -315,35 +341,49 @@ class D {
   static const String triliumPackage = "trilium.tar.xz";
 
   // Trilium 可选版本列表
-  static const List<Map<String, String>> triliumVersions = [
+  static const List<Map<String, dynamic>> triliumVersions = [
     {
-      'name': '0.63.7-cn (Built-in)',
+      'name': '0.63.7-cn',
+      'suffix': '(Built-in)',
       'url': 'built-in',
       'filename': 'assets/trilium.tar.xz',
+      'lang': 'zh-only',
     },
     {
-      'name': '0.102.0 (Github)',
+      'name': '0.102.0',
+      'suffix': '(GitHub)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.102.0/TriliumNotes-Server-v0.102.0-linux-arm64.tar.xz',
+      'lang': 'multi',
     },
     {
-      'name': '0.102.0 (Gitee)',
+      'name': '0.102.0',
+      'suffix': '(Gitee)',
       'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.102.0-linux-arm64.tar.xz',
+      'lang': 'multi',
     },
     {
-      'name': '0.101.3 (Github)',
+      'name': '0.101.3',
+      'suffix': '(GitHub)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.101.3/TriliumNotes-Server-v0.101.3-linux-arm64.tar.xz',
+      'lang': 'multi',
     },
     {
-      'name': '0.101.3 (Gitee)',
+      'name': '0.101.3',
+      'suffix': '(Gitee)',
       'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.101.3-linux-arm64.tar.xz',
+      'lang': 'multi',
     },
     {
-      'name': '0.63.7 (Github)',
+      'name': '0.63.7',
+      'suffix': '(GitHub)',
       'url': 'https://github.com/Nriver/pocket-trilium-resources/releases/download/v1/trilium-0.63.7.tar.xz',
+      'lang': 'en-only',
     },
     {
-      'name': '0.63.7 (Gitee)',
+      'name': '0.63.7',
+      'suffix': '(Gitee)',
       'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/trilium-0.63.7.tar.xz',
+      'lang': 'en-only',
     },
   ];
 
@@ -560,7 +600,6 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
                   itemCount: D.triliumVersions.length,
                   itemBuilder: (context, index) {
                     final ver = D.triliumVersions[index];
-                    final isBuiltIn = ver['url'] == 'built-in';
                     final isSelected = selectedUrl == ver['url'];
 
                     return ListTile(
@@ -570,20 +609,34 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
                       selected: isSelected,
                       selectedTileColor: Colors.blue.withOpacity(0.1),
                       title: Text(
-                        ver['name']!,
+                        "${ver['name']} ${ver['suffix']}",
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
-                      subtitle: isBuiltIn
-                          ? Text(
-                        AppLocalizations.of(dialogContext)!.builtInVersion,
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
-                      )
-                          : Text(
-                        AppLocalizations.of(dialogContext)!.onlineDownload,
-                        style: const TextStyle(fontSize: 12, color: Colors.blue),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 第一行：语言类型
+                          Text(
+                            Util._getLangLabel(ver['lang']!, dialogContext),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Util._getLangColor(ver['lang']!),
+                            ),
+                          ),
+                          // 第二行：内置 / 在线
+                          Text(
+                            ver['url'] == 'built-in'
+                                ? AppLocalizations.of(dialogContext)!.versionLangBuiltIn
+                                : AppLocalizations.of(dialogContext)!.onlineDownload,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: ver['url'] == 'built-in' ? Colors.grey : Colors.blue,
+                            ),
+                          ),
+                        ],
                       ),
                       trailing: isSelected
                           ? const Icon(Icons.check_circle, color: Colors.green, size: 24)
