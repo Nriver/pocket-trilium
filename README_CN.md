@@ -16,6 +16,8 @@
 
 本项目受 [Cateners/tiny_computer](https://github.com/Cateners/tiny_computer) 项目启发，并在其基础上进行了大量修改。
 
+---
+
 # 📝 项目介绍
 
 Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium Notes](https://github.com/zadam/trilium)。虽然最初基于 [tiny_computer](https://github.com/Cateners/tiny_computer) 项目，但本版本进行了大量修改，以更好地适配我的使用需求。
@@ -35,7 +37,7 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
     <img src="docs/screenshot_4.jpg" width="200"/>
 </div>
 
-
+---
 
 # 功能特性
 
@@ -49,6 +51,8 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
 - [x] 可通过重新安装 Trilium 进行升级
 - [x] 支持手动清除缓存
 - [x] 可以调用系统浏览器App来打开笔记内的链接
+
+---
 
 # ⚙️ 设置说明
 
@@ -73,7 +77,22 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
 
   * 将你的 `trilium-data` 文件夹复制到 Pocket Trilium 的 `/0/home/pocket/` 目录下，重启应用即可从 `/0/home/pocket/trilium-data` 读取数据。
 
+---
+
 # ❓ FAQ 常见问题
+
+## 我如何在 Pocket Trilium 应用中升级 Trilium 的版本？
+
+1. 打开应用并导航到 `控制` 页面。
+   *如果你当前在 Trilium 内，可以通过按下安卓设备上的返回按钮或者侧滑手势返回到 Pocket Trilium 的主界面。*
+
+2. 点击 `全局设置`。
+
+3. 开启 `重新安装 Trilium`。
+
+4. 重启应用。
+
+应用重启后，你将看到一个选择 Trilium 版本的弹出菜单。
 
 ## 无法连接 Traefik 反代的 Trilium — “无法解析内部 DNS” 或 “证书不匹配” 错误
 
@@ -86,6 +105,8 @@ echo "nameserver 10.20.30.40" > /etc/resolv.conf
 ```
 
 参考此 [Reddit 评论](https://www.reddit.com/r/Trilium/comments/1re0bf1/comment/o7bvaiz/)
+
+---
 
 # 🚧 已知问题
 
@@ -105,6 +126,8 @@ echo "nameserver 10.20.30.40" > /etc/resolv.conf
 
 Android 12 及以上设备可能需要在「开发者选项」中关闭「停止限制子进程」选项。
 
+---
+
 # 🚀 主要改进
 
 - APK 体积从原来的 1GB+（含 4GB 数据）大幅降低至约 360MB（含 1GB 数据），首次启动速度也显著提升。
@@ -118,6 +141,8 @@ Android 12 及以上设备可能需要在「开发者选项」中关闭「停止
 - **`assets/trilium.tar.xz`** ——内置 Trilium Notes。经典的 0.63.7 版本需要为 arm64 平台重新编译。本仓库内置的是从 [Nriver/trilium-translation](https://github.com/Nriver/trilium-translation) 重新编译的中文优化版。
 - **`android/app/src/main/jniLibs/arm64-v8a/*.so`** ——从 termux-packages 编译并提取的原生库。详细编译说明请参考 [jniLibs_CN.md](docs/jniLibs_CN.md)。
 
+---
+
 # 🎉 致谢
 
 非常感谢 [Cateners/tiny_computer](https://github.com/Cateners/tiny_computer) 项目为本项目奠定了基础。Pocket Trilium 的初始代码基于以下提交：[6425e04](https://github.com/Cateners/tiny_computer/tree/6425e0443efce97b9882c76294bd4271daf39996)。
@@ -129,6 +154,8 @@ Android 12 及以上设备可能需要在「开发者选项」中关闭「停止
 同时也感谢我多年前写下的两篇教程：
 - [在 Termux 上运行 Trilium Server](https://github.com/orgs/TriliumNext/discussions/4542)
 - [在 Termux 上运行 TriliumNext Server](https://github.com/orgs/TriliumNext/discussions/5992)
+
+---
 
 # 🙏 封闭测试特别感谢
 
@@ -175,9 +202,13 @@ Android 12 及以上设备可能需要在「开发者选项」中关闭「停止
 
 也感谢所有选择匿名的测试者，你们的支持同样宝贵 ❤️
 
+---
+
 # 📝 许可证
 
 本项目采用 **GNU Affero General Public License v3.0** 许可。详情请见 [LICENSE](LICENSE) 文件。
+
+---
 
 # 💖 捐赠
 

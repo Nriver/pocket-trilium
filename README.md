@@ -16,9 +16,13 @@ Please stand up and stretch your body for a while if you see this message :)
 
 This project is inspired by and heavily modified from the [Cateners/tiny_computer](https://github.com/Cateners/tiny_computer) project.
 
+---
+
 # 📝 Overview
 
 Pocket Trilium allows you to run the powerful [Trilium Notes](https://github.com/zadam/trilium) app on Android devices. While originally based on the [tiny_computer](https://github.com/Cateners/tiny_computer) project, this version has undergone significant modifications to better suit my needs.
+
+---
 
 # Screenshots
 
@@ -35,6 +39,8 @@ You can choose your Trilium version on first start.
     <img src="docs/screenshot_4.jpg" width="200"/>
 </div>
 
+---
+
 # Features
 
 - [x] Choose Trilium version
@@ -48,6 +54,8 @@ You can choose your Trilium version on first start.
 - [x] Manually clear cache
 - [x] Open links in note with system default browser app 
 - [x] Switch between mobile and desktop mode without restarting Pocket Trilium
+
+---
 
 # ⚙️ Setup Instructions
 
@@ -72,7 +80,22 @@ You can choose your Trilium version on first start.
 
   * Copy your `trilium-data` into Pocket Trilium's `/0/home/pocket/` folder, restart Pocket Trilium, it will read the data from `/0/home/pocket/trilium-data`.
 
+---
+
 # ❓ FAQ
+
+## How can I Upgrade Trilium in the Pocket Trilium App ?
+
+1. Open the app and navigate to `Control`.
+   *If you're currently inside Trilium, you can return to Pocket Trilium’s main UI by pressing the back button or using swipe gesture on your Android device.*
+
+2. Click `Global Settings`.
+
+3. Turn on `Reinstall Trilium`.
+
+4. Restart the app.
+
+Once the app restarts, you'll see a pop-up menu that allows you to select the Trilium version.
 
 ## Can not connect to Trilium behind Traefik — "unable to resolve internal DNS" or "cert mismatch" error
 
@@ -85,6 +108,8 @@ echo "nameserver 10.20.30.40" > /etc/resolv.conf
 ```
 
 Refer to this [Reddit comment](https://www.reddit.com/r/Trilium/comments/1re0bf1/comment/o7bvaiz/)
+
+---
 
 # 🚧 Known issues
 
@@ -104,6 +129,8 @@ If needed, repeat this process a few times. The app should eventually start succ
 
 If you're using an Android 12+ device, you may need to disable the "Stop restricting child processes" option in the `Developer Options` menu.
 
+---
+
 # 🚀 Improvements
 
 - The APK size has reduced from over 1GB with 4GB of data to approximately 360MB with 1GB of data. Additionally, the first time startup time has decreased dramatically.
@@ -117,6 +144,8 @@ To keep the repository size reasonable, several large files are **not included**
 - **`assets/trilium.tar.xz`** — Built-in Trilium Notes. The original 0.63.7 version requires recompilation for arm64 platforms. The included version is a recompiled Chinese localization from [Nriver/trilium-translation](https://github.com/Nriver/trilium-translation).
 - **`android/app/src/main/jniLibs/arm64-v8a/*.so`** — Native libraries compiled and extracted from termux-packages. See detailed instructions in [jniLibs.md](docs/jniLibs.md).
 
+---
+
 # 🎉 Credits
 
 A huge thank you to the [Cateners/tiny_computer](https://github.com/Cateners/tiny_computer) project for laying the groundwork for this project. The initial code for **Pocket Trilium** was based on the following commit: [6425e04](https://github.com/Cateners/tiny_computer/tree/6425e0443efce97b9882c76294bd4271daf39996).
@@ -126,6 +155,8 @@ While I’ve made many changes to adapt the project to my use case, I decided to
 Thank [Zadam](https://github.com/zadam) for creating the wonderful Trilium in the first place. Thanks to everyone in the Trilium community.
 
 And some credit to my old studies years ago :) [Tutorial to Run Trilium Server in Termux on Android](https://github.com/orgs/TriliumNext/discussions/4542) and [Tutorial: Run TriliumNext Server in Termux on Android](https://github.com/orgs/TriliumNext/discussions/5992).
+
+---
 
 # 🙏 Closed Testing Thanks
 
@@ -172,10 +203,13 @@ The following names are provided voluntarily by the testers (nicknames or real n
 
 And thanks as well to all testers who chose to remain anonymous — your support is equally appreciated ❤️
 
+---
 
 # 📝 License
 
 This project is licensed under the **GNU Affero General Public License v3.0**. See the [LICENSE](LICENSE) file for more details.
+
+---
 
 # 💖 Donation
 
