@@ -90,6 +90,8 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
 
 3. 开启 `重新安装 Trilium`。
 
+   *注意：此操作只会删除已安装的 Trilium 程序本体，不会影响你的 Trilium 数据目录（trilium-data）。重新安装后，你的数据还在，就和在电脑上升级 Trilium 是一样的。请放心，升级过程中你的数据不会丢失 :)*
+
 4. 重启应用。
 
 应用重启后，你将看到一个选择 Trilium 版本的弹出菜单。

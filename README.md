@@ -93,6 +93,8 @@ You can choose your Trilium version on first start.
 
 3. Turn on `Reinstall Trilium`.
 
+   *Note: This operation will only remove the installed Trilium program itself and will not affect your Trilium data directory (trilium-data). Your data will remain intact after reinstalling, just like when you upgrade Trilium on a computer. You can rest assured that your data will not be lost during the upgrade process :)*
+
 4. Restart the app.
 
 Once the app restarts, you'll see a pop-up menu that allows you to select the Trilium version.
