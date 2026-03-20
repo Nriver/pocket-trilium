@@ -14,6 +14,7 @@ import 'package:xterm/xterm.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'constants/defaults.dart';
 import 'constants/licenses.dart';
 import 'l10n/app_localizations.dart';
 import 'workflow.dart';
