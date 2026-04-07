@@ -17,6 +17,18 @@ class D {
       'lang': 'zh-only',
     },
     {
+      'name': '0.102.2',
+      'suffix': '(GitHub)',
+      'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.102.2/TriliumNotes-Server-v0.102.2-linux-arm64.tar.xz',
+      'lang': 'multi',
+    },
+    {
+      'name': '0.102.2',
+      'suffix': '(Gitee)',
+      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.102.2-linux-arm64.tar.xz',
+      'lang': 'multi',
+    },
+    {
       'name': '0.102.1',
       'suffix': '(GitHub)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.102.1/TriliumNotes-Server-v0.102.1-linux-arm64.tar.xz',
