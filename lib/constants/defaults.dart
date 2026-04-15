@@ -94,7 +94,12 @@ else
     export TRILIUM_DATA_DIR="/home/pocket/.local/share/trilium-data"
     echo "Data dir: /home/pocket/.local/share/trilium-data"
     mkdir -p /home/pocket/.local/share/trilium-data
-fi 
+fi
+
+# use tcmalloc
+#export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libtcmalloc_minimal.so.4
+# use jemalloc
+export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libjemalloc.so.2
 
 LOG=/tmp/trilium.log
 for i in {1..10}; do
