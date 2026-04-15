@@ -78,5 +78,8 @@
   "versionLangZhOnly": "仅中文",
   "versionLangEnOnly": "仅英文",
   "versionLangMulti": "多语言支持",
-  "versionLangBuiltIn": "内置版本"
+  "versionLangBuiltIn": "内置版本",
+  "resetToDefault": "恢复默认",
+  "confirmResetToDefaultTriliumStartCommand": "是否将 Trilium 启动命令恢复为默认值？",
+  "resetSuccessful": "已恢复为默认启动命令"
 }

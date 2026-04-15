@@ -78,5 +78,8 @@
   "versionLangZhOnly": "Chinese only",
   "versionLangEnOnly": "English only",
   "versionLangMulti": "Multi-language",
-  "versionLangBuiltIn": "Built-in"
+  "versionLangBuiltIn": "Built-in",
+  "resetToDefault": "Reset to Default",
+  "confirmResetToDefaultTriliumStartCommand": "Are you sure you want to reset the Trilium startup command to the default value?",
+  "resetSuccessful": "Successfully reset to default startup command"
 }
