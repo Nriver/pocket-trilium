@@ -84,7 +84,9 @@ class D {
   // 判断挂载到手机内部存储的默认数据路径如果无法写入，则写入到app内部目录
   static const String triliumStartCommand = r"""
 #pkill -9 node 
- 
+
+export TRILIUM_PORT=8080
+
 cd /home/pocket/trilium
 
 if [ -d "/home/pocket/trilium-data" ] && [ -w "/home/pocket/trilium-data" ]; then
