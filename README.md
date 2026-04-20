@@ -117,7 +117,7 @@ Refer to this [Reddit comment](https://www.reddit.com/r/Trilium/comments/1re0bf1
 
 ## ❌ App Fails to Start Occasionally
 
-If the app fails to start and you encounter an error such as `double free or corruption`, I've added a retry mechanism to start trilium for 10 times automatically if this happens.
+If the app fails to start, and you encounter an error such as `double free or corruption`, I've added a retry mechanism to start trilium for 10 times automatically if this happens.
 
 If that does not work for you, try the following:
 
@@ -126,6 +126,20 @@ If that does not work for you, try the following:
 3. Restart the app.
 
 If needed, repeat this process a few times. The app should eventually start successfully.
+
+### Fix for `double free or corruption` (v1.4.0 and above)
+
+**Note:**  
+This fix is mainly for users who upgraded from a version **below 1.4.0**.  
+If you are a new user who installed Pocket Trilium **1.4.0 or later**, you are already using the rootfs with `jemalloc` version by default and usually will not encounter this issue.
+
+1. Go to `Control → Advanced Settings`, find `Trilium Startup Command`, and click `Reset to Default`.
+
+2. Go to `Control → Global Settings` and enable `Reinstall Rootfs`.
+
+   **Note:** `Reinstall Rootfs` will only replace the underlying system environment. It will **not** affect your Trilium program files or your notes data in the `trilium-data` folder. Your data will remain completely safe.
+
+3. Then restart the app, please wait patiently for 5–10 minutes.
 
 ## Child process limitation
 
@@ -137,6 +151,7 @@ If you're using an Android 12+ device, you may need to disable the "Stop restric
 
 - The APK size has reduced from over 1GB with 4GB of data to approximately 360MB with 1GB of data. Additionally, the first time startup time has decreased dramatically.
 - Image upload is now working in the app.
+- Starting from version 1.4.0, Pocket Trilium uses `jemalloc` as the memory allocator instead of the default `malloc`. This change significantly reduces the occurrence of `double free or corruption` errors and provides much better stability during long-running sessions.
 
 ## 🛠️ Development
 
