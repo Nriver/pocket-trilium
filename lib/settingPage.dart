@@ -307,6 +307,15 @@ class _SettingPageState extends State<SettingPage> {
                     setState(() {});
                   },
                 ),
+                const SizedBox.square(dimension: 8),
+                SwitchListTile(
+                  title: Text(AppLocalizations.of(context)!.reinstallRootfs),
+                  value: G.prefs.getBool("reinstallRootfs") ?? false,
+                  onChanged: (value) {
+                    G.prefs.setBool("reinstallRootfs", value);
+                    setState(() {});
+                  },
+                ),
               ],
             ),
           ),

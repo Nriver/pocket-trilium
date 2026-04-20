@@ -776,6 +776,126 @@ done
     await installTrilium();
   }
 
+  // 重装 rootfs（保留 /home/pocket 用户数据，使用 proot 删除避免权限问题）
+  // 实时更新界面提示文字
+  static Future<void> _doReinstallRootfs() async {
+    final String containerDir = "${G.dataPath}/containers/${G.currentContainer}";
+    final String userDataDir = "$containerDir/home/pocket";
+    final String backupDir = "$containerDir/.pocket_backup";
+
+    final BuildContext? ctx = G.homePageStateContext;
+
+    // 1. 备份用户数据
+    G.updateText.value = AppLocalizations.of(ctx!)!.reinstallRootfsBackup;
+    debugPrint("步骤1: 备份 /home/pocket");
+    final bool hasUserData = Directory(userDataDir).existsSync();
+
+    if (hasUserData) {
+      if (Directory(backupDir).existsSync()) {
+        Directory(backupDir).deleteSync(recursive: true);
+      }
+      Directory(userDataDir).renameSync(backupDir);
+      debugPrint("已备份 /home/pocket 到临时目录");
+    }
+
+    // 2. 删除旧 rootfs
+    G.updateText.value = AppLocalizations.of(ctx)!.reinstallRootfsDeleting;
+    debugPrint("步骤2: 删除旧 rootfs");
+    await Util.execute("""
+export DATA_DIR=${G.dataPath}
+export PATH=\$DATA_DIR/bin:\$PATH
+export LD_LIBRARY_PATH=\$DATA_DIR/lib
+export CONTAINER_DIR=\$DATA_DIR/containers/${G.currentContainer}
+cd \$DATA_DIR
+
+\$DATA_DIR/bin/proot --link2symlink -r \$CONTAINER_DIR -w / /bin/sh -c '
+  cd /
+  find / -mindepth 1 -maxdepth 1 \
+    ! -name ".l2s" \
+    ! -name "proc" \
+    ! -name "sys" \
+    ! -name "dev" \
+    -exec rm -rf {} + 2>/dev/null || true
+'
+""");
+
+    // 3. 重新创建必要目录
+    G.updateText.value = AppLocalizations.of(ctx)!.reinstallRootfsCreatingDirs;
+    debugPrint("步骤3: 重新创建必要目录");
+    Util.createDirFromString("$containerDir/.l2s");
+    Util.createDirFromString("$containerDir/proc");
+    Util.createDirFromString("$containerDir/sys");
+    Util.createDirFromString("$containerDir/dev");
+    Util.createDirFromString("$containerDir/tmp");
+
+    // 4. 复制 rootfs 分卷文件
+    G.updateText.value = AppLocalizations.of(ctx)!.reinstallRootfsCopyingFiles;
+    debugPrint("步骤4: 复制 rootfs 分卷文件");
+    final AssetManifest manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final List<String> xaFiles = manifest
+        .listAssets()
+        .where((key) => key.startsWith('assets/xa'))
+        .map((key) => key.split('/').last)
+        .toList();
+
+    for (String name in xaFiles) {
+      await Util.copyAsset("assets/$name", "${G.dataPath}/$name");
+    }
+
+    // 5. 解压新的 rootfs
+    G.updateText.value = AppLocalizations.of(ctx)!.reinstallRootfsExtracting;
+    debugPrint("步骤5: 解压新的 rootfs");
+    await Util.execute("""
+export DATA_DIR=${G.dataPath}
+export PATH=\$DATA_DIR/bin:\$PATH
+export LD_LIBRARY_PATH=\$DATA_DIR/lib
+export CONTAINER_DIR=\$DATA_DIR/containers/${G.currentContainer}
+cd \$DATA_DIR
+export PROOT_TMP_DIR=\$DATA_DIR/proot_tmp
+export PROOT_LOADER=\$DATA_DIR/applib/libproot-loader.so
+
+\$DATA_DIR/bin/proot --link2symlink sh -c "
+  cat xa* | \$DATA_DIR/bin/tar x -J --delay-directory-restore --preserve-permissions -v -C containers/${G.currentContainer}
+"
+
+# 修复常用权限
+chmod u+rw "\$CONTAINER_DIR/etc/passwd" "\$CONTAINER_DIR/etc/shadow" "\$CONTAINER_DIR/etc/group" "\$CONTAINER_DIR/etc/gshadow" 2>/dev/null || true
+
+echo "aid_\$(id -un):x:\$(id -u):\$(id -g):Termux:/:/sbin/nologin" >> "\$CONTAINER_DIR/etc/passwd" 2>/dev/null || true
+echo "aid_\$(id -un):*:18446:0:99999:7:::" >> "\$CONTAINER_DIR/etc/shadow" 2>/dev/null || true
+
+id -Gn | tr ' ' '\\n' > /tmp/tmp1 2>/dev/null
+id -G | tr ' ' '\\n' > /tmp/tmp2 2>/dev/null
+\$DATA_DIR/bin/busybox paste /tmp/tmp1 /tmp/tmp2 > /tmp/tmp3 2>/dev/null || true
+
+cat /tmp/tmp3 | while read -r group_name group_id; do
+  echo "aid_\${group_name}:x:\${group_id}:root,aid_\$(id -un)" >> "\$CONTAINER_DIR/etc/group" 2>/dev/null || true
+  if [ -f "\$CONTAINER_DIR/etc/gshadow" ]; then
+    echo "aid_\${group_name}:*::root,aid_\$(id -un)" >> "\$CONTAINER_DIR/etc/gshadow" 2>/dev/null || true
+  fi
+done
+
+\$DATA_DIR/bin/busybox rm -rf xa* /tmp/tmp1 /tmp/tmp2 /tmp/tmp3 2>/dev/null || true
+""");
+
+    // 6. 恢复用户数据
+    G.updateText.value = AppLocalizations.of(ctx)!.reinstallRootfsRestoring;
+    debugPrint("步骤6: 恢复 /home/pocket 用户数据");
+    if (hasUserData && Directory(backupDir).existsSync()) {
+      Directory("$containerDir/home").createSync(recursive: true);
+
+      if (Directory(userDataDir).existsSync()) {
+        Directory(userDataDir).deleteSync(recursive: true);
+      }
+
+      Directory(backupDir).renameSync(userDataDir);
+      debugPrint("已恢复 /home/pocket 用户数据");
+    }
+
+    G.updateText.value = AppLocalizations.of(ctx)!.reinstallRootfsComplete;
+    debugPrint("Rootfs 重装并恢复用户数据完成");
+  }
+
   static Future<void> initData() async {
 
     G.dataPath = (await getApplicationSupportDirectory()).path;
@@ -804,11 +924,18 @@ done
     }
     G.currentContainer = Util.getGlobal("defaultContainer") as int;
 
-    //是否需要重新安装引导包?
+    // 是否需要重新安装引导包?
     if (Util.getGlobal("reinstallBootstrap")) {
       G.updateText.value = AppLocalizations.of(G.homePageStateContext)!.reinstallingBootPackage;
       await setupBootstrap();
       G.prefs.setBool("reinstallBootstrap", false);
+    }
+
+    // 是否需要重装 rootfs?
+    if (G.prefs.getBool("reinstallRootfs") == true) {
+      G.updateText.value = AppLocalizations.of(G.homePageStateContext)!.reinstallingRootfs;
+      await _doReinstallRootfs();
+      await G.prefs.setBool("reinstallRootfs", false);
     }
 
     G.termFontScale.value = Util.getGlobal("termFontScale") as double;
