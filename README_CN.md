@@ -1,18 +1,20 @@
 # 📱 Pocket Trilium
 
 <p align="center">
-<a href="README.md">English</a> | **简体中文**
+  <strong>简体中文</strong> | <a href="README.md">English</a>
 </p>
 
-**在 Android 上运行完整功能的 Trilium，把你的第二大脑装进口袋 :) **
+<p align="center">
+  <img src="docs/logo.png" alt="Pocket Trilium Logo" width="180" />
+</p>
+
+在 Android 上运行完整功能的 Trilium，把你的第二大脑装进口袋 :) 
 
 [<img src="https://play.google.com/intl/zh_cn/badges/static/images/badges/zh-cn_badge_web_generic.png" alt="在 Google Play 上获取" height="65">](https://play.google.com/store/apps/details?id=nriver.pocket.trilium)
 
 如果你看到这条消息，请站起来伸展一下身体 :)
 
 [![Support Me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/nriver)
-
-<img src="docs/logo.png" width="200" />
 
 本项目受 [Cateners/tiny_computer](https://github.com/Cateners/tiny_computer) 项目启发，并在其基础上进行了大量修改。
 
