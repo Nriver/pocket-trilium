@@ -2,11 +2,10 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:pocket_trilium/settingPage.dart';
 import 'package:flutter/material.dart';
-import 'package:xterm/xterm.dart';
+import 'package:pocket_trilium/terminalPage.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -157,80 +156,6 @@ class LoadingPage extends StatelessWidget {
         )
       )
     );
-  }
-}
-
-class ForceScaleGestureRecognizer extends ScaleGestureRecognizer {
-  @override
-  void rejectGesture(int pointer) {
-    super.acceptGesture(pointer);
-  }
-}
-
-RawGestureDetector forceScaleGestureDetector({
-  GestureScaleUpdateCallback? onScaleUpdate,
-  GestureScaleEndCallback? onScaleEnd,
-  Widget? child,
-}) {
-  return RawGestureDetector(
-    gestures: {
-      ForceScaleGestureRecognizer:GestureRecognizerFactoryWithHandlers<ForceScaleGestureRecognizer>(() {
-        return ForceScaleGestureRecognizer();
-      }, (detector) {
-        detector.onUpdate = onScaleUpdate;
-        detector.onEnd = onScaleEnd;
-      })
-    },
-    child: child,
-  );
-}
-
-class TerminalPage extends StatelessWidget {
-  const TerminalPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(children: [Expanded(child: forceScaleGestureDetector(onScaleUpdate: (details) {
-        G.termFontScale.value = (details.scale * (Util.getGlobal("termFontScale") as double)).clamp(0.2, 5);
-      }, onScaleEnd: (details) async {
-        await G.prefs.setDouble("termFontScale", G.termFontScale.value);
-      }, child: ValueListenableBuilder(valueListenable: G.termFontScale, builder:(context, value, child) {
-        return TerminalView(G.termPtys[G.currentContainer]!.terminal, textScaler: TextScaler.linear(G.termFontScale.value), keyboardType: TextInputType.multiline);
-      },) )), 
-      ValueListenableBuilder(valueListenable: G.terminalPageChange, builder:(context, value, child) {
-      return (Util.getGlobal("isTerminalCommandsEnabled") as bool)?Padding(padding: const EdgeInsets.all(8), child: Row(children: [AnimatedBuilder(
-          animation: G.keyboard,
-          builder: (context, child) => ToggleButtons(
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 24),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            borderRadius: const BorderRadius.all(Radius.circular(8)),
-            isSelected: [G.keyboard.ctrl, G.keyboard.alt, G.keyboard.shift],
-            onPressed: (index) {
-              switch (index) {
-                case 0:
-                  G.keyboard.ctrl = !G.keyboard.ctrl;
-                  break;
-                case 1:
-                  G.keyboard.alt = !G.keyboard.alt;
-                  break;
-                case 2:
-                  G.keyboard.shift = !G.keyboard.shift;
-                  break;
-              }
-            },
-            children: const [Text('Ctrl'), Text('Alt'), Text('Shift')],
-          ),
-        ),
-        const SizedBox.square(dimension: 8), 
-        Expanded(child: SizedBox(height: 24, child: ListView.separated(scrollDirection: Axis.horizontal, itemBuilder:(context, index) {
-          return OutlinedButton(style: D.controlButtonStyle, onPressed: () {
-            G.termPtys[G.currentContainer]!.terminal.keyInput(D.termCommands[index]["key"]! as TerminalKey);
-          }, child: Text(D.termCommands[index]["name"]! as String));
-        }, separatorBuilder:(context, index) {
-          return const SizedBox.square(dimension: 4);
-        }, itemCount: D.termCommands.length))), SizedBox.fromSize(size: const Size(72, 0))])):const SizedBox.square(dimension: 0);
-      })
-    ]);
   }
 }
 
