@@ -18,6 +18,8 @@ Please stand up and stretch your body for a while if you see this message :)
 
 This project is inspired by and heavily modified from the [Cateners/tiny_computer](https://github.com/Cateners/tiny_computer) project.
 
+Star this repo if you like it, thx :)
+
 ---
 
 # 📝 Overview

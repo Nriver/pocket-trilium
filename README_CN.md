@@ -18,6 +18,8 @@
 
 本项目受 [Cateners/tiny_computer](https://github.com/Cateners/tiny_computer) 项目启发，并在其基础上进行了大量修改。
 
+如果你觉得本项目不错, 可以留下一个star, 谢谢 ^_^
+
 ---
 
 # 📝 项目介绍
