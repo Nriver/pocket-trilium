@@ -436,107 +436,8 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
       return;
     }
 
-    // ──────────────────────────────
-    //      显示版本选择对话框
-    // ──────────────────────────────
-    String? selectedUrl;
-
-    await showDialog(
-      context: ctx,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AlertDialog(
-              title: Text(
-                AppLocalizations.of(dialogContext)!.selectTriliumVersion,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              content: SizedBox(
-                width: double.maxFinite,
-                height: MediaQuery.of(dialogContext).size.height * 0.55,
-                child: ListView.builder(
-                  itemCount: D.triliumVersions.length,
-                  itemBuilder: (context, index) {
-                    final ver = D.triliumVersions[index];
-                    final isSelected = selectedUrl == ver['url'];
-
-                    return ListTile(
-                      dense: true,
-                      visualDensity: VisualDensity.compact,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                      selected: isSelected,
-                      selectedTileColor: Colors.blue.withOpacity(0.1),
-                      title: Text(
-                        "${ver['name']} ${ver['suffix']}",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // 第一行：语言类型
-                          Text(
-                            Util._getLangLabel(ver['lang']!, dialogContext),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Util._getLangColor(ver['lang']!),
-                            ),
-                          ),
-                          // 第二行：内置 / 在线
-                          Text(
-                            ver['url'] == 'built-in'
-                                ? AppLocalizations.of(dialogContext)!.versionLangBuiltIn
-                                : AppLocalizations.of(dialogContext)!.onlineDownload,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: ver['url'] == 'built-in' ? Colors.grey : Colors.blue,
-                            ),
-                          ),
-                        ],
-                      ),
-                      trailing: isSelected
-                          ? const Icon(Icons.check_circle, color: Colors.green, size: 24)
-                          : null,
-                      onTap: () {
-                        setDialogState(() {
-                          selectedUrl = ver['url'];
-                        });
-                      },
-                    );
-                  },
-                ),
-              ),
-              contentPadding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-              actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              actions: [
-                TextButton(
-                  onPressed: selectedUrl == null
-                      ? null
-                      : () {
-                    Navigator.of(dialogContext).pop();
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: selectedUrl == null ? Colors.grey : null,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  ),
-                  child: Text(
-                    AppLocalizations.of(dialogContext)!.confirm,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-            );
-          },
-        );
-      },
-    );
-
+    // 显示版本选择对话框
+    String? selectedUrl = await showTriliumVersionSelector(ctx);
     // 如果用户关闭对话框没有选择，默认使用内置版本
     selectedUrl ??= 'built-in';
 
@@ -604,6 +505,108 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
 
     G.updateText.value = AppLocalizations.of(ctx)!.installationComplete;
   }
+
+  // 辅助方法：显示版本选择对话框，返回选择的url
+  static Future<String?> showTriliumVersionSelector(BuildContext context) async {
+      String? selectedUrl;
+
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              return AlertDialog(
+                title: Text(
+                  AppLocalizations.of(dialogContext)!.selectTriliumVersion,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  height: MediaQuery.of(dialogContext).size.height * 0.55,
+                  child: ListView.builder(
+                    itemCount: D.triliumVersions.length,
+                    itemBuilder: (context, index) {
+                      final ver = D.triliumVersions[index];
+                      final isSelected = selectedUrl == ver['url'];
+                      return ListTile(
+                        dense: true,
+                        visualDensity: VisualDensity.compact,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                        selected: isSelected,
+                        selectedTileColor: Colors.blue.withOpacity(0.1),
+                        title: Text(
+                          "${ver['name']} ${ver['suffix']}",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 第一行：语言类型
+                            Text(
+                              Util._getLangLabel(ver['lang']!, dialogContext),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Util._getLangColor(ver['lang']!),
+                              ),
+                            ),
+                            // 第二行：内置 / 在线
+                            Text(
+                              ver['url'] == 'built-in'
+                                  ? AppLocalizations.of(dialogContext)!.versionLangBuiltIn
+                                  : AppLocalizations.of(dialogContext)!.onlineDownload,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: ver['url'] == 'built-in' ? Colors.grey : Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: isSelected
+                            ? const Icon(Icons.check_circle, color: Colors.green, size: 24)
+                            : null,
+                        onTap: () {
+                          setDialogState(() {
+                            selectedUrl = ver['url'];
+                          });
+                        },
+                      );
+                    },
+                  ),
+                ),
+                contentPadding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+                actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                actions: [
+                  TextButton(
+                    onPressed: selectedUrl == null
+                        ? null
+                        : () {
+                            Navigator.of(dialogContext).pop();
+                          },
+                    style: TextButton.styleFrom(
+                      foregroundColor: selectedUrl == null ? Colors.grey : null,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(dialogContext)!.confirm,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              );
+            },
+          );
+        },
+      );
+
+      return selectedUrl;
+    }
 
   // 辅助方法：复制内置版本
   static Future<void> _copyBuiltInTrilium([String? customPath]) async {
@@ -676,7 +679,6 @@ done
   static Future<void> _reinstallTrilium() async {
     // 清理缓存
     await Util.clearAppCache();
-
     // 提前保存 context，避免跨 async 使用失效的 context
     final BuildContext? ctx = G.homePageStateContext;
     if (ctx == null || !ctx.mounted) {
@@ -685,38 +687,8 @@ done
       await installTrilium();
       return;
     }
-
-    // ──────────────────────────────
-    //      显示版本选择对话框
-    // ──────────────────────────────
-    String? selectedUrl;
-
-    await showDialog(
-      context: ctx,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text(AppLocalizations.of(dialogContext)!.selectTriliumVersion),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: D.triliumVersions.map((ver) {
-              final isBuiltIn = ver['url'] == 'built-in';
-              return ListTile(
-                title: Text(ver['name']!),
-                subtitle: isBuiltIn
-                    ? Text(AppLocalizations.of(dialogContext)!.builtInVersion, style: const TextStyle(fontSize: 12))
-                    : Text(AppLocalizations.of(dialogContext)!.onlineDownload, style: TextStyle(fontSize: 12, color: Colors.blue)),
-                onTap: () {
-                  selectedUrl = ver['url'];
-                  Navigator.of(dialogContext).pop();
-                },
-              );
-            }).toList(),
-          ),
-        );
-      },
-    );
-
+    // 显示版本选择对话框
+    String? selectedUrl = await showTriliumVersionSelector(ctx);
     // 如果用户关闭对话框没有选择，默认使用内置版本
     selectedUrl ??= 'built-in';
 
