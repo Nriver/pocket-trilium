@@ -16,7 +16,7 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
-  final List<bool> _expandState = [false, false, false];
+  final List<bool> _expandState = [false, false, false, false];
 
   Key _appStartCommandKey = UniqueKey();
 
@@ -33,6 +33,32 @@ class _SettingPageState extends State<SettingPage> {
       children: [
         ExpansionPanel(
           isExpanded: _expandState[0],
+          headerBuilder: ((context, isExpanded) {
+            return ListTile(
+              title: Text(AppLocalizations.of(context)!.privacySettings),
+              subtitle: Text(AppLocalizations.of(context)!.privacyBlurSubtitle),
+            );
+          }),
+          body: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: Text(AppLocalizations.of(context)!.privacyBlur),
+                  value: Util.getGlobal("isPrivacyBlurEnabled") as bool,
+                  onChanged: (value) {
+                    G.prefs.setBool("isPrivacyBlurEnabled", value);
+                    setState(() {});
+                  },
+                ),
+                const SizedBox.square(dimension: 8),
+              ],
+            ),
+          ),
+        ),
+
+        ExpansionPanel(
+          isExpanded: _expandState[1],
           headerBuilder: ((context, isExpanded) {
             return ListTile(
               title: Text(AppLocalizations.of(context)!.advancedSettings),
@@ -165,7 +191,7 @@ class _SettingPageState extends State<SettingPage> {
         ),
 
         ExpansionPanel(
-          isExpanded: _expandState[1],
+          isExpanded: _expandState[2],
           headerBuilder: ((context, isExpanded) {
             return ListTile(
               title: Text(AppLocalizations.of(context)!.globalSettings),

@@ -90,5 +90,8 @@
     "reinstallRootfsCopyingFiles": "Copying system files...",
     "reinstallRootfsExtracting": "Extracting new Rootfs...",
     "reinstallRootfsRestoring": "Restoring user data...",
-    "reinstallRootfsComplete": "Rootfs reinstallation completed"
+    "reinstallRootfsComplete": "Rootfs reinstallation completed",
+    "privacySettings": "Privacy Settings",
+    "privacyBlur": "Blur in Recent Tasks",
+    "privacyBlurSubtitle": "Protect your privacy"
 }

@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
     return DynamicColorBuilder(
         builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
           return MaterialApp(
+            builder: (context, child) => AppLifecycleOverlay(child: child!),
             // 测试 强制显示英文界面
             // locale: const Locale('en'),
 
@@ -179,6 +180,11 @@ class _MyHomePageState extends State<MyHomePage> {
       _initializeWorkflow();
     });
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: []);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   Future<void> _initializeWorkflow() async {

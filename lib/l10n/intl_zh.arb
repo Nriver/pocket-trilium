@@ -90,5 +90,8 @@
     "reinstallRootfsCopyingFiles": "正在复制系统文件...",
     "reinstallRootfsExtracting": "正在解压新的 Rootfs...",
     "reinstallRootfsRestoring": "正在恢复用户数据...",
-    "reinstallRootfsComplete": "Rootfs 重装完成"
+    "reinstallRootfsComplete": "Rootfs 重装完成",
+    "privacySettings": "隐私设置",
+    "privacyBlur": "最近任务列表里模糊显示",
+    "privacyBlurSubtitle": "保护你的隐私"
 }

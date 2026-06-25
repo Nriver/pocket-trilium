@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:http/http.dart' as http;
 import 'package:retry/retry.dart';
@@ -81,6 +82,7 @@ class Util {
       case "reinstallBootstrap" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "reinstallTrilium" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "wakelock" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
+      case "isPrivacyBlurEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "containersInfo" : return G.prefs.getStringList(key)!;
     }
   }
@@ -337,6 +339,79 @@ class TermPty {
 }
 
 // Global variables
+class PrivacyBlurOverlay extends StatelessWidget {
+  final bool show;
+
+  const PrivacyBlurOverlay({super.key, required this.show});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!show) return const SizedBox.shrink();
+    return Positioned.fill(
+      child: Container(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Stack(
+          children: [
+            Center(
+              child: FractionallySizedBox(
+                widthFactor: 0.3,
+                child: Image.asset("images/icon.png", opacity: const AlwaysStoppedAnimation(0.5)),
+              ),
+            ),
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(color: Colors.transparent),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AppLifecycleOverlay extends StatefulWidget {
+  final Widget child;
+  const AppLifecycleOverlay({super.key, required this.child});
+
+  @override
+  State<AppLifecycleOverlay> createState() => _AppLifecycleOverlayState();
+}
+
+class _AppLifecycleOverlayState extends State<AppLifecycleOverlay> with WidgetsBindingObserver {
+  bool _isResumed = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    setState(() {
+      _isResumed = state == AppLifecycleState.resumed;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        widget.child,
+        PrivacyBlurOverlay(
+          show: !_isResumed && (Util.getGlobal("isPrivacyBlurEnabled") as bool),
+        ),
+      ],
+    );
+  }
+}
+
 class G {
   static late final String dataPath;
   static InAppWebViewController? controller;
