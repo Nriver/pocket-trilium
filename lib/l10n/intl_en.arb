@@ -92,6 +92,6 @@
     "reinstallRootfsRestoring": "Restoring user data...",
     "reinstallRootfsComplete": "Rootfs reinstallation completed",
     "privacySettings": "Privacy Settings",
-    "privacyBlur": "Blur in Recent Apps",
+    "privacyBlur": "Hide Preview in Recent Apps",
     "privacyBlurSubtitle": "Protect your privacy"
 }
