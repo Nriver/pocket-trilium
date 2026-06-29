@@ -51,6 +51,29 @@ class _SettingPageState extends State<SettingPage> {
                     setState(() {});
                   },
                 ),
+                SwitchListTile(
+                  title: Text(AppLocalizations.of(context)!.biometricUnlock),
+                  subtitle: Text(AppLocalizations.of(context)!.biometricUnlockSubtitle),
+                  value: Util.getGlobal("isBiometricUnlockEnabled") as bool,
+                  onChanged: (value) async {
+                    if (value) {
+                      // 开启时尝试验证一次，确保可用
+                      bool authenticated = await Util.authenticate();
+                      if (authenticated) {
+                        G.prefs.setBool("isBiometricUnlockEnabled", true);
+                      } else {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(AppLocalizations.of(context)!.biometricUnlockFailed))
+                          );
+                        }
+                      }
+                    } else {
+                      G.prefs.setBool("isBiometricUnlockEnabled", false);
+                    }
+                    setState(() {});
+                  },
+                ),
                 const SizedBox.square(dimension: 8),
               ],
             ),

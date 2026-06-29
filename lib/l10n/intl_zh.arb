@@ -93,5 +93,9 @@
     "reinstallRootfsComplete": "Rootfs 重装完成",
     "privacySettings": "隐私设置",
     "privacyBlur": "最近任务里隐藏预览",
-    "privacyBlurSubtitle": "保护你的隐私"
+    "privacyBlurSubtitle": "保护你的隐私",
+    "biometricUnlock": "指纹解锁",
+    "biometricUnlockSubtitle": "开启后进入软件需要指纹或人脸验证",
+    "biometricUnlockFailed": "生物识别验证失败",
+    "biometricUnlockReason": "请验证身份以使用随身Trilium"
 }

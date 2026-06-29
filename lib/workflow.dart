@@ -9,6 +9,7 @@ import 'package:retry/retry.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'package:xterm/xterm.dart';
@@ -49,6 +50,28 @@ class Util {
     G.termPtys[G.currentContainer]!.pty.write(const Utf8Encoder().convert("$str\n"));
   }
 
+  static final LocalAuthentication auth = LocalAuthentication();
+
+  static Future<bool> authenticate() async {
+    try {
+      final bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
+      final bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+      if (!canAuthenticate) return true;
+
+      return await auth.authenticate(
+        localizedReason: AppLocalizations.of(G.homePageStateContext)!.biometricUnlockReason,
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          biometricOnly: false,
+          useErrorDialogs: true,
+        ),
+      );
+    } on PlatformException catch (e) {
+      debugPrint(e.toString());
+      return false;
+    }
+  }
+
 
 
   //所有key
@@ -83,6 +106,7 @@ class Util {
       case "reinstallTrilium" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "wakelock" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isPrivacyBlurEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
+      case "isBiometricUnlockEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "containersInfo" : return G.prefs.getStringList(key)!;
     }
   }
@@ -379,11 +403,29 @@ class AppLifecycleOverlay extends StatefulWidget {
 
 class _AppLifecycleOverlayState extends State<AppLifecycleOverlay> with WidgetsBindingObserver {
   bool _isResumed = true;
+  bool _isAuthenticated = true;
+  bool _isAuthenticating = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    if (Util.getGlobal("isBiometricUnlockEnabled") as bool) {
+      _isAuthenticated = false;
+      _doAuthentication();
+    }
+  }
+
+  Future<void> _doAuthentication() async {
+    if (_isAuthenticating) return;
+    _isAuthenticating = true;
+    bool authenticated = await Util.authenticate();
+    if (mounted) {
+      setState(() {
+        _isAuthenticated = authenticated;
+        _isAuthenticating = false;
+      });
+    }
   }
 
   @override
@@ -394,18 +436,40 @@ class _AppLifecycleOverlayState extends State<AppLifecycleOverlay> with WidgetsB
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    setState(() {
-      _isResumed = state == AppLifecycleState.resumed;
-    });
+    if (state == AppLifecycleState.resumed) {
+      setState(() {
+        _isResumed = true;
+      });
+      if (Util.getGlobal("isBiometricUnlockEnabled") as bool && !_isAuthenticated && !_isAuthenticating) {
+        _doAuthentication();
+      }
+    } else if (state == AppLifecycleState.paused) {
+      setState(() {
+        _isResumed = false;
+        // 当应用完全进入后台时，标记为未认证，这样下次回来时会触发认证
+        if (!_isAuthenticating) {
+          _isAuthenticated = false;
+        }
+      });
+    } else if (state == AppLifecycleState.inactive) {
+      // inactive 状态通常是系统对话框（如指纹识别）弹出，但也包括切到最近应用界面
+      setState(() {
+        _isResumed = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    // 只有在非认证过程中，才允许因为 !_isResumed 显示模糊遮罩
+    // 这样当指纹对话框弹出（导致 inactive -> _isResumed = false）时，只要正在认证中，就不会显示模糊
+    bool showBlur = (!_isResumed && !_isAuthenticating && (Util.getGlobal("isPrivacyBlurEnabled") as bool)) ||
+                    (!_isAuthenticated && (Util.getGlobal("isBiometricUnlockEnabled") as bool));
     return Stack(
       children: [
         widget.child,
         PrivacyBlurOverlay(
-          show: !_isResumed && (Util.getGlobal("isPrivacyBlurEnabled") as bool),
+          show: showBlur,
         ),
       ],
     );
@@ -950,8 +1014,6 @@ done
     G.termPtys = {};
 
     G.keyboard = VirtualKeyboard(defaultInputHandler);
-
-    G.prefs = await SharedPreferences.getInstance();
 
     await Util.execute("ln -sf ${await D.androidChannel.invokeMethod("getNativeLibraryPath", {})} ${G.dataPath}/applib");
 

@@ -93,5 +93,9 @@
     "reinstallRootfsComplete": "Rootfs reinstallation completed",
     "privacySettings": "Privacy Settings",
     "privacyBlur": "Hide Preview in Recent Apps",
-    "privacyBlurSubtitle": "Protect your privacy"
+    "privacyBlurSubtitle": "Protect your privacy",
+    "biometricUnlock": "Biometric Unlock",
+    "biometricUnlockSubtitle": "Unlock the app with your fingerprint or face",
+    "biometricUnlockFailed": "Biometric authentication failed",
+    "biometricUnlockReason": "Please authenticate to access Pocket Trilium"
 }

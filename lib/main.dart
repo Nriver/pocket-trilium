@@ -5,6 +5,7 @@ import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/services.dart';
 import 'package:pocket_trilium/settingPage.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:pocket_trilium/terminalPage.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -16,7 +17,9 @@ import 'workflow.dart';
 
 
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  G.prefs = await SharedPreferences.getInstance();
   runApp(const MyApp());
 }
 
