@@ -107,6 +107,7 @@ class Util {
       case "wakelock" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isPrivacyBlurEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isBiometricUnlockEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
+      case "isBiometricOnlyOnStart" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "containersInfo" : return G.prefs.getStringList(key)!;
     }
   }
@@ -447,7 +448,9 @@ class _AppLifecycleOverlayState extends State<AppLifecycleOverlay> with WidgetsB
       setState(() {
         _isResumed = false;
         // 当应用完全进入后台时，标记为未认证，这样下次回来时会触发认证
-        if (!_isAuthenticating) {
+        // 如果开启了“仅在启动时验证”，且当前已经认证过，则不重置认证状态
+        bool isBiometricOnlyOnStart = Util.getGlobal("isBiometricOnlyOnStart") as bool;
+        if (!_isAuthenticating && !(isBiometricOnlyOnStart && _isAuthenticated)) {
           _isAuthenticated = false;
         }
       });

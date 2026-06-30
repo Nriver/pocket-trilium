@@ -96,6 +96,8 @@
     "privacyBlurSubtitle": "保护你的隐私",
     "biometricUnlock": "指纹解锁",
     "biometricUnlockSubtitle": "开启后进入软件需要指纹或人脸验证",
+    "biometricOnlyOnStart": "仅在启动时验证指纹",
+    "biometricOnlyOnStartSubtitle": "从后台返回时不再重复验证",
     "biometricUnlockFailed": "生物识别验证失败",
     "biometricUnlockReason": "请验证身份以使用随身Trilium"
 }

@@ -74,6 +74,18 @@ class _SettingPageState extends State<SettingPage> {
                     setState(() {});
                   },
                 ),
+                Visibility(
+                  visible: Util.getGlobal("isBiometricUnlockEnabled") as bool,
+                  child: SwitchListTile(
+                    title: Text(AppLocalizations.of(context)!.biometricOnlyOnStart),
+                    subtitle: Text(AppLocalizations.of(context)!.biometricOnlyOnStartSubtitle),
+                    value: Util.getGlobal("isBiometricOnlyOnStart") as bool,
+                    onChanged: (value) {
+                      G.prefs.setBool("isBiometricOnlyOnStart", value);
+                      setState(() {});
+                    },
+                  ),
+                ),
                 const SizedBox.square(dimension: 8),
               ],
             ),

@@ -96,6 +96,8 @@
     "privacyBlurSubtitle": "Protect your privacy",
     "biometricUnlock": "Biometric Unlock",
     "biometricUnlockSubtitle": "Unlock the app with your fingerprint or face",
+    "biometricOnlyOnStart": "Only verify on start",
+    "biometricOnlyOnStartSubtitle": "No re-verification fingerprint when returning from background",
     "biometricUnlockFailed": "Biometric authentication failed",
     "biometricUnlockReason": "Please authenticate to access Pocket Trilium"
 }
