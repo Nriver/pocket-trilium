@@ -94,10 +94,17 @@
     "privacySettings": "隐私设置",
     "privacyBlur": "最近任务里隐藏预览",
     "privacyBlurSubtitle": "保护你的隐私",
-    "biometricUnlock": "指纹解锁",
+    "biometricUnlock": "生物识别解锁",
     "biometricUnlockSubtitle": "开启后进入软件需要指纹或人脸验证",
-    "biometricOnlyOnStart": "仅在启动时验证指纹",
+    "biometricOnlyOnStart": "仅在启动时验证",
     "biometricOnlyOnStartSubtitle": "从后台返回时不再重复验证",
     "biometricUnlockFailed": "生物识别验证失败",
-    "biometricUnlockReason": "请验证身份以使用随身Trilium"
+    "biometricUnlockReason": "请验证身份以使用随身Trilium",
+    "biometricHint": "身份验证",
+    "biometricNotRecognized": "无法识别，请重试",
+    "biometricSuccess": "验证成功",
+    "biometricRequiredTitle": "需要身份验证",
+    "deviceCredentialsSetupDescription": "生物识别设置",
+    "biometricSettingsDescription": "请在设备的设置中设置您的生物识别。",
+    "biometricGoToSettingsButton": "前往设置"
 }

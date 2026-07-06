@@ -99,5 +99,12 @@
     "biometricOnlyOnStart": "Only verify on start",
     "biometricOnlyOnStartSubtitle": "No re-verification fingerprint when returning from background",
     "biometricUnlockFailed": "Biometric authentication failed",
-    "biometricUnlockReason": "Please authenticate to access Pocket Trilium"
+    "biometricUnlockReason": "Please authenticate to access Pocket Trilium",
+    "biometricHint": "Authentication Required",
+    "biometricNotRecognized": "Not recognized, please try again",
+    "biometricSuccess": "Success",
+    "biometricRequiredTitle": "Authentication Required",
+    "deviceCredentialsSetupDescription": "Biometric Settings",
+    "biometricSettingsDescription": "Please set up your biometrics in device settings.",
+    "biometricGoToSettingsButton": "Go to Settings"
 }

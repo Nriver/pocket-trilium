@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:local_auth_android/local_auth_android.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import 'package:xterm/xterm.dart';
@@ -58,8 +59,23 @@ class Util {
       final bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
       if (!canAuthenticate) return true;
 
+      final l10n = AppLocalizations.of(G.homePageStateContext)!;
+
       return await auth.authenticate(
-        localizedReason: AppLocalizations.of(G.homePageStateContext)!.biometricUnlockReason,
+        localizedReason: l10n.biometricUnlockReason,
+        authMessages: <AuthMessages>[
+          AndroidAuthMessages(
+            signInTitle: l10n.biometricRequiredTitle,
+            biometricHint: l10n.biometricHint,
+            biometricNotRecognized: l10n.biometricNotRecognized,
+            biometricSuccess: l10n.biometricSuccess,
+            cancelButton: l10n.cancel,
+            deviceCredentialsRequiredTitle: l10n.biometricRequiredTitle,
+            deviceCredentialsSetupDescription: l10n.deviceCredentialsSetupDescription,
+            goToSettingsButton: l10n.biometricGoToSettingsButton,
+            goToSettingsDescription: l10n.biometricSettingsDescription,
+          ),
+        ],
         options: const AuthenticationOptions(
           stickyAuth: true,
           biometricOnly: false,
