@@ -127,6 +127,9 @@ fi
 # use jemalloc
 export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libjemalloc.so.2
 
+# trilium 0.104.0 above need this for backend scripting, uncomment if you need it
+#export TRILIUM_SECURITY_BACKEND_SCRIPTING_ENABLED=true
+
 LOG=/tmp/trilium.log
 for i in {1..10}; do
     : > "$LOG"

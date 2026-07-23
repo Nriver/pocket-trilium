@@ -112,6 +112,15 @@ echo "nameserver 10.20.30.40" > /etc/resolv.conf
 
 参考此 [Reddit 评论](https://www.reddit.com/r/Trilium/comments/1re0bf1/comment/o7bvaiz/)
 
+## 后端脚本无法使用（Trilium 0.104.0+）
+
+从 Trilium 0.104.0 版本开始，出于安全考虑，后端脚本（Backend Script）默认处于禁用状态。
+如果需要使用该功能，请在启动命令中添加以下环境变量：
+
+```
+export TRILIUM_SECURITY_BACKEND_SCRIPTING_ENABLED=true
+```
+
 ---
 
 # 🚧 已知问题

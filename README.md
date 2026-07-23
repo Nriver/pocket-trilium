@@ -115,6 +115,15 @@ echo "nameserver 10.20.30.40" > /etc/resolv.conf
 
 Refer to this [Reddit comment](https://www.reddit.com/r/Trilium/comments/1re0bf1/comment/o7bvaiz/)
 
+## Backend script is not working (Trilium 0.104.0+)
+
+Starting with Trilium 0.104.0, backend scripting is disabled by default for security reasons.
+If you need this feature, enable it by adding this to the start command:
+
+```
+export TRILIUM_SECURITY_BACKEND_SCRIPTING_ENABLED=true
+```
+
 ---
 
 # 🚧 Known issues
