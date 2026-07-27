@@ -106,5 +106,7 @@
     "biometricRequiredTitle": "需要身份验证",
     "deviceCredentialsSetupDescription": "生物识别设置",
     "biometricSettingsDescription": "请在设备的设置中设置您的生物识别。",
-    "biometricGoToSettingsButton": "前往设置"
+    "biometricGoToSettingsButton": "前往设置",
+    "language": "语言",
+    "systemDefault": "系统默认"
 }

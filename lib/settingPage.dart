@@ -252,6 +252,37 @@ class _SettingPageState extends State<SettingPage> {
                   },
                 ),
                 const SizedBox.square(dimension: 16),
+                ListTile(
+                  title: Text(AppLocalizations.of(context)!.language),
+                  trailing: DropdownButton<String?>(
+                    value: Util.getGlobal("locale"),
+                    items: [
+                      DropdownMenuItem(
+                        value: null,
+                        child: Text(AppLocalizations.of(context)!.systemDefault),
+                      ),
+                      const DropdownMenuItem(
+                        value: "zh",
+                        child: Text("中文"),
+                      ),
+                      const DropdownMenuItem(
+                        value: "en",
+                        child: Text("English"),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value == null) {
+                        G.prefs.remove("locale");
+                        G.locale.value = null;
+                      } else {
+                        G.prefs.setString("locale", value);
+                        G.locale.value = Locale(value);
+                      }
+                      setState(() {});
+                    },
+                  ),
+                ),
+                const SizedBox.square(dimension: 16),
                 SwitchListTile(
                   title: Text(AppLocalizations.of(context)!.enableTerminal),
                   value: Util.getGlobal("isTerminalWriteEnabled") as bool,

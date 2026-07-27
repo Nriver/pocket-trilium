@@ -121,6 +121,7 @@ class Util {
       case "reinstallBootstrap" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "reinstallTrilium" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "wakelock" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
+      case "locale" : return b ? G.prefs.getString(key) : null;
       case "isPrivacyBlurEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isBiometricUnlockEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isBiometricOnlyOnStart" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
@@ -513,6 +514,7 @@ class G {
   static ValueNotifier<bool> terminalPageChange = ValueNotifier(true); //更改值，用于刷新小键盘
   static ValueNotifier<bool> bootTextChange = ValueNotifier(true); //更改值，用于刷新启动命令
   static ValueNotifier<String> updateText = ValueNotifier("随身Trilium"); //加载界面的说明文字
+  static ValueNotifier<Locale?> locale = ValueNotifier(null); // 界面语言
   static String postCommand = ""; //第一次进入容器时额外运行的命令
 
   static late SharedPreferences prefs;

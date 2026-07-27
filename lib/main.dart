@@ -20,6 +20,10 @@ import 'workflow.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   G.prefs = await SharedPreferences.getInstance();
+  String? localeCode = Util.getGlobal("locale");
+  if (localeCode != null) {
+    G.locale.value = Locale(localeCode);
+  }
   runApp(const MyApp());
 }
 
@@ -30,30 +34,34 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return DynamicColorBuilder(
         builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-          return MaterialApp(
-            builder: (context, child) => AppLifecycleOverlay(child: child!),
-            // 测试 强制显示英文界面
-            // locale: const Locale('en'),
+          return ValueListenableBuilder(
+            valueListenable: G.locale,
+            builder: (context, Locale? locale, child) {
+              return MaterialApp(
+                builder: (context, child) => AppLifecycleOverlay(child: child!),
+                locale: locale,
 
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('en'),
-              Locale('zh'),
-            ],
-            theme: ThemeData(
-              colorScheme: lightDynamic,
-              useMaterial3: true,
-            ),
-            darkTheme: ThemeData(
-              colorScheme: darkDynamic,
-              useMaterial3: true,
-            ),
-            home: MyHomePage(title: "Pocket Trilium by Nriver"),
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: const [
+                  Locale('en'),
+                  Locale('zh'),
+                ],
+                theme: ThemeData(
+                  colorScheme: lightDynamic,
+                  useMaterial3: true,
+                ),
+                darkTheme: ThemeData(
+                  colorScheme: darkDynamic,
+                  useMaterial3: true,
+                ),
+                home: MyHomePage(title: "Pocket Trilium by Nriver"),
+              );
+            },
           );
         }
     );

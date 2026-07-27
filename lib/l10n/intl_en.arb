@@ -106,5 +106,7 @@
     "biometricRequiredTitle": "Authentication Required",
     "deviceCredentialsSetupDescription": "Biometric Settings",
     "biometricSettingsDescription": "Please set up your biometrics in device settings.",
-    "biometricGoToSettingsButton": "Go to Settings"
+    "biometricGoToSettingsButton": "Go to Settings",
+    "language": "Language",
+    "systemDefault": "System Default"
 }
