@@ -84,6 +84,7 @@ public class PocketDocumentsProvider extends DocumentsProvider {
     public Cursor queryDocument(String documentId, String[] projection) throws FileNotFoundException {
         final MatrixCursor result = new MatrixCursor(projection != null ? projection : DEFAULT_DOCUMENT_PROJECTION);
         includeFile(result, documentId, null);
+        result.setNotificationUri(getContext().getContentResolver(), DocumentsContract.buildDocumentUri(AUTHORITY, documentId));
         return result;
     }
 
@@ -97,6 +98,7 @@ public class PocketDocumentsProvider extends DocumentsProvider {
                 includeFile(result, null, file);
             }
         }
+        result.setNotificationUri(getContext().getContentResolver(), DocumentsContract.buildChildDocumentsUri(AUTHORITY, parentDocumentId));
         return result;
     }
 
@@ -137,6 +139,12 @@ public class PocketDocumentsProvider extends DocumentsProvider {
             if (!succeeded) {
                 throw new FileNotFoundException("Failed to create document: " + newFile.getPath());
             }
+
+            // 通知父目录内容已变更（让文件管理器刷新）
+            getContext().getContentResolver().notifyChange(
+                    DocumentsContract.buildChildDocumentsUri(AUTHORITY, parentDocumentId),
+                    null
+            );
         } catch (IOException e) {
             throw new FileNotFoundException("Failed to create document: " + newFile.getPath() + " - " + e.getMessage());
         }
