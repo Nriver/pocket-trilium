@@ -17,6 +17,18 @@ class D {
       'lang': 'zh-only',
     },
     {
+      'name': '0.105.0',
+      'suffix': '(GitHub)',
+      'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.105.0/TriliumNotes-Server-v0.105.0-linux-arm64.tar.xz',
+      'lang': 'multi',
+    },
+    {
+      'name': '0.105.0',
+      'suffix': '(Gitee)',
+      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.105.0-linux-arm64.tar.xz',
+      'lang': 'multi',
+    },
+    {
       'name': '0.104.1',
       'suffix': '(GitHub)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.104.1/TriliumNotes-Server-v0.104.1-linux-arm64.tar.xz',
