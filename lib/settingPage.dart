@@ -604,7 +604,7 @@ class _AppStartCommandDialogState extends State<_AppStartCommandDialog> {
               children: [
                 TextButton.icon(
                   icon: const Icon(Icons.restore, size: 18),
-                  label: Text(l10n.resetDefaultStartupCommand),
+                  label: Text(l10n.reset),
                   onPressed: () async {
                     final bool? confirm = await showDialog<bool>(
                       context: context,
