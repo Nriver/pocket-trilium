@@ -118,7 +118,7 @@
     "biometricSettingsDescription": "Please set up your biometrics in device settings.",
     "biometricGoToSettingsButton": "Go to Settings",
     "language": "Language",
-    "reinstallUpgradeGroup": "Reinstall & Upgrade",
+    "upgradeReinstallGroup": "Upgrade & Reinstall",
     "maintenanceToolsGroup": "Maintenance Tools",
     "systemDefault": "System Default"
 }

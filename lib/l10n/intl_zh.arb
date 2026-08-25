@@ -118,7 +118,7 @@
     "biometricSettingsDescription": "请在设备的设置中设置您的生物识别。",
     "biometricGoToSettingsButton": "前往设置",
     "language": "语言",
-    "reinstallUpgradeGroup": "重装与升级",
+    "upgradeReinstallGroup": "升级与重装",
     "maintenanceToolsGroup": "维护工具",
     "systemDefault": "系统默认"
 }

@@ -26,8 +26,8 @@ class _SettingPageState extends State<SettingPage> {
         _buildSectionHeader(context, l10n.privacySettings, Icons.security),
         _buildPrivacySettings(context, l10n),
         const Divider(),
-        _buildSectionHeader(context, l10n.reinstallUpgradeGroup, Icons.system_update_alt),
-        _buildDangerSettings(context, l10n),
+        _buildSectionHeader(context, l10n.upgradeReinstallGroup, Icons.system_update_alt),
+        _buildUpgradeReinstallSettings(context, l10n),
         const Divider(),
         _buildSectionHeader(context, l10n.advancedSettings, Icons.settings_applications),
         _buildAdvancedSettings(context, l10n),
@@ -454,17 +454,45 @@ class _SettingPageState extends State<SettingPage> {
     }
   }
 
-  Widget _buildDangerSettings(BuildContext context, AppLocalizations l10n) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l10n.restartRequiredHint, style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 8),
-          _buildDangerZone(l10n),
-        ],
-      ),
+  Widget _buildUpgradeReinstallSettings(BuildContext context, AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: Text(
+            l10n.restartRequiredHint,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.system_update),
+          title: Text(l10n.reinstallTrilium),
+          value: Util.getGlobal("reinstallTrilium") as bool,
+          onChanged: (value) {
+            G.prefs.setBool("reinstallTrilium", value);
+            setState(() {});
+          },
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.restart_alt),
+          title: Text(l10n.reinstallBootPackage),
+          value: Util.getGlobal("reinstallBootstrap") as bool,
+          onChanged: (value) {
+            G.prefs.setBool("reinstallBootstrap", value);
+            setState(() {});
+          },
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.storage),
+          title: Text(l10n.reinstallRootfs),
+          value: G.prefs.getBool("reinstallRootfs") ?? false,
+          onChanged: (value) {
+            G.prefs.setBool("reinstallRootfs", value);
+            setState(() {});
+          },
+        ),
+      ],
     );
   }
 
@@ -517,50 +545,9 @@ class _SettingPageState extends State<SettingPage> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDangerZone(AppLocalizations l10n) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.red.withOpacity(0.5)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        children: [
-          SwitchListTile(
-            title: Text(l10n.reinstallTrilium, style: const TextStyle(color: Colors.red)),
-            value: Util.getGlobal("reinstallTrilium") as bool,
-            activeColor: Colors.red,
-            onChanged: (value) {
-              G.prefs.setBool("reinstallTrilium", value);
-              setState(() {});
-            },
-          ),
-          SwitchListTile(
-            title: Text(l10n.reinstallBootPackage, style: const TextStyle(color: Colors.red)),
-            value: Util.getGlobal("reinstallBootstrap") as bool,
-            activeColor: Colors.red,
-            onChanged: (value) {
-              G.prefs.setBool("reinstallBootstrap", value);
-              setState(() {});
-            },
-          ),
-          SwitchListTile(
-            title: Text(l10n.reinstallRootfs, style: const TextStyle(color: Colors.red)),
-            value: G.prefs.getBool("reinstallRootfs") ?? false,
-            activeColor: Colors.red,
-            onChanged: (value) {
-              G.prefs.setBool("reinstallRootfs", value);
-              setState(() {});
-            },
-          ),
-        ],
-      ),
-    );
-  }
+       ),
+     );
+   }
 }
 
 class _AppStartCommandDialog extends StatefulWidget {
