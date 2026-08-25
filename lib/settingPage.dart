@@ -16,403 +16,378 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
-  final List<bool> _expandState = [false, false, false, false];
-
   Key _appStartCommandKey = UniqueKey();
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionPanelList(
-      elevation: 1,
-      expandedHeaderPadding: const EdgeInsets.all(0),
-      expansionCallback: (panelIndex, isExpanded) {
-        setState(() {
-          _expandState[panelIndex] = isExpanded;
-        });
-      },
+    final l10n = AppLocalizations.of(context)!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ExpansionPanel(
-          isExpanded: _expandState[0],
-          headerBuilder: ((context, isExpanded) {
-            return ListTile(
-              title: Text(AppLocalizations.of(context)!.privacySettings),
-              subtitle: Text(AppLocalizations.of(context)!.privacyBlurSubtitle),
-            );
-          }),
-          body: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: [
-                SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.privacyBlur),
-                  value: Util.getGlobal("isPrivacyBlurEnabled") as bool,
-                  onChanged: (value) {
-                    G.prefs.setBool("isPrivacyBlurEnabled", value);
-                    setState(() {});
-                  },
-                ),
-                SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.biometricUnlock),
-                  subtitle: Text(AppLocalizations.of(context)!.biometricUnlockSubtitle),
-                  value: Util.getGlobal("isBiometricUnlockEnabled") as bool,
-                  onChanged: (value) async {
-                    if (value) {
-                      // 开启时尝试验证一次，确保可用
-                      bool authenticated = await Util.authenticate();
-                      if (authenticated) {
-                        G.prefs.setBool("isBiometricUnlockEnabled", true);
-                      } else {
-                        if (mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(AppLocalizations.of(context)!.biometricUnlockFailed))
-                          );
-                        }
-                      }
-                    } else {
-                      G.prefs.setBool("isBiometricUnlockEnabled", false);
-                    }
-                    setState(() {});
-                  },
-                ),
-                Visibility(
-                  visible: Util.getGlobal("isBiometricUnlockEnabled") as bool,
-                  child: SwitchListTile(
-                    title: Text(AppLocalizations.of(context)!.biometricOnlyOnStart),
-                    subtitle: Text(AppLocalizations.of(context)!.biometricOnlyOnStartSubtitle),
-                    value: Util.getGlobal("isBiometricOnlyOnStart") as bool,
-                    onChanged: (value) {
-                      G.prefs.setBool("isBiometricOnlyOnStart", value);
-                      setState(() {});
-                    },
-                  ),
-                ),
-                const SizedBox.square(dimension: 8),
-              ],
+        _buildSectionHeader(context, l10n.privacySettings, Icons.security),
+        _buildPrivacySettings(context, l10n),
+        const Divider(),
+        _buildSectionHeader(context, l10n.terminal, Icons.terminal),
+        _buildTerminalSettings(context, l10n),
+        const Divider(),
+        _buildSectionHeader(context, l10n.advancedSettings, Icons.settings_applications),
+        _buildAdvancedSettings(context, l10n),
+        const Divider(),
+        _buildSectionHeader(context, l10n.globalSettings, Icons.settings),
+        _buildGlobalSettings(context, l10n),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrivacySettings(BuildContext context, AppLocalizations l10n) {
+    return Column(
+      children: [
+        SwitchListTile(
+          secondary: const Icon(Icons.blur_on),
+          title: Text(l10n.privacyBlur),
+          subtitle: Text(l10n.privacyBlurSubtitle),
+          value: Util.getGlobal("isPrivacyBlurEnabled") as bool,
+          onChanged: (value) {
+            G.prefs.setBool("isPrivacyBlurEnabled", value);
+            setState(() {});
+          },
         ),
+        SwitchListTile(
+          secondary: const Icon(Icons.fingerprint),
+          title: Text(l10n.biometricUnlock),
+          subtitle: Text(l10n.biometricUnlockSubtitle),
+          value: Util.getGlobal("isBiometricUnlockEnabled") as bool,
+          onChanged: (value) async {
+            if (value) {
+              bool authenticated = await Util.authenticate();
+              if (authenticated) {
+                G.prefs.setBool("isBiometricUnlockEnabled", true);
+              } else {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.biometricUnlockFailed))
+                  );
+                }
+              }
+            } else {
+              G.prefs.setBool("isBiometricUnlockEnabled", false);
+            }
+            setState(() {});
+          },
+        ),
+        if (Util.getGlobal("isBiometricUnlockEnabled") as bool)
+          SwitchListTile(
+            secondary: const Icon(Icons.timer_outlined),
+            title: Text(l10n.biometricOnlyOnStart),
+            subtitle: Text(l10n.biometricOnlyOnStartSubtitle),
+            value: Util.getGlobal("isBiometricOnlyOnStart") as bool,
+            onChanged: (value) {
+              G.prefs.setBool("isBiometricOnlyOnStart", value);
+              setState(() {});
+            },
+          ),
+      ],
+    );
+  }
 
-        ExpansionPanel(
-          isExpanded: _expandState[1],
-          headerBuilder: ((context, isExpanded) {
-            return ListTile(
-              title: Text(AppLocalizations.of(context)!.advancedSettings),
-              subtitle: Text(AppLocalizations.of(context)!.restartAfterChange),
-            );
-          }),
-          body: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox.square(dimension: 8),
-
-                TextFormField(
-                  key: _appStartCommandKey,
-                  maxLines: null,
-                  initialValue: Util.getCurrentProp("appStartCommand"),
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: AppLocalizations.of(context)!.triliumStartupCommand,
-                  ),
-                  onChanged: (value) async {
-                    await Util.setCurrentProp("appStartCommand", value);
-                  },
-                ),
-
-                const SizedBox.square(dimension: 8),
-
-                Center(
-                  child: OutlinedButton(
-                    style: D.commandButtonStyle,
-                    child: Text(AppLocalizations.of(context)!.resetToDefault),
-                    onPressed: () async {
-                      final bool? confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text(AppLocalizations.of(context)!.resetToDefault),
-                          content: Text(
-                            AppLocalizations.of(context)!.confirmResetToDefaultTriliumStartCommand,
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: Text(AppLocalizations.of(context)!.cancel),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: Text(AppLocalizations.of(context)!.confirm),
-                            ),
-                          ],
-                        ),
-                      );
-
-                      if (confirm == true) {
-                        await Util.setCurrentProp("appStartCommand", D.triliumStartCommand);
-
-                        if (mounted) {
-                          setState(() {
-                            _appStartCommandKey = UniqueKey();
-                          });
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(AppLocalizations.of(context)!.resetSuccessful),
-                            ),
-                          );
-                        }
-                      }
-                    },
-                  ),
-                ),
-
-                const SizedBox.square(dimension: 16),
-                const Divider(height: 2, indent: 8, endIndent: 8),
-                const SizedBox.square(dimension: 16),
-
-                Text(AppLocalizations.of(context)!.shareUsageHint),
-                const SizedBox.square(dimension: 16),
-
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 4.0,
-                  runSpacing: 4.0,
-                  children: [
-                    OutlinedButton(
-                      style: D.commandButtonStyle,
-                      child: Text(AppLocalizations.of(context)!.copyShareLink),
-                      onPressed: () async {
-                        final String? ip = await NetworkInfo().getWifiIP();
-                        if (!context.mounted) return;
-                        if (ip == null) {
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(AppLocalizations.of(context)!.cannotGetIpAddress)),
-                          );
-                          return;
-                        }
-                        FlutterClipboard.copy(
-                          (Util.getCurrentProp("webUrl") as String)
-                              .replaceAll(RegExp.escape("localhost"), ip),
-                        ).then((value) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(AppLocalizations.of(context)!.shareLinkCopied)),
-                          );
-                        });
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox.square(dimension: 16),
-
-                TextFormField(
-                  maxLines: null,
-                  initialValue: Util.getCurrentProp("webUrl"),
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: AppLocalizations.of(context)!.webRedirectUrl,
-                  ),
-                  onChanged: (value) async {
-                    await Util.setCurrentProp("webUrl", value);
-                  },
-                ),
-                const SizedBox.square(dimension: 8),
-              ],
+  Widget _buildTerminalSettings(BuildContext context, AppLocalizations l10n) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: TextFormField(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            initialValue: (Util.getGlobal("termMaxLines") as int).toString(),
+            decoration: InputDecoration(
+              icon: const Icon(Icons.format_list_numbered),
+              border: const OutlineInputBorder(),
+              labelText: l10n.terminalMaxLines,
             ),
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              return Util.validateBetween(value, 1024, 2147483647, () async {
+                await G.prefs.setInt("termMaxLines", int.parse(value!));
+              });
+            },
           ),
         ),
+        SwitchListTile(
+          secondary: const Icon(Icons.edit_note),
+          title: Text(l10n.enableTerminal),
+          value: Util.getGlobal("isTerminalWriteEnabled") as bool,
+          onChanged: (value) {
+            G.prefs.setBool("isTerminalWriteEnabled", value);
+            setState(() {});
+          },
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.keyboard_alt_outlined),
+          title: Text(l10n.enableTerminalKeypad),
+          value: Util.getGlobal("isTerminalCommandsEnabled") as bool,
+          onChanged: (value) {
+            G.prefs.setBool("isTerminalCommandsEnabled", value);
+            setState(() {
+              G.terminalPageChange.value = !G.terminalPageChange.value;
+            });
+          },
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.ads_click),
+          title: Text(l10n.terminalStickyKeys),
+          value: Util.getGlobal("isStickyKey") as bool,
+          onChanged: (value) {
+            G.prefs.setBool("isStickyKey", value);
+            setState(() {});
+          },
+        ),
+      ],
+    );
+  }
 
-        ExpansionPanel(
-          isExpanded: _expandState[2],
-          headerBuilder: ((context, isExpanded) {
-            return ListTile(
-              title: Text(AppLocalizations.of(context)!.globalSettings),
-              subtitle: Text(AppLocalizations.of(context)!.enableTerminalEditing),
-            );
-          }),
-          body: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              children: [
-                TextFormField(
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  initialValue: (Util.getGlobal("termMaxLines") as int).toString(),
-                  decoration: InputDecoration(
-                    border: const OutlineInputBorder(),
-                    labelText: AppLocalizations.of(context)!.terminalMaxLines,
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    return Util.validateBetween(value, 1024, 2147483647, () async {
-                      await G.prefs.setInt("termMaxLines", int.parse(value!));
-                    });
-                  },
-                ),
-                const SizedBox.square(dimension: 16),
-                ListTile(
-                  title: Text(AppLocalizations.of(context)!.language),
-                  trailing: DropdownButton<String?>(
-                    value: Util.getGlobal("locale"),
-                    items: [
-                      DropdownMenuItem(
-                        value: null,
-                        child: Text(AppLocalizations.of(context)!.systemDefault),
+  Widget _buildAdvancedSettings(BuildContext context, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.restartAfterChange, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 16),
+          TextFormField(
+            key: _appStartCommandKey,
+            maxLines: null,
+            initialValue: Util.getCurrentProp("appStartCommand"),
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: l10n.triliumStartupCommand,
+            ),
+            onChanged: (value) async {
+              await Util.setCurrentProp("appStartCommand", value);
+            },
+          ),
+          const SizedBox(height: 8),
+          Center(
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.restore),
+              label: Text(l10n.resetToDefault),
+              onPressed: () async {
+                final bool? confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text(l10n.resetToDefault),
+                    content: Text(l10n.confirmResetToDefaultTriliumStartCommand),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: Text(l10n.cancel),
                       ),
-                      const DropdownMenuItem(
-                        value: "zh",
-                        child: Text("中文"),
-                      ),
-                      const DropdownMenuItem(
-                        value: "en",
-                        child: Text("English"),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: Text(l10n.confirm),
                       ),
                     ],
-                    onChanged: (value) {
-                      if (value == null) {
-                        G.prefs.remove("locale");
-                        G.locale.value = null;
-                      } else {
-                        G.prefs.setString("locale", value);
-                        G.locale.value = Locale(value);
-                      }
-                      setState(() {});
-                    },
                   ),
-                ),
-                const SizedBox.square(dimension: 16),
-                SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.enableTerminal),
-                  value: Util.getGlobal("isTerminalWriteEnabled") as bool,
-                  onChanged: (value) {
-                    G.prefs.setBool("isTerminalWriteEnabled", value);
-                    setState(() {});
-                  },
-                ),
-                const SizedBox.square(dimension: 8),
-                SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.enableTerminalKeypad),
-                  value: Util.getGlobal("isTerminalCommandsEnabled") as bool,
-                  onChanged: (value) {
-                    G.prefs.setBool("isTerminalCommandsEnabled", value);
-                    setState(() {
-                      G.terminalPageChange.value = !G.terminalPageChange.value;
-                    });
-                  },
-                ),
-                const SizedBox.square(dimension: 8),
-                SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.terminalStickyKeys),
-                  value: Util.getGlobal("isStickyKey") as bool,
-                  onChanged: (value) {
-                    G.prefs.setBool("isStickyKey", value);
-                    setState(() {});
-                  },
-                ),
-                const SizedBox.square(dimension: 8),
-                SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.keepScreenOn),
-                  value: Util.getGlobal("wakelock") as bool,
-                  onChanged: (value) {
-                    G.prefs.setBool("wakelock", value);
-                    WakelockPlus.toggle(enable: value);
-                    setState(() {});
-                  },
-                ),
-                const SizedBox.square(dimension: 8),
-                const Divider(height: 2, indent: 8, endIndent: 8),
-                const SizedBox.square(dimension: 8),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 4.0,
-                  runSpacing: 4.0,
-                  children: [
-                    OutlinedButton(
-                      style: D.commandButtonStyle,
-                      child: Text(AppLocalizations.of(context)!.ignoreBatteryOptimization),
-                      onPressed: () {
-                        Permission.ignoreBatteryOptimizations.request();
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox.square(dimension: 8),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 4.0,
-                  runSpacing: 4.0,
-                  children: [
-                    OutlinedButton(
-                      style: D.commandButtonStyle,
-                      child: Text(AppLocalizations.of(context)!.clearAppCache),
-                      onPressed: () async {
-                        await Util.clearAppCache();
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox.square(dimension: 8),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 4.0,
-                  runSpacing: 4.0,
-                  children: [
-                    OutlinedButton(
-                      style: D.commandButtonStyle,
-                      child: Text(AppLocalizations.of(context)!.signal9ErrorPage),
-                      onPressed: () async {
-                        await D.androidChannel.invokeMethod("launchSignal9Page", {});
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox.square(dimension: 8),
-                const Divider(height: 2, indent: 8, endIndent: 8),
-                const SizedBox.square(dimension: 16),
-                Text(AppLocalizations.of(context)!.restartRequiredHint),
-                const SizedBox.square(dimension: 8),
-                SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.startWithGUI),
-                  value: Util.getGlobal("autoLaunchGUI") as bool,
-                  onChanged: (value) {
-                    G.prefs.setBool("autoLaunchGUI", value);
-                    setState(() {});
-                  },
-                ),
-                const SizedBox.square(dimension: 8),
-                SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.reinstallBootPackage),
-                  value: Util.getGlobal("reinstallBootstrap") as bool,
-                  onChanged: (value) {
-                    G.prefs.setBool("reinstallBootstrap", value);
-                    setState(() {});
-                  },
-                ),
-                const SizedBox.square(dimension: 8),
-                SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.reinstallTrilium),
-                  value: Util.getGlobal("reinstallTrilium") as bool,
-                  onChanged: (value) {
-                    G.prefs.setBool("reinstallTrilium", value);
-                    setState(() {});
-                  },
-                ),
-                const SizedBox.square(dimension: 8),
-                SwitchListTile(
-                  title: Text(AppLocalizations.of(context)!.reinstallRootfs),
-                  value: G.prefs.getBool("reinstallRootfs") ?? false,
-                  onChanged: (value) {
-                    G.prefs.setBool("reinstallRootfs", value);
-                    setState(() {});
-                  },
-                ),
-              ],
+                );
+                if (confirm == true) {
+                  await Util.setCurrentProp("appStartCommand", D.triliumStartCommand);
+                  if (mounted) {
+                    setState(() { _appStartCommandKey = UniqueKey(); });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.resetSuccessful))
+                    );
+                  }
+                }
+              },
             ),
+          ),
+          const Divider(height: 32),
+          Text(l10n.shareUsageHint),
+          const SizedBox(height: 8),
+          Center(
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.share),
+              label: Text(l10n.copyShareLink),
+              onPressed: () async {
+                final String? ip = await NetworkInfo().getWifiIP();
+                if (!context.mounted) return;
+                if (ip == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.cannotGetIpAddress))
+                  );
+                  return;
+                }
+                FlutterClipboard.copy(
+                  (Util.getCurrentProp("webUrl") as String)
+                      .replaceAll(RegExp.escape("localhost"), ip),
+                ).then((value) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.shareLinkCopied))
+                  );
+                });
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            maxLines: null,
+            initialValue: Util.getCurrentProp("webUrl"),
+            decoration: InputDecoration(
+              border: const OutlineInputBorder(),
+              labelText: l10n.webRedirectUrl,
+            ),
+            onChanged: (value) async {
+              await Util.setCurrentProp("webUrl", value);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGlobalSettings(BuildContext context, AppLocalizations l10n) {
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.language),
+          title: Text(l10n.language),
+          trailing: DropdownButton<String?>(
+            value: Util.getGlobal("locale"),
+            items: [
+              DropdownMenuItem(value: null, child: Text(l10n.systemDefault)),
+              const DropdownMenuItem(value: "zh", child: Text("中文")),
+              const DropdownMenuItem(value: "en", child: Text("English")),
+            ],
+            onChanged: (value) {
+              if (value == null) {
+                G.prefs.remove("locale");
+                G.locale.value = null;
+              } else {
+                G.prefs.setString("locale", value);
+                G.locale.value = Locale(value);
+              }
+              setState(() {});
+            },
+          ),
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.wb_sunny_outlined),
+          title: Text(l10n.keepScreenOn),
+          value: Util.getGlobal("wakelock") as bool,
+          onChanged: (value) {
+            G.prefs.setBool("wakelock", value);
+            WakelockPlus.toggle(enable: value);
+            setState(() {});
+          },
+        ),
+        SwitchListTile(
+          secondary: const Icon(Icons.rocket_launch_outlined),
+          title: Text(l10n.startWithGUI),
+          value: Util.getGlobal("autoLaunchGUI") as bool,
+          onChanged: (value) {
+            G.prefs.setBool("autoLaunchGUI", value);
+            setState(() {});
+          },
+        ),
+        const Divider(),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text(l10n.restartRequiredHint, style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: [
+                  _buildActionButton(l10n.ignoreBatteryOptimization, Icons.battery_saver, () {
+                    Permission.ignoreBatteryOptimizations.request();
+                  }),
+                  _buildActionButton(l10n.clearAppCache, Icons.cleaning_services, () async {
+                    await Util.clearAppCache();
+                  }),
+                  _buildActionButton(l10n.signal9ErrorPage, Icons.bug_report, () async {
+                    await D.androidChannel.invokeMethod("launchSignal9Page", {});
+                  }),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildDangerZone(l10n),
+            ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildActionButton(String label, IconData icon, VoidCallback onPressed) {
+    return OutlinedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+    );
+  }
+
+  Widget _buildDangerZone(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.red.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: [
+          SwitchListTile(
+            title: Text(l10n.reinstallBootPackage, style: const TextStyle(color: Colors.red)),
+            value: Util.getGlobal("reinstallBootstrap") as bool,
+            activeColor: Colors.red,
+            onChanged: (value) {
+              G.prefs.setBool("reinstallBootstrap", value);
+              setState(() {});
+            },
+          ),
+          SwitchListTile(
+            title: Text(l10n.reinstallTrilium, style: const TextStyle(color: Colors.red)),
+            value: Util.getGlobal("reinstallTrilium") as bool,
+            activeColor: Colors.red,
+            onChanged: (value) {
+              G.prefs.setBool("reinstallTrilium", value);
+              setState(() {});
+            },
+          ),
+          SwitchListTile(
+            title: Text(l10n.reinstallRootfs, style: const TextStyle(color: Colors.red)),
+            value: G.prefs.getBool("reinstallRootfs") ?? false,
+            activeColor: Colors.red,
+            onChanged: (value) {
+              G.prefs.setBool("reinstallRootfs", value);
+              setState(() {});
+            },
+          ),
+        ],
+      ),
     );
   }
 }
