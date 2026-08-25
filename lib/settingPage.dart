@@ -193,18 +193,20 @@ class _SettingPageState extends State<SettingPage> {
             trailing: const Icon(Icons.edit_outlined),
             onTap: () => _editAppStartCommand(context, l10n),
           ),
-          const SizedBox(height: 8),
           Center(
             child: OutlinedButton.icon(
               icon: const Icon(Icons.restore),
-              label: Text(l10n.resetToDefault),
-              style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+              label: Text(l10n.resetDefaultStartupCommand),
+              style: OutlinedButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               onPressed: () async {
                 final messenger = ScaffoldMessenger.of(this.context);
                 final bool? confirm = await showDialog<bool>(
                   context: context,
                   builder: (confirmContext) => AlertDialog(
-                    title: Text(l10n.resetToDefault),
+                    title: Text(l10n.resetDefaultStartupCommand),
                     content: Text(l10n.confirmResetToDefaultTriliumStartCommand),
                     actions: [
                       TextButton(
@@ -229,7 +231,7 @@ class _SettingPageState extends State<SettingPage> {
               },
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           TextFormField(
             maxLines: null,
             initialValue: Util.getCurrentProp("webUrl"),
