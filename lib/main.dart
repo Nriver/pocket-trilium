@@ -224,7 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: const [
                     TerminalPage(),
                     Padding(
-                      padding: EdgeInsets.all(8),
+                      padding: EdgeInsets.all(4),
                       child: AspectRatioMax1To1(
                         child: Scrollbar(
                           child: SingleChildScrollView(
@@ -239,10 +239,10 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.all(8),
+                                  padding: EdgeInsets.zero,
                                   child: Card(
                                     child: Padding(
-                                      padding: EdgeInsets.all(8),
+                                      padding: EdgeInsets.all(4),
                                       child: Column(
                                         children: [
                                           SettingPage(),
