@@ -1110,6 +1110,19 @@ clear""");
     // Util.termWrite("clear");
   }
 
+  //读取启动命令记录的实际端口(/home/pocket/.trilium_port)
+  static int? detectTriliumPort() {
+    try {
+      final portFile = File("${G.dataPath}/containers/${G.currentContainer}/home/pocket/.trilium_port");
+      if (portFile.existsSync()) {
+        return int.tryParse(portFile.readAsStringSync().trim());
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return null;
+  }
+
   //解析打开页面的地址
   //关闭自动检测时, 直接使用配置的webUrl
   //开启自动检测时, 读取启动命令记录的TRILIUM_PORT(/home/pocket/.trilium_port), 有则优先替换地址中的端口, 没有则使用配置的地址(默认8080)
@@ -1118,16 +1131,9 @@ clear""");
     if (!(Util.getGlobal("autoDetectPort") as bool)) {
       return webUrl;
     }
-    try {
-      final portFile = File("${G.dataPath}/containers/${G.currentContainer}/home/pocket/.trilium_port");
-      if (portFile.existsSync()) {
-        final port = int.tryParse(portFile.readAsStringSync().trim());
-        if (port != null && port > 0 && port < 65536) {
-          return Uri.parse(webUrl).replace(port: port).toString();
-        }
-      }
-    } catch (e) {
-      debugPrint(e.toString());
+    final port = detectTriliumPort();
+    if (port != null && port > 0 && port < 65536) {
+      return Uri.parse(webUrl).replace(port: port).toString();
     }
     return webUrl;
   }

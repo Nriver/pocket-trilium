@@ -223,7 +223,7 @@ class _SettingPageState extends State<SettingPage> {
             clipBehavior: Clip.antiAlias,
             child: Column(
               children: [
-                _buildExperimentalItem(
+                _buildActionItem(
                   context: context,
                   icon: Icons.multiple_stop,
                   title: l10n.autoSwitchPortTitle,
@@ -244,7 +244,7 @@ class _SettingPageState extends State<SettingPage> {
                   ),
                 ),
                 Divider(height: 1, color: Theme.of(context).dividerColor),
-                _buildExperimentalItem(
+                _buildActionItem(
                   context: context,
                   icon: Icons.radar,
                   title: l10n.autoDetectPort,
@@ -261,31 +261,48 @@ class _SettingPageState extends State<SettingPage> {
             ),
           ),
           const Divider(height: 32),
-          Text(l10n.shareUsageHint),
-          const SizedBox(height: 8),
-          Center(
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.share),
-              label: Text(l10n.copyShareLink),
+          Row(
+            children: [
+              Icon(Icons.lan, size: 20, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                l10n.lanAccess,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(l10n.shareUsageHint, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          _buildActionItem(
+            context: context,
+            icon: Icons.share_outlined,
+            title: l10n.copyShareLink,
+            iconBadge: false,
+            control: FilledButton.tonal(
               onPressed: () async {
-                final String? ip = await NetworkInfo().getWifiIP();
+                String? ip;
+                try {
+                  ip = await NetworkInfo().getWifiIP();
+                } catch (_) {}
                 if (!context.mounted) return;
-                if (ip == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(l10n.cannotGetIpAddress))
-                  );
-                  return;
-                }
-                FlutterClipboard.copy(
-                  (Util.getCurrentProp("webUrl") as String)
-                      .replaceAll(RegExp.escape("localhost"), ip),
-                ).then((value) {
+                final host = (ip == null || ip.isEmpty) ? "127.0.0.1" : ip;
+                final shareUrl = Uri.parse(Workflow.resolveWebUrl()).replace(host: host).toString();
+                FlutterClipboard.copy(shareUrl).then((value) {
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(l10n.shareLinkCopied))
                   );
                 });
               },
+              style: FilledButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: Text(l10n.copy),
             ),
           ),
         ],
@@ -341,14 +358,30 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 
-  Widget _buildExperimentalItem({
+  Widget _buildActionItem({
     required BuildContext context,
     required IconData icon,
     required String title,
-    required String description,
+    String? description,
+    bool iconBadge = true,
     required Widget control,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
+    final Widget? subtitleText = description == null
+        ? null
+        : Text(
+            description,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+          );
+    if (!iconBadge) {
+      return ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: Icon(icon),
+        title: Text(title),
+        subtitle: subtitleText,
+        trailing: control,
+      );
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
@@ -367,11 +400,10 @@ class _SettingPageState extends State<SettingPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 2),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                ),
+                if (subtitleText != null) ...[
+                  const SizedBox(height: 2),
+                  subtitleText,
+                ],
               ],
             ),
           ),
