@@ -209,6 +209,7 @@ class _SettingPageState extends State<SettingPage> {
               await Util.setCurrentProp("webUrl", value);
             },
           ),
+          const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 16),
           Row(
@@ -264,6 +265,7 @@ class _SettingPageState extends State<SettingPage> {
               ],
             ),
           ),
+          const SizedBox(height: 8),
         ],
       ),
     );
