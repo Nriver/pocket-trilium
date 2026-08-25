@@ -18,7 +18,7 @@
     "enableTerminalKeypad": "Enable Terminal Keypad",
     "terminalStickyKeys": "Terminal Sticky Keys",
     "keepScreenOn": "Keep Screen On",
-    "restartRequiredHint": "The following options will take effect on next launch.",
+    "restartRequiredHint": "The following options will take effect on next launch.\nThe following operations will not delete your Trilium note data.",
     "startWithGUI": "Launch with GUI enabled",
     "reinstallBootPackage": "Reinstall Boot Package",
     "reinstallTrilium": "Upgrade Trilium",
