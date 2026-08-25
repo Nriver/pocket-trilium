@@ -34,6 +34,12 @@ class _SettingPageState extends State<SettingPage> {
         const Divider(),
         _buildSectionHeader(context, l10n.globalSettings, Icons.settings),
         _buildGlobalSettings(context, l10n),
+        const Divider(),
+        _buildSectionHeader(context, l10n.reinstallUpgradeGroup, Icons.system_update_alt),
+        _buildDangerSettings(context, l10n),
+        const Divider(),
+        _buildSectionHeader(context, l10n.maintenanceToolsGroup, Icons.build),
+        _buildMaintenanceTools(context, l10n),
       ],
     );
   }
@@ -312,44 +318,74 @@ class _SettingPageState extends State<SettingPage> {
             setState(() {});
           },
         ),
-        const Divider(),
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Text(l10n.restartRequiredHint, style: Theme.of(context).textTheme.bodySmall),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: [
-                  _buildActionButton(l10n.ignoreBatteryOptimization, Icons.battery_saver, () {
-                    Permission.ignoreBatteryOptimizations.request();
-                  }),
-                  _buildActionButton(l10n.clearAppCache, Icons.cleaning_services, () async {
-                    await Util.clearAppCache();
-                  }),
-                  _buildActionButton(l10n.signal9ErrorPage, Icons.bug_report, () async {
-                    await D.androidChannel.invokeMethod("launchSignal9Page", {});
-                  }),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _buildDangerZone(l10n),
-            ],
-          ),
-        ),
       ],
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, VoidCallback onPressed) {
-    return OutlinedButton.icon(
-      onPressed: onPressed,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
+  Widget _buildDangerSettings(BuildContext context, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.restartRequiredHint, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 8),
+          _buildDangerZone(l10n),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMaintenanceTools(BuildContext context, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildActionButton(context, l10n.ignoreBatteryOptimization, Icons.battery_saver_outlined, () {
+              Permission.ignoreBatteryOptimizations.request();
+            }),
+            const SizedBox(width: 8),
+            _buildActionButton(context, l10n.clearAppCache, Icons.cleaning_services_outlined, () async {
+              await Util.clearAppCache();
+            }),
+            const SizedBox(width: 8),
+            _buildActionButton(context, l10n.signal9ErrorPage, Icons.bug_report_outlined, () async {
+              await D.androidChannel.invokeMethod("launchSignal9Page", {});
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(BuildContext context, String label, IconData icon, VoidCallback onPressed) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Expanded(
+      child: Material(
+        color: colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 24, color: colorScheme.primary),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, height: 1.2, color: colorScheme.onSurface),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -363,20 +399,20 @@ class _SettingPageState extends State<SettingPage> {
       child: Column(
         children: [
           SwitchListTile(
-            title: Text(l10n.reinstallBootPackage, style: const TextStyle(color: Colors.red)),
-            value: Util.getGlobal("reinstallBootstrap") as bool,
-            activeColor: Colors.red,
-            onChanged: (value) {
-              G.prefs.setBool("reinstallBootstrap", value);
-              setState(() {});
-            },
-          ),
-          SwitchListTile(
             title: Text(l10n.reinstallTrilium, style: const TextStyle(color: Colors.red)),
             value: Util.getGlobal("reinstallTrilium") as bool,
             activeColor: Colors.red,
             onChanged: (value) {
               G.prefs.setBool("reinstallTrilium", value);
+              setState(() {});
+            },
+          ),
+          SwitchListTile(
+            title: Text(l10n.reinstallBootPackage, style: const TextStyle(color: Colors.red)),
+            value: Util.getGlobal("reinstallBootstrap") as bool,
+            activeColor: Colors.red,
+            onChanged: (value) {
+              G.prefs.setBool("reinstallBootstrap", value);
               setState(() {});
             },
           ),

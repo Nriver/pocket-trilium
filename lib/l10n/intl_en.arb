@@ -21,7 +21,7 @@
     "restartRequiredHint": "The following options will take effect on next launch.",
     "startWithGUI": "Launch with GUI enabled",
     "reinstallBootPackage": "Reinstall Boot Package",
-    "reinstallTrilium": "Reinstall or upgrade Trilium",
+    "reinstallTrilium": "Upgrade Trilium",
     "installingTrilium": "Installing Trilium",
     "clearAppCache": "Clear App Cache",
     "width": "Width",
@@ -108,5 +108,7 @@
     "biometricSettingsDescription": "Please set up your biometrics in device settings.",
     "biometricGoToSettingsButton": "Go to Settings",
     "language": "Language",
+    "reinstallUpgradeGroup": "Reinstall & Upgrade",
+    "maintenanceToolsGroup": "Maintenance Tools",
     "systemDefault": "System Default"
 }
