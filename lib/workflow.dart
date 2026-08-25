@@ -102,6 +102,7 @@ class Util {
   //bool reinstallBootstrap = false 下次启动是否重装引导包
   //bool reinstallTrilium = false 下次启动是否重装/升级Trilium
   //bool wakelock = false 屏幕常亮
+  //bool autoDetectPort = false 自动检测Trilium实际使用的端口并打开对应地址
   //? int bootstrapVersion: 启动包版本
   //String[] containersInfo: 所有容器信息(json)
   //{name, boot:"\$DATA_DIR/bin/proot ...", appStartCommand:"...", webUrl:"...", commands:[{name:"更新和升级", command:"apt update -y && apt upgrade -y"},
@@ -121,6 +122,7 @@ class Util {
       case "reinstallBootstrap" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "reinstallTrilium" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "wakelock" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
+      case "autoDetectPort" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "locale" : return b ? G.prefs.getString(key) : null;
       case "isPrivacyBlurEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isBiometricUnlockEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
@@ -1108,17 +1110,39 @@ clear""");
     // Util.termWrite("clear");
   }
 
+  //解析打开页面的地址
+  //关闭自动检测时, 直接使用配置的webUrl
+  //开启自动检测时, 读取启动命令记录的TRILIUM_PORT(/home/pocket/.trilium_port), 有则优先替换地址中的端口, 没有则使用配置的地址(默认8080)
+  static String resolveWebUrl() {
+    final String webUrl = Util.getCurrentProp("webUrl") as String;
+    if (!(Util.getGlobal("autoDetectPort") as bool)) {
+      return webUrl;
+    }
+    try {
+      final portFile = File("${G.dataPath}/containers/${G.currentContainer}/home/pocket/.trilium_port");
+      if (portFile.existsSync()) {
+        final port = int.tryParse(portFile.readAsStringSync().trim());
+        if (port != null && port > 0 && port < 65536) {
+          return Uri.parse(webUrl).replace(port: port).toString();
+        }
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+    return webUrl;
+  }
+
   static Future<void> waitForConnection() async {
     await retry(
       // Make a GET request
-      () => http.get(Uri.parse(Util.getCurrentProp("webUrl"))).timeout(const Duration(milliseconds: 250)),
+      () => http.get(Uri.parse(resolveWebUrl())).timeout(const Duration(milliseconds: 250)),
       // Retry on SocketException or TimeoutException
       retryIf: (e) => e is SocketException || e is TimeoutException,
     );
   }
 
   static Future<void> launchBrowser() async {
-    final String webUrl = Util.getCurrentProp("webUrl") as String;
+    final String webUrl = resolveWebUrl();
 
     Navigator.push(
       G.homePageStateContext,

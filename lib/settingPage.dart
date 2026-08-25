@@ -185,51 +185,13 @@ class _SettingPageState extends State<SettingPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(l10n.restartAfterChange, style: Theme.of(context).textTheme.bodySmall),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.terminal),
             title: Text(l10n.triliumStartupCommand),
+            subtitle: Text(l10n.restartAfterChange),
             trailing: const Icon(Icons.edit_outlined),
             onTap: () => _editAppStartCommand(context, l10n),
-          ),
-          Center(
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.restore),
-              label: Text(l10n.resetDefaultStartupCommand),
-              style: OutlinedButton.styleFrom(
-                visualDensity: VisualDensity.compact,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              onPressed: () async {
-                final messenger = ScaffoldMessenger.of(this.context);
-                final bool? confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (confirmContext) => AlertDialog(
-                    title: Text(l10n.resetDefaultStartupCommand),
-                    content: Text(l10n.confirmResetToDefaultTriliumStartCommand),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(confirmContext).pop(false),
-                        child: Text(l10n.cancel),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(confirmContext).pop(true),
-                        child: Text(l10n.confirm),
-                      ),
-                    ],
-                  ),
-                );
-                if (confirm == true) {
-                  await Util.setCurrentProp("appStartCommand", D.triliumStartCommand);
-                  if (mounted) {
-                    messenger.showSnackBar(
-                        SnackBar(content: Text(l10n.resetSuccessful))
-                    );
-                  }
-                }
-              },
-            ),
           ),
           const SizedBox(height: 24),
           TextFormField(
@@ -243,6 +205,60 @@ class _SettingPageState extends State<SettingPage> {
             onChanged: (value) async {
               await Util.setCurrentProp("webUrl", value);
             },
+          ),
+          const Divider(height: 32),
+          Row(
+            children: [
+              Icon(Icons.science_outlined, size: 14, color: Theme.of(context).hintColor),
+              const SizedBox(width: 4),
+              Text(l10n.experimentalFeature, style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).dividerColor),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              children: [
+                _buildExperimentalItem(
+                  context: context,
+                  icon: Icons.multiple_stop,
+                  title: l10n.autoSwitchPortTitle,
+                  description: l10n.autoPortTemplateDescription,
+                  control: FilledButton.tonal(
+                    onPressed: () => _applyStartCommandPreset(
+                      confirmTitle: l10n.autoPortTemplateCommand,
+                      confirmContent: l10n.confirmApplyAutoPortTemplate,
+                      command: D.triliumStartCommandAutoPort,
+                      successMessage: l10n.autoPortTemplateApplied,
+                      enableAutoDetectPort: true,
+                    ),
+                    style: FilledButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(l10n.apply),
+                  ),
+                ),
+                Divider(height: 1, color: Theme.of(context).dividerColor),
+                _buildExperimentalItem(
+                  context: context,
+                  icon: Icons.radar,
+                  title: l10n.autoDetectPort,
+                  description: l10n.autoDetectPortSubtitle,
+                  control: Switch(
+                    value: Util.getGlobal("autoDetectPort") as bool,
+                    onChanged: (value) {
+                      G.prefs.setBool("autoDetectPort", value);
+                      setState(() {});
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
           const Divider(height: 32),
           Text(l10n.shareUsageHint),
@@ -323,6 +339,86 @@ class _SettingPageState extends State<SettingPage> {
         ),
       ],
     );
+  }
+
+  Widget _buildExperimentalItem({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String description,
+    required Widget control,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 20, color: colorScheme.onPrimaryContainer),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          control,
+        ],
+      ),
+    );
+  }
+
+  Future<void> _applyStartCommandPreset({
+    required String confirmTitle,
+    required String confirmContent,
+    required String command,
+    required String successMessage,
+    bool enableAutoDetectPort = false,
+  }) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (confirmContext) => AlertDialog(
+        title: Text(confirmTitle),
+        content: Text(confirmContent),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(confirmContext).pop(false),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(confirmContext).pop(true),
+            child: Text(AppLocalizations.of(context)!.confirm),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await Util.setCurrentProp("appStartCommand", command);
+      if (enableAutoDetectPort) {
+        await G.prefs.setBool("autoDetectPort", true);
+      }
+      if (mounted) {
+        setState(() {});
+        messenger.showSnackBar(
+            SnackBar(content: Text(successMessage))
+        );
+      }
+    }
   }
 
   Widget _buildDangerSettings(BuildContext context, AppLocalizations l10n) {
@@ -484,15 +580,46 @@ class _AppStartCommandDialogState extends State<_AppStartCommandDialog> {
               ),
             ),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text(l10n.cancel),
+                TextButton.icon(
+                  icon: const Icon(Icons.restore, size: 18),
+                  label: Text(l10n.resetDefaultStartupCommand),
+                  onPressed: () async {
+                    final bool? confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (confirmContext) => AlertDialog(
+                        title: Text(l10n.resetDefaultStartupCommand),
+                        content: Text(l10n.confirmResetToDefaultTriliumStartCommand),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(confirmContext).pop(false),
+                            child: Text(l10n.cancel),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(confirmContext).pop(true),
+                            child: Text(l10n.confirm),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirm == true && mounted) {
+                      setState(() { _controller.text = D.triliumStartCommand; });
+                    }
+                  },
                 ),
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(_controller.text),
-                  child: Text(l10n.confirm),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text(l10n.cancel),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(_controller.text),
+                      child: Text(l10n.confirm),
+                    ),
+                  ],
                 ),
               ],
             ),

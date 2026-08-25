@@ -130,6 +130,7 @@ class D {
 
   // 启动前先杀掉旧的trilium进程, 防止快速多次关闭启动app时旧的进程没有退出导致的问题
   // 判断挂载到手机内部存储的默认数据路径如果无法写入，则写入到app内部目录
+  // 实际使用的端口会记录到 /home/pocket/.trilium_port, 供app读取
   static const String triliumStartCommand = r"""
 #pkill -9 node 
 
@@ -153,6 +154,76 @@ export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libjemalloc.so.2
 
 # trilium 0.104.0 above need this for backend scripting, uncomment if you need it
 #export TRILIUM_SECURITY_BACKEND_SCRIPTING_ENABLED=true
+
+echo "$TRILIUM_PORT" > /home/pocket/.trilium_port
+
+LOG=/tmp/trilium.log
+for i in {1..10}; do
+    : > "$LOG"
+    echo "Starting trilium..."
+    ./trilium.sh 2>&1 | tee "$LOG"
+    if grep -q "double free or corruption" "$LOG"; then
+        echo "Retrying due to 'double free or corruption' ($i/10)"
+    else
+        exit
+    fi
+done
+
+sleep 10
+""";
+
+  // 端口自动顺延模板: 从8080开始, 如果端口被占用则自动尝试下一个端口
+  // 实际使用的端口会记录到 /home/pocket/.trilium_port, 供app读取
+  static const String triliumStartCommandAutoPort = r"""
+#pkill -9 node 
+
+# Auto port switching config: if PORT_START is occupied,
+# the next port is tried until PORT_END is reached.
+# Change these two values to adjust the port range.
+PORT_START=8080
+PORT_END=8180
+
+cd /home/pocket/trilium
+
+if [ -d "/home/pocket/trilium-data" ] && [ -w "/home/pocket/trilium-data" ]; then
+    export TRILIUM_DATA_DIR="/home/pocket/trilium-data"
+    echo "Data dir: /home/pocket/trilium-data"
+else
+    export TRILIUM_DATA_DIR="/home/pocket/.local/share/trilium-data"
+    echo "Data dir: /home/pocket/.local/share/trilium-data"
+    mkdir -p /home/pocket/.local/share/trilium-data
+fi
+
+# use tcmalloc
+#export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libtcmalloc_minimal.so.4
+# use jemalloc
+export LD_PRELOAD=/usr/lib/aarch64-linux-gnu/libjemalloc.so.2
+
+# trilium 0.104.0 above need this for backend scripting, uncomment if you need it
+#export TRILIUM_SECURITY_BACKEND_SCRIPTING_ENABLED=true
+
+# Auto port switching: try connecting to the port via /dev/tcp.
+# /proc/net/tcp is not readable by apps on Android 10+, so a real
+# connection attempt is the most reliable way to test.
+port_in_use() {
+    if (exec 3<>"/dev/tcp/127.0.0.1/$1") 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+
+PORT=$PORT_START
+while [ "$PORT" -lt "$PORT_END" ] && port_in_use "$PORT"; do
+    echo "Port $PORT is in use, trying next port..."
+    PORT=$((PORT + 1))
+done
+
+export TRILIUM_PORT=$PORT
+echo "Using TRILIUM_PORT=$TRILIUM_PORT"
+
+# Save the actual port in use so the app can detect it
+# and open the page at the matching address
+echo "$PORT" > /home/pocket/.trilium_port
 
 LOG=/tmp/trilium.log
 for i in {1..10}; do
