@@ -229,6 +229,19 @@ class _SettingPageState extends State<SettingPage> {
               },
             ),
           ),
+          const SizedBox(height: 16),
+          TextFormField(
+            maxLines: null,
+            initialValue: Util.getCurrentProp("webUrl"),
+            decoration: InputDecoration(
+              icon: const Icon(Icons.open_in_new),
+              border: const OutlineInputBorder(),
+              labelText: l10n.webRedirectUrl,
+            ),
+            onChanged: (value) async {
+              await Util.setCurrentProp("webUrl", value);
+            },
+          ),
           const Divider(height: 32),
           Text(l10n.shareUsageHint),
           const SizedBox(height: 8),
@@ -256,18 +269,6 @@ class _SettingPageState extends State<SettingPage> {
                 });
               },
             ),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            maxLines: null,
-            initialValue: Util.getCurrentProp("webUrl"),
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: l10n.webRedirectUrl,
-            ),
-            onChanged: (value) async {
-              await Util.setCurrentProp("webUrl", value);
-            },
           ),
         ],
       ),

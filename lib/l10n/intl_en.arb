@@ -10,7 +10,7 @@
     "copyShareLink": "Copy Share Link",
     "cannotGetIpAddress": "Failed to get IP address",
     "shareLinkCopied": "Share link copied",
-    "webRedirectUrl": "Web Redirect URL",
+    "webRedirectUrl": "URL to Open on Launch",
     "globalSettings": "Global Settings",
     "enableTerminalEditing": "Enable terminal editing here",
     "terminalMaxLines": "Terminal max lines (requires restart)",

@@ -10,7 +10,7 @@
     "copyShareLink": "复制分享链接",
     "cannotGetIpAddress": "无法获取IP地址",
     "shareLinkCopied": "已复制分享链接",
-    "webRedirectUrl": "网页跳转地址",
+    "webRedirectUrl": "启动后打开页面地址",
     "globalSettings": "全局设置",
     "enableTerminalEditing": "在这里开启终端编辑",
     "terminalMaxLines": "终端最大行数(重启软件生效)",
