@@ -16,8 +16,6 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
-  Key _appStartCommandKey = UniqueKey();
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -165,6 +163,16 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 
+  Future<void> _editAppStartCommand(BuildContext context, AppLocalizations l10n) async {
+    final String? command = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => _AppStartCommandDialog(l10n: l10n),
+    );
+    if (command != null) {
+      await Util.setCurrentProp("appStartCommand", command);
+    }
+  }
+
   Widget _buildAdvancedSettings(BuildContext context, AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -172,37 +180,33 @@ class _SettingPageState extends State<SettingPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(l10n.restartAfterChange, style: Theme.of(context).textTheme.bodySmall),
-          const SizedBox(height: 16),
-          TextFormField(
-            key: _appStartCommandKey,
-            maxLines: null,
-            initialValue: Util.getCurrentProp("appStartCommand"),
-            decoration: InputDecoration(
-              border: const OutlineInputBorder(),
-              labelText: l10n.triliumStartupCommand,
-            ),
-            onChanged: (value) async {
-              await Util.setCurrentProp("appStartCommand", value);
-            },
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.terminal),
+            title: Text(l10n.triliumStartupCommand),
+            trailing: const Icon(Icons.edit_outlined),
+            onTap: () => _editAppStartCommand(context, l10n),
           ),
           const SizedBox(height: 8),
           Center(
             child: OutlinedButton.icon(
               icon: const Icon(Icons.restore),
               label: Text(l10n.resetToDefault),
+              style: OutlinedButton.styleFrom(visualDensity: VisualDensity.compact),
               onPressed: () async {
+                final messenger = ScaffoldMessenger.of(this.context);
                 final bool? confirm = await showDialog<bool>(
                   context: context,
-                  builder: (context) => AlertDialog(
+                  builder: (confirmContext) => AlertDialog(
                     title: Text(l10n.resetToDefault),
                     content: Text(l10n.confirmResetToDefaultTriliumStartCommand),
                     actions: [
                       TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
+                        onPressed: () => Navigator.of(confirmContext).pop(false),
                         child: Text(l10n.cancel),
                       ),
                       TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
+                        onPressed: () => Navigator.of(confirmContext).pop(true),
                         child: Text(l10n.confirm),
                       ),
                     ],
@@ -211,8 +215,7 @@ class _SettingPageState extends State<SettingPage> {
                 if (confirm == true) {
                   await Util.setCurrentProp("appStartCommand", D.triliumStartCommand);
                   if (mounted) {
-                    setState(() { _appStartCommandKey = UniqueKey(); });
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    messenger.showSnackBar(
                         SnackBar(content: Text(l10n.resetSuccessful))
                     );
                   }
@@ -387,6 +390,75 @@ class _SettingPageState extends State<SettingPage> {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AppStartCommandDialog extends StatefulWidget {
+  final AppLocalizations l10n;
+
+  const _AppStartCommandDialog({required this.l10n});
+
+  @override
+  State<_AppStartCommandDialog> createState() => _AppStartCommandDialogState();
+}
+
+class _AppStartCommandDialogState extends State<_AppStartCommandDialog> {
+  late final TextEditingController _controller =
+      TextEditingController(text: Util.getCurrentProp("appStartCommand"));
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = widget.l10n;
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 24),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.triliumStartupCommand,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: TextField(
+                controller: _controller,
+                autofocus: true,
+                expands: true,
+                minLines: null,
+                maxLines: null,
+                keyboardType: TextInputType.multiline,
+                textAlignVertical: TextAlignVertical.top,
+                decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
+                  labelText: l10n.triliumStartupCommand,
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(_controller.text),
+                  child: Text(l10n.confirm),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
