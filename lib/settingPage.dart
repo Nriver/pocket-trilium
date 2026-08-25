@@ -32,6 +32,9 @@ class _SettingPageState extends State<SettingPage> {
         _buildSectionHeader(context, l10n.advancedSettings, Icons.settings_applications),
         _buildAdvancedSettings(context, l10n),
         const Divider(),
+        _buildSectionHeader(context, l10n.lanAccess, Icons.lan),
+        _buildLanAccessSettings(context, l10n),
+        const Divider(),
         _buildSectionHeader(context, l10n.terminal, Icons.terminal),
         _buildTerminalSettings(context, l10n),
         const Divider(),
@@ -119,7 +122,7 @@ class _SettingPageState extends State<SettingPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: TextFormField(
             autovalidateMode: AutovalidateMode.onUserInteraction,
             initialValue: (Util.getGlobal("termMaxLines") as int).toString(),
@@ -181,7 +184,7 @@ class _SettingPageState extends State<SettingPage> {
 
   Widget _buildAdvancedSettings(BuildContext context, AppLocalizations l10n) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -193,7 +196,7 @@ class _SettingPageState extends State<SettingPage> {
             trailing: const Icon(Icons.edit_outlined),
             onTap: () => _editAppStartCommand(context, l10n),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           TextFormField(
             maxLines: null,
             initialValue: Util.getCurrentProp("webUrl"),
@@ -206,7 +209,8 @@ class _SettingPageState extends State<SettingPage> {
               await Util.setCurrentProp("webUrl", value);
             },
           ),
-          const Divider(height: 32),
+          const Divider(),
+          const SizedBox(height: 16),
           Row(
             children: [
               Icon(Icons.science_outlined, size: 14, color: Theme.of(context).hintColor),
@@ -260,22 +264,17 @@ class _SettingPageState extends State<SettingPage> {
               ],
             ),
           ),
-          const Divider(height: 32),
-          Row(
-            children: [
-              Icon(Icons.lan, size: 20, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 8),
-              Text(
-                l10n.lanAccess,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanAccessSettings(BuildContext context, AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(l10n.shareUsageHint, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
           _buildActionItem(
             context: context,
@@ -455,7 +454,7 @@ class _SettingPageState extends State<SettingPage> {
 
   Widget _buildDangerSettings(BuildContext context, AppLocalizations l10n) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -469,7 +468,7 @@ class _SettingPageState extends State<SettingPage> {
 
   Widget _buildMaintenanceTools(BuildContext context, AppLocalizations l10n) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: IntrinsicHeight(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
