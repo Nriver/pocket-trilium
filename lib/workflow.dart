@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:http/http.dart' as http;
-import 'package:retry/retry.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1087,6 +1086,11 @@ done
   static Future<void> launchCurrentContainer() async {
     String extraMount = ""; //mount options and other proot options
 
+    //记录本次启动时间并清除上次启动遗留的端口记录
+    //防止启动脚本还没写入新端口时, 读到上次的端口而打开错误的页面
+    _containerLaunchTime = DateTime.now();
+    clearStaleTriliumPort();
+
     Util.termWrite(
 """
 export DATA_DIR=${G.dataPath}
@@ -1110,13 +1114,40 @@ clear""");
     // Util.termWrite("clear");
   }
 
+  //本次容器启动的时间, 用于判断端口记录是否是本次启动写入的
+  static DateTime? _containerLaunchTime;
+
+  //端口记录文件路径(/home/pocket/.trilium_port)
+  static String triliumPortFilePath() {
+    return "${G.dataPath}/containers/${G.currentContainer}/home/pocket/.trilium_port";
+  }
+
+  //清除上次启动遗留的端口记录
+  static void clearStaleTriliumPort() {
+    try {
+      final portFile = File(triliumPortFilePath());
+      if (portFile.existsSync()) {
+        portFile.deleteSync();
+        debugPrint("已清除旧的端口记录文件");
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   //读取启动命令记录的实际端口(/home/pocket/.trilium_port)
+  //只接受本次容器启动之后写入的记录, 避免被上次启动生成的端口信息误导
   static int? detectTriliumPort() {
     try {
-      final portFile = File("${G.dataPath}/containers/${G.currentContainer}/home/pocket/.trilium_port");
-      if (portFile.existsSync()) {
-        return int.tryParse(portFile.readAsStringSync().trim());
+      final portFile = File(triliumPortFilePath());
+      if (!portFile.existsSync()) {
+        return null;
       }
+      if (_containerLaunchTime != null &&
+          portFile.lastModifiedSync().isBefore(_containerLaunchTime!)) {
+        return null;
+      }
+      return int.tryParse(portFile.readAsStringSync().trim());
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -1138,13 +1169,53 @@ clear""");
     return webUrl;
   }
 
-  static Future<void> waitForConnection() async {
-    await retry(
-      // Make a GET request
-      () => http.get(Uri.parse(resolveWebUrl())).timeout(const Duration(milliseconds: 250)),
-      // Retry on SocketException or TimeoutException
-      retryIf: (e) => e is SocketException || e is TimeoutException,
-    );
+  //等待Trilium服务就绪, 返回是否确认可访问
+  //开启自动检测时, 只有读到本次启动写入的端口记录后才按实际端口探测,
+  //记录没生成前不会去连配置地址, 因此不会误开占用端口的其它程序的页面
+  //轮询间隔很短, 服务一就绪立即返回, 尽量少等待; 总时长超过maxWait仍未确认则返回false
+  static Future<bool> waitForConnection() async {
+    const pollInterval = Duration(milliseconds: 300);
+    const maxWait = Duration(seconds: 15);
+    final deadline = DateTime.now().add(maxWait);
+    final autoDetect = Util.getGlobal("autoDetectPort") as bool;
+
+    //自动检测模式: 先等本次启动的端口记录生成再开始探测
+    if (autoDetect) {
+      while (detectTriliumPort() == null && DateTime.now().isBefore(deadline)) {
+        await Future.delayed(pollInterval);
+      }
+    }
+
+    while (DateTime.now().isBefore(deadline)) {
+      //自动检测模式下必须已有新端口记录才允许探测, 否则可能连上别的程序
+      if (!autoDetect || detectTriliumPort() != null) {
+        try {
+          final response = await http
+              .get(Uri.parse(resolveWebUrl()))
+              .timeout(const Duration(seconds: 2));
+          if (response.statusCode < 500) {
+            return true;
+          }
+        } catch (_) {}
+      }
+      await Future.delayed(pollInterval);
+    }
+    debugPrint("waitForConnection: 等待超时, 服务未确认就绪");
+    return false;
+  }
+
+  //等服务就绪后再打开页面
+  //[forceOpen]为true时(用户手动点击按钮)跳过等待, 立即打开页面
+  //否则等待确认服务就绪后才打开, 未确认则不自动打开, 防止误开占用端口的其它程序
+  static Future<void> openWebPage({bool forceOpen = false}) async {
+    if (!forceOpen) {
+      final ready = await waitForConnection();
+      if (!ready) {
+        debugPrint("服务未确认就绪, 不自动打开页面, 可手动点击按钮打开");
+        return;
+      }
+    }
+    launchBrowser();
   }
 
   static Future<void> launchBrowser() async {
@@ -1164,7 +1235,7 @@ clear""");
     launchCurrentContainer();
     if (Util.getGlobal("autoLaunchGUI") as bool) {
       launchGUIBackend();
-      waitForConnection().then((value) => launchBrowser());
+      openWebPage();
     }
   }
 }

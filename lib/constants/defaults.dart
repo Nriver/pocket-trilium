@@ -136,6 +136,10 @@ class D {
 
 export TRILIUM_PORT=8080
 
+# Delete the port record left by the previous startup,
+# so the app won't read a stale port and open the wrong page
+rm -f /home/pocket/.trilium_port
+
 cd /home/pocket/trilium
 
 if [ -d "/home/pocket/trilium-data" ] && [ -w "/home/pocket/trilium-data" ]; then
@@ -182,6 +186,10 @@ sleep 10
 # Change these two values to adjust the port range.
 PORT_START=8080
 PORT_END=8180
+
+# Delete the port record left by the previous startup,
+# so the app won't read a stale port and open the wrong page
+rm -f /home/pocket/.trilium_port
 
 cd /home/pocket/trilium
 

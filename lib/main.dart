@@ -290,7 +290,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: FloatingActionButton(
               tooltip: AppLocalizations.of(context)!.enterGUI,
               onPressed: () {
-                Workflow.launchBrowser();
+                Workflow.openWebPage(forceOpen: true);
               },
               child: const Icon(Icons.play_arrow),
             ),
