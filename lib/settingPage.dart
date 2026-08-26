@@ -259,6 +259,9 @@ class _SettingPageState extends State<SettingPage> {
                     onChanged: (value) {
                       G.prefs.setBool("autoDetectPort", value);
                       setState(() {});
+                      if (value) {
+                        _showAutoDetectPortHint(context);
+                      }
                     },
                   ),
                 ),
@@ -410,6 +413,25 @@ class _SettingPageState extends State<SettingPage> {
           ),
           const SizedBox(width: 12),
           control,
+        ],
+      ),
+    );
+  }
+
+  //手动开启「自动选择启动后访问地址」时的提示
+  //通过「自动切换可用端口」模板触发时不弹窗
+  Future<void> _showAutoDetectPortHint(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.autoDetectPort),
+        content: Text(l10n.autoDetectPortManualHint),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(AppLocalizations.of(context)!.confirm),
+          ),
         ],
       ),
     );

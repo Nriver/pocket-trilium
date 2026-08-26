@@ -20,6 +20,7 @@
     "copy": "Copy",
     "autoDetectPort": "Auto-pick Launch URL",
     "autoDetectPortSubtitle": "When enabled, the page opens on the port Trilium is actually running on. When disabled, the URL configured above takes priority.",
+    "autoDetectPortManualHint": "If it doesn't take effect after enabling, apply the built-in \"Auto Port Switching\" command template so the actual port gets recorded on startup.\nIf it still doesn't work, please reset the Trilium Startup Command to default.",
     "experimentalFeature": "Experimental Features",
     "globalSettings": "Global Settings",
     "enableTerminalEditing": "Enable terminal editing here",

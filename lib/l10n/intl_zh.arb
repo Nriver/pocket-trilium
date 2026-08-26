@@ -20,6 +20,7 @@
     "copy": "复制",
     "autoDetectPort": "自动选择启动后访问地址",
     "autoDetectPortSubtitle": "开启后自动使用Trilium实际运行的端口打开页面；关闭时以上方配置的地址为准",
+    "autoDetectPortManualHint": "如果开启后没有生效，请配合内置的启动命令使用：应用「自动切换可用端口」命令模板。\n如果仍然没有生效，请将Trilium启动命令重置为默认。",
     "experimentalFeature": "实验性功能",
     "globalSettings": "全局设置",
     "enableTerminalEditing": "在这里开启终端编辑",
