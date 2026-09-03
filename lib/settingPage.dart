@@ -293,7 +293,7 @@ class _SettingPageState extends State<SettingPage> {
                   ip = await NetworkInfo().getWifiIP();
                 } catch (_) {}
                 if (!context.mounted) return;
-                final host = (ip == null || ip.isEmpty) ? "127.0.0.1" : ip;
+                final host = (ip == null || ip.isEmpty) ? "127.0.0.1" : _asciiDigits(ip);
                 final shareUrl = Uri.parse(Workflow.resolveWebUrl()).replace(host: host).toString();
                 FlutterClipboard.copy(shareUrl).then((value) {
                   if (!context.mounted) return;
@@ -416,6 +416,22 @@ class _SettingPageState extends State<SettingPage> {
         ],
       ),
     );
+  }
+
+  // Pre-API 31 network_info_plus formats the IP with the device's locale,
+  // so Arabic/Persian locales can return non-ASCII digits.
+  String _asciiDigits(String input) {
+    final buffer = StringBuffer();
+    for (final rune in input.runes) {
+      if (rune >= 0x0660 && rune <= 0x0669) {
+        buffer.write(rune - 0x0660); // Arabic-Indic
+      } else if (rune >= 0x06F0 && rune <= 0x06F9) {
+        buffer.write(rune - 0x06F0); // Extended Arabic-Indic (Persian)
+      } else {
+        buffer.writeCharCode(rune);
+      }
+    }
+    return buffer.toString();
   }
 
   //手动开启「自动选择启动后访问地址」时的提示
