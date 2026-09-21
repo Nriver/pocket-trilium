@@ -159,7 +159,7 @@ class LoadingPage extends StatelessWidget {
             const Expanded(child: Padding(padding: EdgeInsets.all(8), child: Card(child: Padding(padding: EdgeInsets.all(8), child: 
               Scrollbar(child:
                 SingleChildScrollView(
-                  child: InfoPage(openFirstInfo: true)
+                  child: InfoPage()
                 )
               )
             ))
@@ -247,7 +247,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                         children: [
                                           SettingPage(),
                                           SizedBox.square(dimension: 8),
-                                          InfoPage(openFirstInfo: false),
+                                          InfoPage(),
                                         ],
                                       ),
                                     ),

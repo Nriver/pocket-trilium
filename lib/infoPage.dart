@@ -8,117 +8,195 @@ import 'l10n/app_localizations.dart';
 import 'workflow.dart';
 
 class InfoPage extends StatefulWidget {
-  final bool openFirstInfo;
-
-  const InfoPage({super.key, this.openFirstInfo = false});
+  const InfoPage({super.key});
 
   @override
   State<InfoPage> createState() => _InfoPageState();
 }
 
 class _InfoPageState extends State<InfoPage> {
-  final List<bool> _expandState = [false, false, false, false];
-
-  @override
-  void initState() {
-    super.initState();
-    _expandState[0] = widget.openFirstInfo;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return ExpansionPanelList(
-      elevation: 1,
-      expandedHeaderPadding: const EdgeInsets.all(0),
-      expansionCallback: (panelIndex, isExpanded) {
-        _expandState[panelIndex] = isExpanded;
-        WidgetsBinding.instance.addPostFrameCallback((_) => setState(() {}));
-      },
+    final l10n = AppLocalizations.of(context)!;
+
+    return Column(
       children: [
-        ExpansionPanel(
-          headerBuilder: (context, isExpanded) {
-            return ListTile(
-                title: Text(AppLocalizations.of(context)!.userManual));
-          },
-          body: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                children: [
-                  Text(AppLocalizations.of(context)!.firstLoadInstructions),
-                  const SizedBox.square(dimension: 16),
-                  Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 4.0,
-                      runSpacing: 4.0,
-                      children: [
-                        OutlinedButton(
-                            style: D.commandButtonStyle,
-                            child: Text(AppLocalizations.of(context)!
-                                .ignoreBatteryOptimization),
-                            onPressed: () {
-                              Permission.ignoreBatteryOptimizations.request();
-                            }),
-                      ]),
-                  const SizedBox.square(dimension: 16),
-                  Text(AppLocalizations.of(context)!.updateRequest),
-                  const SizedBox.square(dimension: 16),
-                  Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 4.0,
-                      runSpacing: 4.0,
-                      children: D.links.asMap().entries.map<Widget>((e) {
-                        return OutlinedButton(
-                            style: D.commandButtonStyle,
-                            child: Text(
-                                Util.getl10nText(e.value["name"]!, context)),
-                            onPressed: () {
-                              launchUrl(Uri.parse(e.value["value"]!),
-                                  mode: LaunchMode.externalApplication);
-                            });
-                      }).toList()),
-                ],
-              )),
-          isExpanded: _expandState[0],
+        _buildSection(
+          context,
+          title: l10n.userManual,
+          icon: Icons.help_outline,
+          child: _buildUserManualContent(context),
         ),
-        ExpansionPanel(
-            isExpanded: _expandState[1],
-            headerBuilder: ((context, isExpanded) {
-              return ListTile(
-                  title:
-                      Text(AppLocalizations.of(context)!.openSourceLicenses));
-            }),
-            body: const Padding(
-                padding: EdgeInsets.all(8), child: Text(openSourceLicenses))),
-        ExpansionPanel(
-            isExpanded: _expandState[2],
-            headerBuilder: ((context, isExpanded) {
-              return ListTile(
-                  title: Text(AppLocalizations.of(context)!.permissionUsage));
-            }),
-            body: Padding(
-                padding: EdgeInsets.all(8),
-                child: Text(AppLocalizations.of(context)!.privacyStatement))),
-        ExpansionPanel(
-            isExpanded: _expandState[3],
-            headerBuilder: ((context, isExpanded) {
-              return ListTile(
-                  title: Text(AppLocalizations.of(context)!.supportAuthor));
-            }),
-            body: Column(children: [
-              Padding(
-                  padding: EdgeInsets.all(8),
-                  child: Text(
-                      AppLocalizations.of(context)!.supportAuthorDescription)),
-              ElevatedButton(
-                onPressed: () {
-                  launchUrl(
-                      Uri.parse("https://github.com/Nriver/pocket-trilium"),
-                      mode: LaunchMode.externalApplication);
-                },
-                child: Text(AppLocalizations.of(context)!.projectUrl),
+        _buildSection(
+          context,
+          title: l10n.openSourceLicenses,
+          icon: Icons.description_outlined,
+          child: const Text(openSourceLicenses, style: TextStyle(fontSize: 12)),
+        ),
+        _buildSection(
+          context,
+          title: l10n.permissionUsage,
+          icon: Icons.privacy_tip_outlined,
+          child: Text(l10n.privacyStatement),
+        ),
+        _buildSection(
+          context,
+          title: l10n.supportAuthor,
+          icon: Icons.favorite_border,
+          child: Column(
+            children: [
+              Text(l10n.supportAuthorDescription),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () => launchUrl(
+                    Uri.parse("https://github.com/Nriver/pocket-trilium"),
+                    mode: LaunchMode.externalApplication),
+                icon: const Icon(Icons.code),
+                label: Text(l10n.projectUrl),
               ),
-            ])),
+            ],
+          ),
+        ),
       ],
     );
+  }
+
+  Widget _buildUserManualContent(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.firstLoadInstructions),
+        const SizedBox(height: 16),
+        Center(
+          child: Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: [
+              FilledButton.tonalIcon(
+                onPressed: () => Permission.ignoreBatteryOptimizations.request(),
+                icon: const Icon(Icons.battery_saver),
+                label: Text(l10n.ignoreBatteryOptimization),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(l10n.updateRequest),
+        const SizedBox(height: 16),
+        Center(
+          child: Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: D.links.map<Widget>((link) {
+              return OutlinedButton.icon(
+                onPressed: () => launchUrl(Uri.parse(link["value"]!),
+                    mode: LaunchMode.externalApplication),
+                icon: _getLinkIcon(link["name"]!),
+                label: Text(Util.getl10nText(link["name"]!, context)),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSection(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        trailing: const Icon(Icons.open_in_new),
+        onTap: () => _showInfoSheet(
+          context,
+          title: title,
+          icon: icon,
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showInfoSheet(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return FractionallySizedBox(
+          heightFactor: 0.9,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 8, 8),
+                child: Row(
+                  children: [
+                    Icon(icon, color: Theme.of(context).colorScheme.primary),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                      onPressed: () => Navigator.pop(sheetContext),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: child,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Icon _getLinkIcon(String name) {
+    switch (name) {
+      case 'projectUrl':
+        return const Icon(Icons.home_outlined, size: 18);
+      case 'issueUrl':
+        return const Icon(Icons.bug_report_outlined, size: 18);
+      case 'discussionUrl':
+        return const Icon(Icons.forum_outlined, size: 18);
+      default:
+        return const Icon(Icons.link, size: 18);
+    }
   }
 }
