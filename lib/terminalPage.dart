@@ -44,24 +44,29 @@ class TerminalPage extends StatelessWidget {
       children: [
         // 终端主区域 + 手势缩放
         Expanded(
-          child: forceScaleGestureDetector(
-            onScaleUpdate: (details) {
-              G.termFontScale.value =
-                  (details.scale * (Util.getGlobal("termFontScale") as double))
-                      .clamp(0.2, 5.0);
-            },
-            onScaleEnd: (details) async {
-              await G.prefs.setDouble("termFontScale", G.termFontScale.value);
-            },
-            child: ValueListenableBuilder<double>(
-              valueListenable: G.termFontScale,
-              builder: (context, value, child) {
-                return TerminalView(
-                  G.termPtys[G.currentContainer]!.terminal,
-                  textScaler: TextScaler.linear(value),
-                  keyboardType: TextInputType.multiline,
-                );
+          child: Container(
+            color: D.terminalTheme.background,
+            child: forceScaleGestureDetector(
+              onScaleUpdate: (details) {
+                G.termFontScale.value = (details.scale *
+                        (Util.getGlobal("termFontScale") as double))
+                    .clamp(0.2, 5.0);
               },
+              onScaleEnd: (details) async {
+                await G.prefs.setDouble("termFontScale", G.termFontScale.value);
+              },
+              child: ValueListenableBuilder<double>(
+                valueListenable: G.termFontScale,
+                builder: (context, value, child) {
+                  return TerminalView(
+                    G.termPtys[G.currentContainer]!.terminal,
+                    theme: D.terminalTheme,
+                    textScaler: TextScaler.linear(value),
+                    keyboardType: TextInputType.multiline,
+                    autofocus: true,
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -73,83 +78,85 @@ class TerminalPage extends StatelessWidget {
             final bool showCommands =
                 Util.getGlobal("isTerminalCommandsEnabled") as bool;
 
-            return showCommands
-                ? Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Row(
-                      children: [
-                        // Ctrl Alt Shift 开关
-                        AnimatedBuilder(
-                          animation: G.keyboard,
-                          builder: (context, child) => ToggleButtons(
-                            constraints: const BoxConstraints(
-                                minWidth: 32, minHeight: 24),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(8)),
-                            isSelected: [
-                              G.keyboard.ctrl,
-                              G.keyboard.alt,
-                              G.keyboard.shift
-                            ],
-                            onPressed: (index) {
-                              switch (index) {
-                                case 0:
-                                  G.keyboard.ctrl = !G.keyboard.ctrl;
-                                  break;
-                                case 1:
-                                  G.keyboard.alt = !G.keyboard.alt;
-                                  break;
-                                case 2:
-                                  G.keyboard.shift = !G.keyboard.shift;
-                                  break;
-                              }
-                            },
-                            children: const [
-                              Text('Ctrl'),
-                              Text('Alt'),
-                              Text('Shift')
-                            ],
-                          ),
-                        ),
-                        const SizedBox.square(dimension: 8),
+            if (!showCommands) return const SizedBox.shrink();
 
-                        // 快捷命令按钮
-                        Expanded(
-                          child: SizedBox(
-                            height: 24,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemBuilder: (context, index) {
-                                return OutlinedButton(
-                                  style: D.controlButtonStyle,
-                                  onPressed: () {
-                                    G.termPtys[G.currentContainer]!.terminal
-                                        .keyInput(
-                                      D.termCommands[index]["key"]!
-                                          as TerminalKey,
-                                    );
-                                  },
-                                  child: Text(
-                                    D.termCommands[index]["name"]! as String,
-                                  ),
+            return Container(
+              color: D.terminalTheme.background,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: SafeArea(
+                top: false,
+                child: Row(
+                  children: [
+                    // Ctrl Alt Shift 开关
+                    AnimatedBuilder(
+                      animation: G.keyboard,
+                      builder: (context, child) {
+                        return Row(
+                          children: [
+                            _buildControlButton(
+                              'Ctrl',
+                              G.keyboard.ctrl,
+                              () => G.keyboard.ctrl = !G.keyboard.ctrl,
+                            ),
+                            const SizedBox(width: 4),
+                            _buildControlButton(
+                              'Alt',
+                              G.keyboard.alt,
+                              () => G.keyboard.alt = !G.keyboard.alt,
+                            ),
+                            const SizedBox(width: 4),
+                            _buildControlButton(
+                              'Shift',
+                              G.keyboard.shift,
+                              () => G.keyboard.shift = !G.keyboard.shift,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 8),
+
+                    // 快捷命令按钮
+                    Expanded(
+                      child: SizedBox(
+                        height: 32,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (context, index) {
+                            return OutlinedButton(
+                              style: D.controlButtonStyle,
+                              onPressed: () {
+                                G.termPtys[G.currentContainer]!.terminal
+                                    .keyInput(
+                                  D.termCommands[index]["key"]! as TerminalKey,
                                 );
                               },
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox.square(dimension: 4),
-                              itemCount: D.termCommands.length,
-                            ),
-                          ),
+                              child: Text(
+                                D.termCommands[index]["name"]! as String,
+                              ),
+                            );
+                          },
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(width: 4),
+                          itemCount: D.termCommands.length,
                         ),
-
-                        const SizedBox(width: 72), // 占位，保持布局平衡
-                      ],
+                      ),
                     ),
-                  )
-                : const SizedBox.shrink();
+                  ],
+                ),
+              ),
+            );
           },
         ),
       ],
+    );
+  }
+
+  Widget _buildControlButton(String label, bool isActive, VoidCallback onTap) {
+    return OutlinedButton(
+      style: isActive ? D.activeControlButtonStyle : D.controlButtonStyle,
+      onPressed: onTap,
+      child: Text(label),
     );
   }
 }

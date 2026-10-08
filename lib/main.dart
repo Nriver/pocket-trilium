@@ -2,20 +2,17 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:flutter/services.dart';
-import 'package:pocket_trilium/settingPage.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pocket_trilium/terminalPage.dart';
-
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:pocket_trilium/settingPage.dart';
+import 'package:pocket_trilium/terminalPage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants/defaults.dart';
 import 'infoPage.dart';
 import 'l10n/app_localizations.dart';
 import 'workflow.dart';
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,47 +31,47 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return DynamicColorBuilder(
         builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
-          return ValueListenableBuilder(
-            valueListenable: G.locale,
-            builder: (context, Locale? locale, child) {
-              return MaterialApp(
-                builder: (context, child) => AppLifecycleOverlay(child: child!),
-                locale: locale,
-
-                localizationsDelegates: const [
-                  AppLocalizations.delegate,
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                ],
-                supportedLocales: const [
-                  Locale('en'),
-                  Locale('zh'),
-                ],
-                theme: ThemeData(
-                  colorScheme: lightDynamic,
-                  useMaterial3: true,
-                ),
-                darkTheme: ThemeData(
-                  colorScheme: darkDynamic,
-                  useMaterial3: true,
-                ),
-                home: MyHomePage(title: "Pocket Trilium by Nriver"),
-              );
-            },
+      return ValueListenableBuilder(
+        valueListenable: G.locale,
+        builder: (context, Locale? locale, child) {
+          return MaterialApp(
+            builder: (context, child) => AppLifecycleOverlay(child: child!),
+            locale: locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('zh'),
+            ],
+            theme: ThemeData(
+              colorScheme: lightDynamic,
+              useMaterial3: true,
+            ),
+            darkTheme: ThemeData(
+              colorScheme: darkDynamic,
+              useMaterial3: true,
+            ),
+            home: MyHomePage(title: "Pocket Trilium by Nriver"),
           );
-        }
-    );
+        },
+      );
+    });
   }
 }
-
 
 //限制最大宽高比1:1
 class AspectRatioMax1To1 extends StatelessWidget {
   final Widget child;
+
   //final double aspectRatio;
 
-  const AspectRatioMax1To1({super.key, required this.child/*, required this.aspectRatio*/});
+  const AspectRatioMax1To1(
+      {super.key, required this.child /*, required this.aspectRatio*/
+      });
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +93,6 @@ class AspectRatioMax1To1 extends StatelessWidget {
   }
 }
 
-
 class FakeLoadingStatus extends StatefulWidget {
   const FakeLoadingStatus({super.key});
 
@@ -105,7 +101,6 @@ class FakeLoadingStatus extends StatefulWidget {
 }
 
 class _FakeLoadingStatusState extends State<FakeLoadingStatus> {
-
   double _progressT = 0;
   Timer? _timer;
 
@@ -121,7 +116,8 @@ class _FakeLoadingStatusState extends State<FakeLoadingStatus> {
 
   @override
   Widget build(BuildContext context) {
-    return LinearProgressIndicator(value: 1 - pow(10, _progressT / -300).toDouble());
+    return LinearProgressIndicator(
+        value: 1 - pow(10, _progressT / -300).toDouble());
   }
 
   @override
@@ -133,41 +129,38 @@ class _FakeLoadingStatusState extends State<FakeLoadingStatus> {
 
 class LoadingPage extends StatelessWidget {
   const LoadingPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8),
-      child: AspectRatioMax1To1(child:
-        Column(
-          children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
-              child: FractionallySizedBox(
+        padding: const EdgeInsets.all(8),
+        child: AspectRatioMax1To1(
+            child: Column(children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 16),
+            child: FractionallySizedBox(
                 widthFactor: 0.4,
-                child: Image(
-                  image: AssetImage("images/icon.png")
-                )
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
-              child: ValueListenableBuilder(valueListenable: G.updateText, builder:(context, value, child) {
-                return Text(value, textScaler: const TextScaler.linear(2));
-              }),
-            ),
-            const FakeLoadingStatus(),
-            const Expanded(child: Padding(padding: EdgeInsets.all(8), child: Card(child: Padding(padding: EdgeInsets.all(8), child: 
-              Scrollbar(child:
-                SingleChildScrollView(
-                  child: InfoPage()
-                )
-              )
-            ))
-            ,))
-          ]
-        )
-      )
-    );
+                child: Image(image: AssetImage("images/icon.png"))),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 0, 8),
+            child: ValueListenableBuilder(
+                valueListenable: G.updateText,
+                builder: (context, value, child) {
+                  return Text(value, textScaler: const TextScaler.linear(2));
+                }),
+          ),
+          const FakeLoadingStatus(),
+          const Expanded(
+              child: Padding(
+            padding: EdgeInsets.all(8),
+            child: Card(
+                child: Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Scrollbar(
+                        child: SingleChildScrollView(child: InfoPage())))),
+          ))
+        ])));
   }
 }
 
@@ -187,7 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero,() {
+    Future.delayed(Duration.zero, () {
       _initializeWorkflow();
     });
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: []);
@@ -224,7 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   children: const [
                     TerminalPage(),
                     Padding(
-                      padding: EdgeInsets.all(4),
+                      padding: EdgeInsets.all(8),
                       child: AspectRatioMax1To1(
                         child: Scrollbar(
                           child: SingleChildScrollView(
@@ -232,22 +225,23 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: Column(
                               children: [
                                 Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: FractionallySizedBox(
+                                  padding: const EdgeInsets.all(16),
+                                  child: const FractionallySizedBox(
                                     widthFactor: 0.4,
-                                    child: Image(image: AssetImage("images/icon.png")),
+                                    child: Image(
+                                        image: AssetImage("images/icon.png")),
                                   ),
                                 ),
                                 Padding(
-                                  padding: EdgeInsets.zero,
+                                  padding: const EdgeInsets.all(8),
                                   child: Card(
                                     child: Padding(
-                                      padding: EdgeInsets.all(4),
+                                      padding: const EdgeInsets.all(8),
                                       child: Column(
                                         children: [
-                                          SettingPage(),
-                                          SizedBox.square(dimension: 8),
-                                          InfoPage(),
+                                          const SettingPage(),
+                                          const SizedBox.square(dimension: 16),
+                                          const InfoPage(),
                                         ],
                                       ),
                                     ),
@@ -272,8 +266,12 @@ class _MyHomePageState extends State<MyHomePage> {
             child: NavigationBar(
               selectedIndex: G.pageIndex.value,
               destinations: [
-                NavigationDestination(icon: const Icon(Icons.monitor), label: AppLocalizations.of(context)!.terminal),
-                NavigationDestination(icon: const Icon(Icons.video_settings), label: AppLocalizations.of(context)!.control),
+                NavigationDestination(
+                    icon: const Icon(Icons.monitor),
+                    label: AppLocalizations.of(context)!.terminal),
+                NavigationDestination(
+                    icon: const Icon(Icons.video_settings),
+                    label: AppLocalizations.of(context)!.control),
               ],
               onDestinationSelected: (index) {
                 G.pageIndex.value = index;
@@ -285,14 +283,19 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: ValueListenableBuilder(
         valueListenable: G.pageIndex,
         builder: (context, value, child) {
+          final bool showCommands =
+              Util.getGlobal("isTerminalCommandsEnabled") as bool;
           return Visibility(
             visible: isLoadingComplete && (value == 0),
-            child: FloatingActionButton(
-              tooltip: AppLocalizations.of(context)!.enterGUI,
-              onPressed: () {
-                Workflow.openWebPage(forceOpen: true);
-              },
-              child: const Icon(Icons.play_arrow),
+            child: Padding(
+              padding: EdgeInsets.only(bottom: showCommands ? 40.0 : 0.0),
+              child: FloatingActionButton(
+                tooltip: AppLocalizations.of(context)!.enterGUI,
+                onPressed: () {
+                  Workflow.launchBrowser();
+                },
+                child: const Icon(Icons.play_arrow),
+              ),
             ),
           );
         },

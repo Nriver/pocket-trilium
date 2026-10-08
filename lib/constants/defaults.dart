@@ -286,19 +286,52 @@ sleep 10
 
   static const String boot = "\$DATA_DIR/bin/proot -H --change-id=1000:1000 --pwd=/home/pocket --rootfs=\$CONTAINER_DIR --mount=/system --mount=/apex --mount=/sys --mount=/data --kill-on-exit --mount=/storage --sysvipc -L --link2symlink --mount=/proc --mount=/dev --mount=\$CONTAINER_DIR/tmp:/dev/shm --mount=/dev/urandom:/dev/random --mount=/proc/self/fd:/dev/fd --mount=/proc/self/fd/0:/dev/stdin --mount=/proc/self/fd/1:/dev/stdout --mount=/proc/self/fd/2:/dev/stderr --mount=/dev/null:/dev/tty0 --mount=/dev/null:/proc/sys/kernel/cap_last_cap --mount=\$DATA_DIR/trilium:/home/pocket/trilium \$EXTRA_MOUNT /usr/bin/env -i HOSTNAME=POCKET HOME=/home/pocket USER=pocket TERM=xterm-256color TMPDIR=/tmp LANG=zh_CN.UTF-8 SHELL=/bin/bash PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games /bin/bash -l";
 
-  static final ButtonStyle commandButtonStyle = OutlinedButton.styleFrom(
+  static final ButtonStyle controlButtonStyle = OutlinedButton.styleFrom(
+      foregroundColor: Colors.white,
+      backgroundColor: Colors.white10,
+      textStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+      side: BorderSide(color: Colors.white.withOpacity(0.2)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       minimumSize: const Size(0, 0),
-      padding: const EdgeInsets.fromLTRB(4, 2, 4, 2)
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)
   );
 
-
-  static final ButtonStyle controlButtonStyle = OutlinedButton.styleFrom(
-      textStyle: const TextStyle(fontWeight: FontWeight.w400),
-      side: const BorderSide(color: Color(0x1F000000)),
+  static final ButtonStyle activeControlButtonStyle = OutlinedButton.styleFrom(
+      foregroundColor: Colors.black,
+      backgroundColor: Colors.white,
+      textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+      side: const BorderSide(color: Colors.white),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       minimumSize: const Size(0, 0),
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4)
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)
+  );
+
+  static const terminalTheme = TerminalTheme(
+    cursor: Colors.white,
+    selection: Color(0xAAFFFFFF),
+    foreground: Color(0xFFCCCCCC),
+    background: Color(0xFF1E1E1E),
+    black: Color(0xFF000000),
+    red: Color(0xFFCD3131),
+    green: Color(0xFF0DBC79),
+    yellow: Color(0xFFE5E510),
+    blue: Color(0xFF2472C8),
+    magenta: Color(0xFFBC3FBC),
+    cyan: Color(0xFF11A8CD),
+    white: Color(0xFFE5E5E5),
+    brightBlack: Color(0xFF666666),
+    brightRed: Color(0xFFF14C4C),
+    brightGreen: Color(0xFF23D18B),
+    brightYellow: Color(0xFFF5F543),
+    brightBlue: Color(0xFF3B8EEA),
+    brightMagenta: Color(0xFFD670D6),
+    brightCyan: Color(0xFF29B8DB),
+    brightWhite: Color(0xFFE5E5E5),
+    searchHitBackground: Color(0xFFFFFFFF),
+    searchHitBackgroundCurrent: Color(0xFFFFFFFF),
+    searchHitForeground: Color(0xFF000000),
   );
 
   static const MethodChannel androidChannel = MethodChannel("android");
