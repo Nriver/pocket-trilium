@@ -512,6 +512,8 @@ class G {
   static String streamingOutput = "";
   static late Pty streamServerPty;
   static ValueNotifier<int> pageIndex = ValueNotifier(0); //主界面索引
+  static ValueNotifier<bool> isTerminalVisible = ValueNotifier(false); //终端是否显示，默认隐藏(显示启动遮罩)
+  static ValueNotifier<bool> isTriliumReady = ValueNotifier(false); //Trilium服务是否已就绪，用于启动遮罩进度条
   static ValueNotifier<bool> terminalPageChange = ValueNotifier(true); //更改值，用于刷新小键盘
   static ValueNotifier<bool> bootTextChange = ValueNotifier(true); //更改值，用于刷新启动命令
   static ValueNotifier<String> updateText = ValueNotifier("随身Trilium"); //加载界面的说明文字
@@ -1220,6 +1222,8 @@ clear""");
 
   static Future<void> launchBrowser() async {
     final String webUrl = resolveWebUrl();
+
+    G.isTriliumReady.value = true;
 
     Navigator.push(
       G.homePageStateContext,

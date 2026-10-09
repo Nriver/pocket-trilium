@@ -122,5 +122,12 @@
     "language": "Language",
     "upgradeReinstallGroup": "Upgrade & Reinstall",
     "maintenanceToolsGroup": "Maintenance Tools",
-    "systemDefault": "System Default"
+    "systemDefault": "System Default",
+    "showTerminal": "Show Terminal",
+    "hideTerminal": "Hide Terminal",
+    "triliumStartingTitle": "Starting Trilium",
+    "triliumStartingSubtitle": "Please wait, the GUI will open automatically once it is ready",
+    "triliumStartedTitle": "Trilium Started",
+    "triliumStartedSubtitle": "Trilium is running. Tap the button below to enter the GUI",
+    "triliumStartingHint": "To view the terminal logs, tap \"Show Terminal\" in the top-right corner"
 }

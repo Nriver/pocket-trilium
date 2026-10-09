@@ -122,5 +122,12 @@
     "language": "语言",
     "upgradeReinstallGroup": "升级与重装",
     "maintenanceToolsGroup": "维护工具",
-    "systemDefault": "系统默认"
+    "systemDefault": "系统默认",
+    "showTerminal": "显示终端",
+    "hideTerminal": "隐藏终端",
+    "triliumStartingTitle": "正在启动 Trilium",
+    "triliumStartingSubtitle": "请稍候，启动完成后将自动进入图形界面",
+    "triliumStartedTitle": "Trilium已启动",
+    "triliumStartedSubtitle": "Trilium 运行中，点击下方按钮进入图形界面",
+    "triliumStartingHint": "如需查看终端日志，可点击右上角的「显示终端」按钮"
 }

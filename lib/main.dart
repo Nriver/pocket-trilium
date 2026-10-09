@@ -164,6 +164,87 @@ class LoadingPage extends StatelessWidget {
   }
 }
 
+//终端未显示时覆盖在上面的启动遮罩，给不熟悉终端的用户一个友好的界面
+class TriliumStartingOverlay extends StatelessWidget {
+  const TriliumStartingOverlay({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const FractionallySizedBox(
+                widthFactor: 0.3,
+                child: Image(image: AssetImage("images/icon.png")),
+              ),
+              const SizedBox(height: 24),
+              ValueListenableBuilder<bool>(
+                valueListenable: G.isTriliumReady,
+                builder: (context, ready, child) {
+                  return Text(
+                    ready ? l10n.triliumStartedTitle : l10n.triliumStartingTitle,
+                    textScaler: const TextScaler.linear(1.6),
+                    textAlign: TextAlign.center,
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              ValueListenableBuilder<bool>(
+                valueListenable: G.isTriliumReady,
+                builder: (context, ready, child) {
+                  return SizedBox(
+                    width: 200,
+                    child: ready
+                        ? const LinearProgressIndicator(value: 1)
+                        : const FakeLoadingStatus(),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              ValueListenableBuilder<bool>(
+                valueListenable: G.isTriliumReady,
+                builder: (context, ready, child) {
+                  return Text(
+                    ready
+                        ? l10n.triliumStartedSubtitle
+                        : l10n.triliumStartingSubtitle,
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.outline),
+                    textAlign: TextAlign.center,
+                  );
+                },
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: () {
+                  Workflow.launchBrowser();
+                },
+                icon: const Icon(Icons.play_arrow),
+                label: Text(l10n.enterGUI),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                l10n.triliumStartingHint,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.outline,
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
@@ -207,6 +288,29 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(D.containerName),
+        actions: [
+          ListenableBuilder(
+            listenable: Listenable.merge([G.pageIndex, G.isTerminalVisible]),
+            builder: (context, child) {
+              final l10n = AppLocalizations.of(context)!;
+              final bool terminalVisible = G.isTerminalVisible.value;
+              final bool onTerminalTab = G.pageIndex.value == 0;
+              return Visibility(
+                visible: isLoadingComplete && onTerminalTab,
+                child: IconButton(
+                  tooltip:
+                      terminalVisible ? l10n.hideTerminal : l10n.showTerminal,
+                  icon: Icon(terminalVisible
+                      ? Icons.visibility
+                      : Icons.visibility_off),
+                  onPressed: () {
+                    G.isTerminalVisible.value = !terminalVisible;
+                  },
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: isLoadingComplete
           ? ValueListenableBuilder(
@@ -214,8 +318,20 @@ class _MyHomePageState extends State<MyHomePage> {
               builder: (context, value, child) {
                 return IndexedStack(
                   index: G.pageIndex.value,
-                  children: const [
-                    TerminalPage(),
+                  children: [
+                    ValueListenableBuilder<bool>(
+                      valueListenable: G.isTerminalVisible,
+                      builder: (context, visible, child) {
+                        return AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          switchInCurve: Curves.easeIn,
+                          switchOutCurve: Curves.easeOut,
+                          child: visible
+                              ? const TerminalPage()
+                              : const TriliumStartingOverlay(),
+                        );
+                      },
+                    ),
                     Padding(
                       padding: EdgeInsets.all(8),
                       child: AspectRatioMax1To1(
@@ -280,13 +396,15 @@ class _MyHomePageState extends State<MyHomePage> {
           );
         },
       ),
-      floatingActionButton: ValueListenableBuilder(
-        valueListenable: G.pageIndex,
-        builder: (context, value, child) {
+      floatingActionButton: ListenableBuilder(
+        listenable: Listenable.merge([G.pageIndex, G.isTerminalVisible]),
+        builder: (context, child) {
           final bool showCommands =
               Util.getGlobal("isTerminalCommandsEnabled") as bool;
+          final bool onTerminalTab = G.pageIndex.value == 0;
           return Visibility(
-            visible: isLoadingComplete && (value == 0),
+            visible:
+                isLoadingComplete && onTerminalTab && G.isTerminalVisible.value,
             child: Padding(
               padding: EdgeInsets.only(bottom: showCommands ? 40.0 : 0.0),
               child: FloatingActionButton(
