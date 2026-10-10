@@ -102,6 +102,7 @@ class Util {
   //bool reinstallTrilium = false 下次启动是否重装/升级Trilium
   //bool wakelock = false 屏幕常亮
   //bool autoDetectPort = false 自动检测Trilium实际使用的端口并打开对应地址
+  //bool isTerminalMaskEnabled = true 启动后是否默认显示遮罩动画
   //? int bootstrapVersion: 启动包版本
   //String[] containersInfo: 所有容器信息(json)
   //{name, boot:"\$DATA_DIR/bin/proot ...", appStartCommand:"...", webUrl:"...", commands:[{name:"更新和升级", command:"apt update -y && apt upgrade -y"},
@@ -114,6 +115,7 @@ class Util {
       case "autoLaunchGUI" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
       case "lastDate" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}("1970-01-01");
       case "isTerminalWriteEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
+      case "isTerminalMaskEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
       case "isTerminalCommandsEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "termMaxLines" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(4095);
       case "termFontScale" : return b ? G.prefs.getDouble(key)! : (value){G.prefs.setDouble(key, value); return value;}(1.0);
@@ -1072,6 +1074,9 @@ done
     }
 
     G.termFontScale.value = Util.getGlobal("termFontScale") as double;
+
+    //启动后是否默认显示遮罩动画，开启时默认隐藏终端(显示启动遮罩)
+    G.isTerminalVisible.value = !(Util.getGlobal("isTerminalMaskEnabled") as bool);
 
     G.controller = null;
 

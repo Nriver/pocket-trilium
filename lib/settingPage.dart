@@ -149,6 +149,16 @@ class _SettingPageState extends State<SettingPage> {
           },
         ),
         SwitchListTile(
+          secondary: const Icon(Icons.animation),
+          title: Text(l10n.terminalMaskDefault),
+          subtitle: Text(l10n.terminalMaskDefaultSubtitle),
+          value: Util.getGlobal("isTerminalMaskEnabled") as bool,
+          onChanged: (value) {
+            G.prefs.setBool("isTerminalMaskEnabled", value);
+            setState(() {});
+          },
+        ),
+        SwitchListTile(
           secondary: const Icon(Icons.keyboard_alt_outlined),
           title: Text(l10n.enableTerminalKeypad),
           value: Util.getGlobal("isTerminalCommandsEnabled") as bool,

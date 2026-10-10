@@ -107,7 +107,7 @@ class _FakeLoadingStatusState extends State<FakeLoadingStatus> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(milliseconds: 25), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 20), (timer) {
       setState(() {
         _progressT += 0.5;
       });

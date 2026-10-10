@@ -129,5 +129,7 @@
     "triliumStartingSubtitle": "Please wait, the GUI will open automatically once it is ready",
     "triliumStartedTitle": "Trilium Started",
     "triliumStartedSubtitle": "Trilium is running. Tap the button below to enter the GUI",
-    "triliumStartingHint": "To view the terminal logs, tap \"Show Terminal\" in the top-right corner"
+    "triliumStartingHint": "To view the terminal logs, tap \"Show Terminal\" in the top-right corner",
+    "terminalMaskDefault": "Show startup mask by default",
+    "terminalMaskDefaultSubtitle": "Show the startup animation mask on launch. You can toggle the terminal from the top-right button anytime"
 }

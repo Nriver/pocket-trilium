@@ -129,5 +129,7 @@
     "triliumStartingSubtitle": "请稍候，启动完成后将自动进入图形界面",
     "triliumStartedTitle": "Trilium已启动",
     "triliumStartedSubtitle": "Trilium 运行中，点击下方按钮进入图形界面",
-    "triliumStartingHint": "如需查看终端日志，可点击右上角的「显示终端」按钮"
+    "triliumStartingHint": "如需查看终端日志，可点击右上角的「显示终端」按钮",
+    "terminalMaskDefault": "默认显示启动遮罩动画",
+    "terminalMaskDefaultSubtitle": "启动后默认显示遮罩动画，可以随时点击右上角按钮切换显示终端"
 }
