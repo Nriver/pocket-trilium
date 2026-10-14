@@ -131,5 +131,11 @@
     "triliumStartedSubtitle": "Trilium 运行中，点击下方按钮进入图形界面",
     "triliumStartingHint": "如需查看终端日志，可点击右上角的「显示终端」按钮",
     "terminalMaskDefault": "默认显示启动遮罩动画",
-    "terminalMaskDefaultSubtitle": "启动后默认显示遮罩动画，可以随时点击右上角按钮切换显示终端"
+    "terminalMaskDefaultSubtitle": "启动后默认显示遮罩动画，可以随时点击右上角按钮切换显示终端",
+    "imageQuality": "插入图片画质",
+    "imageQualitySubtitle": "压缩从相机或相册插入的图片，重新打开页面后生效。",
+    "imageQualityOriginal": "原图",
+    "imageQualityHigh": "高清 (2560px)",
+    "imageQualityStandard": "标准 (1920px)",
+    "imageQualitySmall": "小体积 (1280px)"
 }

@@ -359,6 +359,26 @@ class _SettingPageState extends State<SettingPage> {
             setState(() {});
           },
         ),
+        ListTile(
+          leading: const Icon(Icons.photo_size_select_large),
+          title: Text(l10n.imageQuality),
+          subtitle: Text(l10n.imageQualitySubtitle),
+          trailing: DropdownButton<int>(
+            value: Util.getGlobal("imageCompressMode") as int,
+            underline: const SizedBox.shrink(),
+            items: [
+              DropdownMenuItem(value: 0, child: Text(l10n.imageQualityOriginal)),
+              DropdownMenuItem(value: 1, child: Text(l10n.imageQualityHigh)),
+              DropdownMenuItem(value: 2, child: Text(l10n.imageQualityStandard)),
+              DropdownMenuItem(value: 3, child: Text(l10n.imageQualitySmall)),
+            ],
+            onChanged: (value) {
+              if (value == null) return;
+              G.prefs.setInt("imageCompressMode", value);
+              setState(() {});
+            },
+          ),
+        ),
         SwitchListTile(
           secondary: const Icon(Icons.rocket_launch_outlined),
           title: Text(l10n.startWithGUI),

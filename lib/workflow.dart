@@ -128,6 +128,8 @@ class Util {
       case "isPrivacyBlurEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isBiometricUnlockEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isBiometricOnlyOnStart" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
+      //图片插入压缩: 0=原图, 1=高质量, 2=标准(默认), 3=小体积
+      case "imageCompressMode" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(2);
       case "containersInfo" : return G.prefs.getStringList(key)!;
     }
   }
@@ -219,6 +221,111 @@ class Util {
     }
   }
 
+
+  //生成注入网页的图片压缩脚本, 在 Trilium 读取 <input type=file> 前用 canvas 缩放并重新编码
+  //相机拍照和从相册选择的图片都会经过这里, 有效减小插入图片的体积
+  static String buildImageCompressUserScript() {
+    final int mode = getGlobal("imageCompressMode") as int;
+    if (mode <= 0) return "";
+    late int maxDim;
+    late double quality;
+    switch (mode) {
+      case 1:
+        maxDim = 2560;
+        quality = 0.85;
+        break;
+      case 3:
+        maxDim = 1280;
+        quality = 0.60;
+        break;
+      case 2:
+      default:
+        maxDim = 1920;
+        quality = 0.75;
+        break;
+    }
+    return """
+(function () {
+  if (window.__pocketImgCompress) return;
+  window.__pocketImgCompress = true;
+  var MAX_DIM = $maxDim;
+  var QUALITY = $quality;
+  var MIN_BYTES = 200 * 1024;
+
+  function isCompressible(f) {
+    return f && (f.type === 'image/jpeg' || f.type === 'image/jpg');
+  }
+
+  function compress(file) {
+    return new Promise(function (resolve) {
+      var url = URL.createObjectURL(file);
+      var img = new Image();
+      img.onload = function () {
+        try {
+          var w = img.naturalWidth || img.width;
+          var h = img.naturalHeight || img.height;
+          if (!w || !h) { URL.revokeObjectURL(url); resolve(file); return; }
+          var scale = Math.min(1, MAX_DIM / Math.max(w, h));
+          var tw = Math.max(1, Math.round(w * scale));
+          var th = Math.max(1, Math.round(h * scale));
+          var canvas = document.createElement('canvas');
+          canvas.width = tw;
+          canvas.height = th;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, tw, th);
+          canvas.toBlob(function (blob) {
+            URL.revokeObjectURL(url);
+            if (!blob || blob.size >= file.size) { resolve(file); return; }
+            var name = file.name || 'image.jpg';
+            var dot = name.lastIndexOf('.');
+            if (dot > 0) name = name.substring(0, dot);
+            name = name + '.jpg';
+            try {
+              resolve(new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() }));
+            } catch (e) { resolve(file); }
+          }, 'image/jpeg', QUALITY);
+        } catch (e) { URL.revokeObjectURL(url); resolve(file); }
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
+      img.src = url;
+    });
+  }
+
+  window.addEventListener('change', function (e) {
+    var input = e.target;
+    if (!input || input.tagName !== 'INPUT' || input.type !== 'file') return;
+    if (input.getAttribute('data-pocket-compressed') === '1') {
+      input.removeAttribute('data-pocket-compressed');
+      return;
+    }
+    var files = Array.prototype.slice.call(input.files || []);
+    if (!files.length) return;
+    var need = false;
+    for (var i = 0; i < files.length; i++) {
+      if (isCompressible(files[i]) && files[i].size > MIN_BYTES) { need = true; break; }
+    }
+    if (!need) return;
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    e.stopPropagation();
+    Promise.all(files.map(function (f) {
+      return (isCompressible(f) && f.size > MIN_BYTES) ? compress(f) : f;
+    })).then(function (out) {
+      try {
+        var dt = new DataTransfer();
+        out.forEach(function (f) { dt.items.add(f); });
+        input.files = dt.files;
+      } catch (err) {}
+      input.setAttribute('data-pocket-compressed', '1');
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }).catch(function () {
+      input.setAttribute('data-pocket-compressed', '1');
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }, true);
+})();
+""";
+  }
 
   static Future<void> clearAppCache() async {
     try {

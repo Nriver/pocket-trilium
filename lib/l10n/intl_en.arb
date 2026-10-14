@@ -131,5 +131,11 @@
     "triliumStartedSubtitle": "Trilium is running. Tap the button below to enter the GUI",
     "triliumStartingHint": "To view the terminal logs, tap \"Show Terminal\" in the top-right corner",
     "terminalMaskDefault": "Show startup mask by default",
-    "terminalMaskDefaultSubtitle": "Show the startup animation mask on launch. You can toggle the terminal from the top-right button anytime"
+    "terminalMaskDefaultSubtitle": "Show the startup animation mask on launch. You can toggle the terminal from the top-right button anytime",
+    "imageQuality": "Image Insert Quality",
+    "imageQualitySubtitle": "Compress images inserted from camera or gallery. Takes effect after reopening the page.",
+    "imageQualityOriginal": "Original",
+    "imageQualityHigh": "High (2560px)",
+    "imageQualityStandard": "Standard (1920px)",
+    "imageQualitySmall": "Small (1280px)"
 }

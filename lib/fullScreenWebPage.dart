@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'dart:collection';
 import 'dart:io';
 
 import 'workflow.dart';
@@ -129,6 +130,7 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
 
   @override
   Widget build(BuildContext context) {
+    final compressScript = Util.buildImageCompressUserScript();
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -162,6 +164,14 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
             },
             child: InAppWebView(
               initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+              initialUserScripts: UnmodifiableListView<UserScript>([
+                if (compressScript.isNotEmpty)
+                  UserScript(
+                    source: compressScript,
+                    injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
+                    forMainFrameOnly: false,
+                  ),
+              ]),
               initialSettings: InAppWebViewSettings(
                 javaScriptEnabled: true,
                 javaScriptCanOpenWindowsAutomatically: true,
