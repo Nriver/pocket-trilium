@@ -134,6 +134,7 @@
     "terminalMaskDefaultSubtitle": "启动后默认显示遮罩动画，可以随时点击右上角按钮切换显示终端",
     "imageQuality": "插入图片画质",
     "imageQualitySubtitle": "压缩从相机或相册插入的图片，重新打开页面后生效。",
+    "imageQualityCurrent": "当前选择：{value}",
     "imageQualityOriginal": "原图",
     "imageQualityHigh": "高清 (2560px)",
     "imageQualityStandard": "标准 (1920px)",

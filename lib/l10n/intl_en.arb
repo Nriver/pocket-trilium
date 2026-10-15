@@ -134,6 +134,7 @@
     "terminalMaskDefaultSubtitle": "Show the startup animation mask on launch. You can toggle the terminal from the top-right button anytime",
     "imageQuality": "Image Insert Quality",
     "imageQualitySubtitle": "Compress images inserted from camera or gallery. Takes effect after reopening the page.",
+    "imageQualityCurrent": "Current: {value}",
     "imageQualityOriginal": "Original",
     "imageQualityHigh": "High (2560px)",
     "imageQualityStandard": "Standard (1920px)",
