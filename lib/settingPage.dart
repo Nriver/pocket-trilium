@@ -23,6 +23,9 @@ class _SettingPageState extends State<SettingPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildSectionHeader(context, l10n.triliumSettings, Icons.note_alt_outlined),
+        _buildTriliumSettings(context, l10n),
+        const Divider(),
         _buildSectionHeader(context, l10n.privacySettings, Icons.security),
         _buildPrivacySettings(context, l10n),
         const Divider(),
@@ -64,6 +67,24 @@ class _SettingPageState extends State<SettingPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildTriliumSettings(BuildContext context, AppLocalizations l10n) {
+    return Column(
+      children: [
+        ListTile(
+          isThreeLine: true,
+          leading: const Icon(Icons.photo_size_select_large),
+          title: Text(l10n.imageQuality),
+          subtitle: Text(
+            '${l10n.imageQualitySubtitle}\n'
+            '${l10n.imageQualityCurrent(_imageQualityLabel(l10n, Util.getGlobal("imageCompressMode") as int))}',
+          ),
+          trailing: const Icon(Icons.edit_outlined),
+          onTap: () => _showImageQualityPicker(context, l10n),
+        ),
+      ],
     );
   }
 
@@ -358,17 +379,6 @@ class _SettingPageState extends State<SettingPage> {
             WakelockPlus.toggle(enable: value);
             setState(() {});
           },
-        ),
-        ListTile(
-          isThreeLine: true,
-          leading: const Icon(Icons.photo_size_select_large),
-          title: Text(l10n.imageQuality),
-          subtitle: Text(
-            '${l10n.imageQualitySubtitle}\n'
-            '${l10n.imageQualityCurrent(_imageQualityLabel(l10n, Util.getGlobal("imageCompressMode") as int))}',
-          ),
-          trailing: const Icon(Icons.edit_outlined),
-          onTap: () => _showImageQualityPicker(context, l10n),
         ),
         SwitchListTile(
           secondary: const Icon(Icons.rocket_launch_outlined),

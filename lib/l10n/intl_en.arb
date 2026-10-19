@@ -23,6 +23,7 @@
     "autoDetectPortManualHint": "If it doesn't take effect after enabling, apply the built-in \"Auto Port Switching\" command template so the actual port gets recorded on startup.\nIf it still doesn't work, please reset the Trilium Startup Command to default.",
     "experimentalFeature": "Experimental Features",
     "globalSettings": "Global Settings",
+    "triliumSettings": "Trilium Settings",
     "enableTerminalEditing": "Enable terminal editing here",
     "terminalMaxLines": "Terminal max lines (requires restart)",
     "enableTerminal": "Enable Terminal",

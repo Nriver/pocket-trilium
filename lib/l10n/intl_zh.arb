@@ -23,6 +23,7 @@
     "autoDetectPortManualHint": "如果开启后没有生效，请配合内置的启动命令使用：应用「自动切换可用端口」命令模板。\n如果仍然没有生效，请将Trilium启动命令重置为默认。",
     "experimentalFeature": "实验性功能",
     "globalSettings": "全局设置",
+    "triliumSettings": "Trilium 设置",
     "enableTerminalEditing": "在这里开启终端编辑",
     "terminalMaxLines": "终端最大行数(重启软件生效)",
     "enableTerminal": "启用终端",
