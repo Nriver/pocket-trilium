@@ -78,8 +78,10 @@ class _SettingPageState extends State<SettingPage> {
           leading: const Icon(Icons.photo_size_select_large),
           title: Text(l10n.imageQuality),
           subtitle: Text(
+            '${l10n.imageQualityCurrent(_imageQualityLabel(l10n, Util.getGlobal("imageCompressMode") as int))}\n'
             '${l10n.imageQualitySubtitle}\n'
-            '${l10n.imageQualityCurrent(_imageQualityLabel(l10n, Util.getGlobal("imageCompressMode") as int))}',
+            '${l10n.imageQualityIndependent}\n'
+            '${l10n.imageQualityOrder}',
           ),
           trailing: const Icon(Icons.edit_outlined),
           onTap: () => _showImageQualityPicker(context, l10n),
