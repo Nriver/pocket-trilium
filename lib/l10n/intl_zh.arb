@@ -135,11 +135,15 @@
     "terminalMaskDefaultSubtitle": "启动后默认显示遮罩动画，可以随时点击右上角按钮切换显示终端",
     "imageQuality": "插入图片画质",
     "imageQualitySubtitle": "压缩从相机或相册插入的图片，重启应用后生效。",
-    "imageQualityCurrent": "当前选择：{value}",
+    "currentSelection": "当前选择：{value}",
     "imageQualityIndependent": "与 Trilium 内置的图片压缩相互独立、互不影响。",
     "imageQualityOrder": "处理顺序：本压缩先执行（客户端），Trilium 内置压缩如有启用随后执行。",
     "imageQualityOriginal": "原图",
     "imageQualityHigh": "高清 (2560px)",
     "imageQualityStandard": "标准 (1920px)",
-    "imageQualitySmall": "小体积 (1280px)"
+    "imageQualitySmall": "小体积 (1280px)",
+    "imageFormat": "插入图片格式",
+    "imageFormatSubtitle": "将拍照得到的 JPG 照片转换为 WebP 后插入笔记，关闭则保持原始 JPG。",
+    "imageFormatJpeg": "原始 JPG",
+    "imageFormatWebp": "WebP"
 }

@@ -78,13 +78,24 @@ class _SettingPageState extends State<SettingPage> {
           leading: const Icon(Icons.photo_size_select_large),
           title: Text(l10n.imageQuality),
           subtitle: Text(
-            '${l10n.imageQualityCurrent(_imageQualityLabel(l10n, Util.getGlobal("imageCompressMode") as int))}\n'
+            '${l10n.currentSelection(_imageQualityLabel(l10n, Util.getGlobal("imageCompressMode") as int))}\n'
             '${l10n.imageQualitySubtitle}\n'
             '${l10n.imageQualityIndependent}\n'
             '${l10n.imageQualityOrder}',
           ),
           trailing: const Icon(Icons.edit_outlined),
           onTap: () => _showImageQualityPicker(context, l10n),
+        ),
+        ListTile(
+          isThreeLine: true,
+          leading: const Icon(Icons.swap_horiz),
+          title: Text(l10n.imageFormat),
+          subtitle: Text(
+            '${l10n.currentSelection(_imageFormatLabel(l10n, Util.getGlobal("imageFormat") as int))}\n'
+            '${l10n.imageFormatSubtitle}',
+          ),
+          trailing: const Icon(Icons.edit_outlined),
+          onTap: () => _showImageFormatPicker(context, l10n),
         ),
       ],
     );
@@ -435,6 +446,50 @@ class _SettingPageState extends State<SettingPage> {
                 onTap: () {
                   Navigator.of(dialogContext).pop();
                   G.prefs.setInt("imageCompressMode", e.key);
+                  setState(() {});
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+
+  String _imageFormatLabel(AppLocalizations l10n, int format) {
+    switch (format) {
+      case 1:
+        return l10n.imageFormatWebp;
+      case 0:
+      default:
+        return l10n.imageFormatJpeg;
+    }
+  }
+
+  Future<void> _showImageFormatPicker(BuildContext context, AppLocalizations l10n) async {
+    final options = <int, String>{
+      0: l10n.imageFormatJpeg,
+      1: l10n.imageFormatWebp,
+    };
+    final current = Util.getGlobal("imageFormat") as int;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.imageFormat),
+          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options.entries.map((e) {
+              final selected = e.key == current;
+              return ListTile(
+                title: Text(e.value),
+                trailing: selected
+                    ? Icon(Icons.check, color: Theme.of(dialogContext).colorScheme.primary)
+                    : null,
+                onTap: () {
+                  Navigator.of(dialogContext).pop();
+                  G.prefs.setInt("imageFormat", e.key);
                   setState(() {});
                 },
               );

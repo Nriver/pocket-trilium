@@ -130,6 +130,8 @@ class Util {
       case "isBiometricOnlyOnStart" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       //图片插入压缩: 0=原图, 1=高质量, 2=标准(默认), 3=小体积
       case "imageCompressMode" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(2);
+      //图片插入格式: 0=原始JPG(默认), 1=WebP
+      case "imageFormat" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(0);
       case "containersInfo" : return G.prefs.getStringList(key)!;
     }
   }
@@ -224,9 +226,12 @@ class Util {
 
   //生成注入网页的图片压缩脚本, 在 Trilium 读取 <input type=file> 前用 canvas 缩放并重新编码
   //相机拍照和从相册选择的图片都会经过这里, 有效减小插入图片的体积
+  //format=webp 时把 JPG 照片转为 WebP 再插入
   static String buildImageCompressUserScript() {
     final int mode = getGlobal("imageCompressMode") as int;
-    if (mode <= 0) return "";
+    final int format = (getGlobal("imageFormat") as int?) ?? 0;
+    if (mode <= 0 && format == 0) return "";
+    final bool webp = format == 1;
     late int maxDim;
     late double quality;
     switch (mode) {
@@ -244,19 +249,31 @@ class Util {
         quality = 0.75;
         break;
     }
+    if (mode <= 0) {
+      maxDim = 1920;
+      quality = 0.85;
+    }
     return """
 (function () {
   if (window.__pocketImgCompress) return;
   window.__pocketImgCompress = true;
+  var WEBP = $webp;
+  var COMPRESS_ON = ${mode > 0};
   var MAX_DIM = $maxDim;
   var QUALITY = $quality;
   var MIN_BYTES = 200 * 1024;
 
-  function isCompressible(f) {
+  function isProcessable(f) {
     return f && (f.type === 'image/jpeg' || f.type === 'image/jpg');
   }
 
-  function compress(file) {
+  function shouldProcess(f) {
+    if (!isProcessable(f)) return false;
+    if (WEBP) return true;
+    return COMPRESS_ON && f.size > MIN_BYTES;
+  }
+
+  function convert(file) {
     return new Promise(function (resolve) {
       var url = URL.createObjectURL(file);
       var img = new Image();
@@ -265,7 +282,7 @@ class Util {
           var w = img.naturalWidth || img.width;
           var h = img.naturalHeight || img.height;
           if (!w || !h) { URL.revokeObjectURL(url); resolve(file); return; }
-          var scale = Math.min(1, MAX_DIM / Math.max(w, h));
+          var scale = COMPRESS_ON ? Math.min(1, MAX_DIM / Math.max(w, h)) : 1;
           var tw = Math.max(1, Math.round(w * scale));
           var th = Math.max(1, Math.round(h * scale));
           var canvas = document.createElement('canvas');
@@ -273,17 +290,20 @@ class Util {
           canvas.height = th;
           var ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, tw, th);
+          var mime = WEBP ? 'image/webp' : 'image/jpeg';
+          var ext = WEBP ? 'webp' : 'jpg';
           canvas.toBlob(function (blob) {
             URL.revokeObjectURL(url);
-            if (!blob || blob.size >= file.size) { resolve(file); return; }
-            var name = file.name || 'image.jpg';
+            if (!blob) { resolve(file); return; }
+            if (!WEBP && blob.size >= file.size) { resolve(file); return; }
+            var name = file.name || ('image.' + ext);
             var dot = name.lastIndexOf('.');
             if (dot > 0) name = name.substring(0, dot);
-            name = name + '.jpg';
+            name = name + '.' + ext;
             try {
-              resolve(new File([blob], name, { type: 'image/jpeg', lastModified: Date.now() }));
+              resolve(new File([blob], name, { type: mime, lastModified: Date.now() }));
             } catch (e) { resolve(file); }
-          }, 'image/jpeg', QUALITY);
+          }, mime, QUALITY);
         } catch (e) { URL.revokeObjectURL(url); resolve(file); }
       };
       img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
@@ -302,14 +322,14 @@ class Util {
     if (!files.length) return;
     var need = false;
     for (var i = 0; i < files.length; i++) {
-      if (isCompressible(files[i]) && files[i].size > MIN_BYTES) { need = true; break; }
+      if (shouldProcess(files[i])) { need = true; break; }
     }
     if (!need) return;
     e.stopImmediatePropagation();
     e.preventDefault();
     e.stopPropagation();
     Promise.all(files.map(function (f) {
-      return (isCompressible(f) && f.size > MIN_BYTES) ? compress(f) : f;
+      return shouldProcess(f) ? convert(f) : f;
     })).then(function (out) {
       try {
         var dt = new DataTransfer();
