@@ -201,6 +201,8 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
               },
               onLoadStop: (controller, url) async {
                 print("页面加载完成: $url");
+                // 把最新的图片压缩/格式设置推送到页面, 保证重启页面后与设置一致
+                await Util.applyImageCompressConfig();
                 // 解决某些情况下 Webview 焦点丢失
                 await controller.evaluateJavascript(source: """
                   document.addEventListener('keydown', function(e) {

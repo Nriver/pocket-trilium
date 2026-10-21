@@ -446,6 +446,7 @@ class _SettingPageState extends State<SettingPage> {
                 onTap: () {
                   Navigator.of(dialogContext).pop();
                   G.prefs.setInt("imageCompressMode", e.key);
+                  Util.applyImageCompressConfig();
                   setState(() {});
                 },
               );
@@ -490,6 +491,7 @@ class _SettingPageState extends State<SettingPage> {
                 onTap: () {
                   Navigator.of(dialogContext).pop();
                   G.prefs.setInt("imageFormat", e.key);
+                  Util.applyImageCompressConfig();
                   setState(() {});
                 },
               );

@@ -134,7 +134,7 @@
     "terminalMaskDefault": "Show startup mask by default",
     "terminalMaskDefaultSubtitle": "Show the startup animation mask on launch. You can toggle the terminal from the top-right button anytime",
     "imageQuality": "Image Insert Quality",
-    "imageQualitySubtitle": "Compress images inserted from camera or gallery. Takes effect after restarting the app.",
+    "imageQualitySubtitle": "Compress images inserted from camera or gallery. Takes effect immediately after changing.",
     "currentSelection": "Current: {value}",
     "imageQualityIndependent": "Independent of Trilium's built-in image compression.",
     "imageQualityOrder": "Order: compressed locally first, then Trilium's built-in compression is applied (if enabled).",
@@ -143,7 +143,7 @@
     "imageQualityStandard": "Standard (1920px)",
     "imageQualitySmall": "Small (1280px)",
     "imageFormat": "Image Insert Format",
-    "imageFormatSubtitle": "Convert camera-captured JPG photos to WebP before inserting into notes. Turn off to keep the original JPG.",
+    "imageFormatSubtitle": "Convert camera-captured JPG photos to WebP before inserting into notes. Turn off to keep the original JPG. Takes effect immediately after changing.",
     "imageFormatJpeg": "Original JPG",
     "imageFormatWebp": "WebP"
 }

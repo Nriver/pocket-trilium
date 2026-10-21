@@ -226,12 +226,10 @@ class Util {
 
   //生成注入网页的图片压缩脚本, 在 Trilium 读取 <input type=file> 前用 canvas 缩放并重新编码
   //相机拍照和从相册选择的图片都会经过这里, 有效减小插入图片的体积
-  //format=webp 时把 JPG 照片转为 WebP 再插入
-  static String buildImageCompressUserScript() {
+  //脚本始终注入, 从 window.__pocketCompressConfig 读取最新配置, 因此设置修改后可立即生效
+  static Map<String, dynamic> imageCompressConfig() {
     final int mode = getGlobal("imageCompressMode") as int;
     final int format = (getGlobal("imageFormat") as int?) ?? 0;
-    if (mode <= 0 && format == 0) return "";
-    final bool webp = format == 1;
     late int maxDim;
     late double quality;
     switch (mode) {
@@ -253,28 +251,63 @@ class Util {
       maxDim = 1920;
       quality = 0.85;
     }
+    return {
+      'webp': format == 1,
+      'compressOn': mode > 0,
+      'maxDim': maxDim,
+      'quality': quality,
+      'minBytes': 200 * 1024,
+    };
+  }
+
+  //把当前设置推送到已加载的 WebView, 让修改立即生效
+  static Future<void> applyImageCompressConfig() async {
+    final controller = G.controller;
+    if (controller == null) return;
+    final cfg = imageCompressConfig();
+    final js = 'window.__pocketCompressConfig = {webp: ${cfg['webp']}, compressOn: ${cfg['compressOn']}, maxDim: ${cfg['maxDim']}, quality: ${cfg['quality']}, minBytes: ${cfg['minBytes']}};';
+    try {
+      await controller.evaluateJavascript(source: js);
+    } catch (e) {
+      debugPrint("推送图片压缩配置失败: $e");
+    }
+  }
+
+  static String buildImageCompressUserScript() {
+    final cfg = imageCompressConfig();
     return """
 (function () {
   if (window.__pocketImgCompress) return;
   window.__pocketImgCompress = true;
-  var WEBP = $webp;
-  var COMPRESS_ON = ${mode > 0};
-  var MAX_DIM = $maxDim;
-  var QUALITY = $quality;
-  var MIN_BYTES = 200 * 1024;
+  var CFG = {webp: ${cfg['webp']}, compressOn: ${cfg['compressOn']}, maxDim: ${cfg['maxDim']}, quality: ${cfg['quality']}, minBytes: ${cfg['minBytes']}};
+
+  function getCfg() {
+    var c = window.__pocketCompressConfig;
+    if (c && typeof c === 'object') {
+      return {
+        webp: c.webp === undefined ? CFG.webp : c.webp,
+        compressOn: c.compressOn === undefined ? CFG.compressOn : c.compressOn,
+        maxDim: c.maxDim === undefined ? CFG.maxDim : c.maxDim,
+        quality: c.quality === undefined ? CFG.quality : c.quality,
+        minBytes: c.minBytes === undefined ? CFG.minBytes : c.minBytes
+      };
+    }
+    return CFG;
+  }
 
   function isProcessable(f) {
     return f && (f.type === 'image/jpeg' || f.type === 'image/jpg');
   }
 
-  function shouldProcess(f) {
+  function shouldProcess(f, cfg) {
     if (!isProcessable(f)) return false;
-    if (WEBP) return true;
-    return COMPRESS_ON && f.size > MIN_BYTES;
+    if (cfg.webp) return true;
+    return cfg.compressOn && f.size > cfg.minBytes;
   }
 
   function convert(file) {
     return new Promise(function (resolve) {
+      var cfg = getCfg();
       var url = URL.createObjectURL(file);
       var img = new Image();
       img.onload = function () {
@@ -282,7 +315,7 @@ class Util {
           var w = img.naturalWidth || img.width;
           var h = img.naturalHeight || img.height;
           if (!w || !h) { URL.revokeObjectURL(url); resolve(file); return; }
-          var scale = COMPRESS_ON ? Math.min(1, MAX_DIM / Math.max(w, h)) : 1;
+          var scale = cfg.compressOn ? Math.min(1, cfg.maxDim / Math.max(w, h)) : 1;
           var tw = Math.max(1, Math.round(w * scale));
           var th = Math.max(1, Math.round(h * scale));
           var canvas = document.createElement('canvas');
@@ -290,12 +323,12 @@ class Util {
           canvas.height = th;
           var ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, tw, th);
-          var mime = WEBP ? 'image/webp' : 'image/jpeg';
-          var ext = WEBP ? 'webp' : 'jpg';
+          var mime = cfg.webp ? 'image/webp' : 'image/jpeg';
+          var ext = cfg.webp ? 'webp' : 'jpg';
           canvas.toBlob(function (blob) {
             URL.revokeObjectURL(url);
             if (!blob) { resolve(file); return; }
-            if (!WEBP && blob.size >= file.size) { resolve(file); return; }
+            if (!cfg.webp && blob.size >= file.size) { resolve(file); return; }
             var name = file.name || ('image.' + ext);
             var dot = name.lastIndexOf('.');
             if (dot > 0) name = name.substring(0, dot);
@@ -303,7 +336,7 @@ class Util {
             try {
               resolve(new File([blob], name, { type: mime, lastModified: Date.now() }));
             } catch (e) { resolve(file); }
-          }, mime, QUALITY);
+          }, mime, cfg.quality);
         } catch (e) { URL.revokeObjectURL(url); resolve(file); }
       };
       img.onerror = function () { URL.revokeObjectURL(url); resolve(file); };
@@ -321,15 +354,16 @@ class Util {
     var files = Array.prototype.slice.call(input.files || []);
     if (!files.length) return;
     var need = false;
+    var cfg = getCfg();
     for (var i = 0; i < files.length; i++) {
-      if (shouldProcess(files[i])) { need = true; break; }
+      if (shouldProcess(files[i], cfg)) { need = true; break; }
     }
     if (!need) return;
     e.stopImmediatePropagation();
     e.preventDefault();
     e.stopPropagation();
     Promise.all(files.map(function (f) {
-      return shouldProcess(f) ? convert(f) : f;
+      return shouldProcess(f, cfg) ? convert(f) : f;
     })).then(function (out) {
       try {
         var dt = new DataTransfer();
