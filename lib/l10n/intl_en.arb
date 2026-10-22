@@ -139,7 +139,6 @@
     "imageQualityIndependent": "Independent of Trilium's built-in image compression.",
     "imageQualityOrder": "Order: compressed locally first, then Trilium's built-in compression is applied (if enabled).",
     "imageQualityOriginal": "Original",
-    "imageQualityHigh": "High (2560px)",
     "imageQualityStandard": "Standard (1920px)",
     "imageQualitySmall": "Small (1280px)",
     "imageFormat": "Image Insert Format",

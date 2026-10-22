@@ -128,8 +128,8 @@ class Util {
       case "isPrivacyBlurEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isBiometricUnlockEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
       case "isBiometricOnlyOnStart" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
-      //图片插入压缩: 0=原图, 1=高质量, 2=标准(默认), 3=小体积
-      case "imageCompressMode" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(2);
+      //图片插入压缩: 0=原图, 1=标准(默认), 2=小体积
+      case "imageCompressMode" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(1);
       //图片插入格式: 0=原始JPG(默认), 1=WebP
       case "imageFormat" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(0);
       case "containersInfo" : return G.prefs.getStringList(key)!;
@@ -233,15 +233,11 @@ class Util {
     late int maxDim;
     late double quality;
     switch (mode) {
-      case 1:
-        maxDim = 2560;
-        quality = 0.85;
-        break;
-      case 3:
+      case 2:
         maxDim = 1280;
         quality = 0.60;
         break;
-      case 2:
+      case 1:
       default:
         maxDim = 1920;
         quality = 0.75;

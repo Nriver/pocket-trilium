@@ -410,11 +410,9 @@ class _SettingPageState extends State<SettingPage> {
     switch (mode) {
       case 0:
         return l10n.imageQualityOriginal;
-      case 1:
-        return l10n.imageQualityHigh;
-      case 3:
-        return l10n.imageQualitySmall;
       case 2:
+        return l10n.imageQualitySmall;
+      case 1:
       default:
         return l10n.imageQualityStandard;
     }
@@ -423,9 +421,8 @@ class _SettingPageState extends State<SettingPage> {
   Future<void> _showImageQualityPicker(BuildContext context, AppLocalizations l10n) async {
     final options = <int, String>{
       0: l10n.imageQualityOriginal,
-      1: l10n.imageQualityHigh,
-      2: l10n.imageQualityStandard,
-      3: l10n.imageQualitySmall,
+      1: l10n.imageQualityStandard,
+      2: l10n.imageQualitySmall,
     };
     final current = Util.getGlobal("imageCompressMode") as int;
     await showDialog<void>(

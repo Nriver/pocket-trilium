@@ -139,7 +139,6 @@
     "imageQualityIndependent": "与 Trilium 内置的图片压缩相互独立、互不影响。",
     "imageQualityOrder": "处理顺序：本压缩先执行（客户端），Trilium 内置压缩如有启用随后执行。",
     "imageQualityOriginal": "原图",
-    "imageQualityHigh": "高清 (2560px)",
     "imageQualityStandard": "标准 (1920px)",
     "imageQualitySmall": "小体积 (1280px)",
     "imageFormat": "插入图片格式",
