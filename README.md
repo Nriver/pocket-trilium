@@ -61,6 +61,23 @@ You can choose your Trilium version on first start.
 
 ---
 
+# 📷 Photo Image Quality and Format
+
+Here is a reference for the built-in image format and quality options in Pocket Trilium, along with the resulting photo sizes. Photo sizes may vary between different phones; the data here is based on photos taken with my phone.
+
+In my experience, disabling Trilium's built-in image compression, using the webp format in Pocket Trilium, and selecting the Standard image quality saves a significant amount of space while keeping images clear.
+
+Experiences may differ from person to person, so feel free to adjust these settings to your own preference.
+
+| Trilium Built-in Compression | Format | Original | Standard | Low |
+| --- | --- | --- | --- | --- |
+| Off | JPG | 6.2 MB | 169 KB | 59 KB |
+| **Off** | **WEBP** | 501 KB | **68 KB** | 34 KB |
+| On | JPG | 239 KB | 171 KB | 65 KB |
+| On | WEBP | 570 KB | 80 KB | 43 KB |
+
+---
+
 # ⚙️ Setup Instructions
 
 1. **The `trilium-data` Folder**:

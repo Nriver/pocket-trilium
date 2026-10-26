@@ -58,6 +58,23 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
 
 ---
 
+# 📷 拍照图片质量和图片格式选择
+
+Pocket Trilium 内置的图片格式和质量选择和最终的拍照图片大小参考。不同手机的拍照大小可能会不同，这里的数据是我的手机拍照的参考。
+
+我的体验是关闭 Trilium 内置图片压缩，Pocket Trilium 使用 webp 格式，图片质量选择标准，能在大幅节省空间的同时保证图片清晰。
+
+具体体验不同人会有差异，你可以按照自己喜欢的去调整。
+
+| Trilium 内置压缩状态 | 格式 (Format) | 原始 (Original) | 标准 (Standard) | 低 (Low) |
+| --- | --- | --- | --- | --- |
+| 关闭 | JPG | 6.2 MB | 169 KB | 59 KB |
+| **关闭** | **WEBP** | 501 KB | **68 KB** | 34 KB |
+| 打开 | JPG | 239 KB | 171 KB | 65 KB |
+| 打开 | WEBP | 570 KB | 80 KB | 43 KB |
+
+---
+
 # ⚙️ 设置说明
 
 1. **trilium-data 文件夹**
