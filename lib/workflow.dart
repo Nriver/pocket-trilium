@@ -740,6 +740,9 @@ export DATA_DIR=${G.dataPath}
 export LD_LIBRARY_PATH=\$DATA_DIR/lib
 cd \$DATA_DIR
 \$DATA_DIR/bin/busybox tar -xJf ${D.triliumPackage}
+# Trilium Plus
+mv trilium-linux-arm64-server trilium 2>/dev/null || true
+# Trilium Next
 mv TriliumNotes-Server-* trilium 2>/dev/null || true
 \$DATA_DIR/bin/busybox rm -rf ${D.triliumPackage}
 """);
