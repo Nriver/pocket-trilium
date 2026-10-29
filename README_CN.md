@@ -58,23 +58,6 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
 
 ---
 
-# 📷 拍照图片质量和图片格式选择
-
-Pocket Trilium 内置的图片格式和质量选择和最终的拍照图片大小参考。不同手机的拍照大小可能会不同，这里的数据是我的手机拍照的参考。
-
-我的体验是关闭 Trilium 内置图片压缩，Pocket Trilium 使用 webp 格式，图片质量选择标准，能在大幅节省空间的同时保证图片清晰。
-
-具体体验不同人会有差异，你可以按照自己喜欢的去调整。
-
-| Trilium 内置压缩状态 | 格式 (Format) | 原始 (Original) | 标准 (Standard) | 低 (Low) |
-| --- | --- | --- | --- | --- |
-| 关闭 | JPG | 6.2 MB | 169 KB | 59 KB |
-| **关闭** | **WEBP** | 501 KB | **68 KB** | 34 KB |
-| 打开 | JPG | 239 KB | 171 KB | 65 KB |
-| 打开 | WEBP | 570 KB | 80 KB | 43 KB |
-
----
-
 # ⚙️ 设置说明
 
 1. **trilium-data 文件夹**
@@ -186,6 +169,23 @@ Android 12 及以上设备可能需要在「开发者选项」中关闭「停止
 - **`assets/xa*`** 文件（rootfs）——按照 [rootfs_CN.md](docs/rootfs_CN.md) 中的说明进行构建。
 - **`assets/trilium.tar.xz`** ——内置 Trilium Notes。经典的 0.63.7 版本需要为 arm64 平台重新编译。本仓库内置的是从 [Nriver/trilium-translation](https://github.com/Nriver/trilium-translation) 重新编译的中文优化版。
 - **`android/app/src/main/jniLibs/arm64-v8a/*.so`** ——从 termux-packages 编译并提取的原生库。详细编译说明请参考 [jniLibs_CN.md](docs/jniLibs_CN.md)。
+
+### `flutter_inappwebview_android` proguard 配置修复
+
+Android Gradle Plugin 9 / R8 已不再支持 `getDefaultProguardFile('proguard-android.txt')`，但 `flutter_inappwebview_android` 1.1.3 仍在使用，导致 Gradle 构建失败并提示：
+
+```text
+`getDefaultProguardFile('proguard-android.txt')` is no longer supported since it includes `-dontoptimize`
+```
+
+在插件官方修复前，需要修改 pub 缓存中该插件的 `android/build.gradle`，把两处 `proguard-android.txt` 替换为 `proguard-android-optimize.txt`：
+
+```bash
+sed -i "s/proguard-android\.txt/proguard-android-optimize.txt/g" \
+  ~/.pub-cache/hosted/pub.dev/flutter_inappwebview_android-1.1.3/android/build.gradle
+```
+
+如果使用了 pub 镜像，请相应调整缓存路径（例如 `~/.pub-cache/hosted/pub.flutter-io.cn/flutter_inappwebview_android-1.1.3/android/build.gradle`）。该修改位于 pub 缓存中，执行 `flutter pub cache repair` 或升级插件后会失效，需要重新应用。
 
 ---
 

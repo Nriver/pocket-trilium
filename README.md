@@ -61,23 +61,6 @@ You can choose your Trilium version on first start.
 
 ---
 
-# 📷 Photo Image Quality and Format
-
-Here is a reference for the built-in image format and quality options in Pocket Trilium, along with the resulting photo sizes. Photo sizes may vary between different phones; the data here is based on photos taken with my phone.
-
-In my experience, disabling Trilium's built-in image compression, using the webp format in Pocket Trilium, and selecting the Standard image quality saves a significant amount of space while keeping images clear.
-
-Experiences may differ from person to person, so feel free to adjust these settings to your own preference.
-
-| Trilium Built-in Compression | Format | Original | Standard | Low |
-| --- | --- | --- | --- | --- |
-| Off | JPG | 6.2 MB | 169 KB | 59 KB |
-| **Off** | **WEBP** | 501 KB | **68 KB** | 34 KB |
-| On | JPG | 239 KB | 171 KB | 65 KB |
-| On | WEBP | 570 KB | 80 KB | 43 KB |
-
----
-
 # ⚙️ Setup Instructions
 
 1. **The `trilium-data` Folder**:
@@ -190,6 +173,23 @@ To keep the repository size reasonable, several large files are **not included**
 - **`assets/xa*`** files (rootfs) — Build them by following the instructions in [rootfs.md](docs/rootfs.md).
 - **`assets/trilium.tar.xz`** — Built-in Trilium Notes. The original 0.63.7 version requires recompilation for arm64 platforms. The included version is a recompiled Chinese localization from [Nriver/trilium-translation](https://github.com/Nriver/trilium-translation).
 - **`android/app/src/main/jniLibs/arm64-v8a/*.so`** — Native libraries compiled and extracted from termux-packages. See detailed instructions in [jniLibs.md](docs/jniLibs.md).
+
+### `flutter_inappwebview_android` proguard fix
+
+Android Gradle Plugin 9 / R8 no longer supports `getDefaultProguardFile('proguard-android.txt')`, but `flutter_inappwebview_android` 1.1.3 still uses it. This causes the Gradle build to fail with:
+
+```text
+`getDefaultProguardFile('proguard-android.txt')` is no longer supported since it includes `-dontoptimize`
+```
+
+Until the plugin is updated, patch its `android/build.gradle` in the pub cache and replace both occurrences of `proguard-android.txt` with `proguard-android-optimize.txt`:
+
+```bash
+sed -i "s/proguard-android\.txt/proguard-android-optimize.txt/g" \
+  ~/.pub-cache/hosted/pub.dev/flutter_inappwebview_android-1.1.3/android/build.gradle
+```
+
+If you use a pub mirror, adjust the cache path accordingly (for example `~/.pub-cache/hosted/pub.flutter-io.cn/flutter_inappwebview_android-1.1.3/android/build.gradle`). This edit lives in the pub cache, so it will be lost after `flutter pub cache repair` or a plugin upgrade and must be reapplied.
 
 ---
 
