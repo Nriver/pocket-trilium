@@ -14,6 +14,21 @@ subprojects {
     project.evaluationDependsOn(':app')
 }
 
+subprojects { subproject ->
+    if (subproject.name == "flutter_inappwebview_android") {
+        subproject.tasks.configureEach { task ->
+            if (task.name.startsWith("merge") && task.name.endsWith("ConsumerProguardFiles")) {
+                task.doFirst {
+                    def consumerRules = new File(subproject.projectDir, "consumer-rules.pro")
+                    if (!consumerRules.exists()) {
+                        consumerRules.text = ""
+                    }
+                }
+            }
+        }
+    }
+}
+
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
