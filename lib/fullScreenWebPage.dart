@@ -131,6 +131,7 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
   @override
   Widget build(BuildContext context) {
     final compressScript = Util.buildImageCompressUserScript();
+    final backButtonCloseScript = Util.buildBackButtonCloseUserScript();
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -171,6 +172,11 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
                     injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
                     forMainFrameOnly: false,
                   ),
+                UserScript(
+                  source: backButtonCloseScript,
+                  injectionTime: UserScriptInjectionTime.AT_DOCUMENT_START,
+                  forMainFrameOnly: true,
+                ),
               ]),
               initialSettings: InAppWebViewSettings(
                 javaScriptEnabled: true,
@@ -203,6 +209,7 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
                 print("页面加载完成: $url");
                 // 把最新的图片压缩/格式设置推送到页面, 保证重启页面后与设置一致
                 await Util.applyImageCompressConfig();
+                await Util.applyBackButtonCloseConfig();
                 // 解决某些情况下 Webview 焦点丢失
                 await controller.evaluateJavascript(source: """
                   document.addEventListener('keydown', function(e) {

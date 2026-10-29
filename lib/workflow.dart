@@ -22,6 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'constants/defaults.dart';
+import 'core/webview_scripts.dart';
 import 'fullScreenWebPage.dart';
 import 'l10n/app_localizations.dart';
 
@@ -102,6 +103,7 @@ class Util {
   //bool reinstallTrilium = false 下次启动是否重装/升级Trilium
   //bool wakelock = false 屏幕常亮
   //bool autoDetectPort = false 自动检测Trilium实际使用的端口并打开对应地址
+  //bool isBackButtonCloseEnabled = true 按返回键时优先关闭网页内的弹窗和菜单
   //bool isTerminalMaskEnabled = true 启动后是否默认显示遮罩动画
   //? int bootstrapVersion: 启动包版本
   //String[] containersInfo: 所有容器信息(json)
@@ -132,6 +134,8 @@ class Util {
       case "imageCompressMode" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(1);
       //图片插入格式: 0=原始JPG(默认), 1=WebP
       case "imageFormat" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(0);
+      //按安卓返回键时优先关闭网页内的弹窗和菜单
+      case "isBackButtonCloseEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
       case "containersInfo" : return G.prefs.getStringList(key)!;
     }
   }
@@ -375,6 +379,28 @@ class Util {
   }, true);
 })();
 """;
+  }
+
+  //把返回键处理开关推送到已加载的 WebView, 让设置修改后立即生效
+  static Future<void> applyBackButtonCloseConfig() async {
+    final controller = G.controller;
+    if (controller == null) return;
+    final enabled = getGlobal("isBackButtonCloseEnabled") as bool;
+    final js = 'window.__triliumBackCloseSetEnabled && window.__triliumBackCloseSetEnabled($enabled);';
+    try {
+      await controller.evaluateJavascript(source: js);
+    } catch (e) {
+      debugPrint("推送返回键关闭弹窗配置失败: $e");
+    }
+  }
+
+  //按安卓返回键时优先关闭网页内的弹窗和菜单, 没有弹窗时保持原有返回行为
+  static String buildBackButtonCloseUserScript() {
+    final enabled = getGlobal("isBackButtonCloseEnabled") as bool;
+    return WebViewScripts.get(
+      'back_button_close.js',
+      replacements: {'__BACK_CLOSE_ENABLED__': enabled.toString()},
+    );
   }
 
   static Future<void> clearAppCache() async {

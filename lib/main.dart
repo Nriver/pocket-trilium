@@ -10,6 +10,7 @@ import 'package:pocket_trilium/terminalPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants/defaults.dart';
+import 'core/webview_scripts.dart';
 import 'infoPage.dart';
 import 'l10n/app_localizations.dart';
 import 'workflow.dart';
@@ -17,6 +18,7 @@ import 'workflow.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   G.prefs = await SharedPreferences.getInstance();
+  await WebViewScripts.preload();
   String? localeCode = Util.getGlobal("locale");
   if (localeCode != null) {
     G.locale.value = Locale(localeCode);

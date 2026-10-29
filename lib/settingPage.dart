@@ -73,6 +73,19 @@ class _SettingPageState extends State<SettingPage> {
   Widget _buildTriliumSettings(BuildContext context, AppLocalizations l10n) {
     return Column(
       children: [
+        SwitchListTile(
+          secondary: const Icon(Icons.keyboard_return),
+          title: Text(l10n.backButtonClosePopups),
+          subtitle: Text(l10n.backButtonClosePopupsSubtitle),
+          value: Util.getGlobal("isBackButtonCloseEnabled") as bool,
+          onChanged: (value) async {
+            G.prefs.setBool("isBackButtonCloseEnabled", value);
+            if (mounted) {
+              setState(() {});
+            }
+            await Util.applyBackButtonCloseConfig();
+          },
+        ),
         ListTile(
           isThreeLine: true,
           leading: const Icon(Icons.photo_size_select_large),

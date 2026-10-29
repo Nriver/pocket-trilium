@@ -24,6 +24,8 @@
     "experimentalFeature": "实验性功能",
     "globalSettings": "全局设置",
     "triliumSettings": "Trilium 设置",
+    "backButtonClosePopups": "返回键关闭弹窗",
+    "backButtonClosePopupsSubtitle": "开启后，按手机返回键或使用返回手势时，会先关闭当前打开的弹窗或菜单；有多层时逐层关闭。没有弹窗时，返回键保持原有功能。修改后立即生效。",
     "enableTerminalEditing": "在这里开启终端编辑",
     "terminalMaxLines": "终端最大行数(重启软件生效)",
     "enableTerminal": "启用终端",

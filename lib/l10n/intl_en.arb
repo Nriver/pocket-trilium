@@ -24,6 +24,8 @@
     "experimentalFeature": "Experimental Features",
     "globalSettings": "Global Settings",
     "triliumSettings": "Trilium Settings",
+    "backButtonClosePopups": "Back Button Closes Popups",
+    "backButtonClosePopupsSubtitle": "When enabled, the phone's back button or back gesture closes the current popup or menu first, one layer at a time. When nothing is open, it works as usual. Changes take effect immediately.",
     "enableTerminalEditing": "Enable terminal editing here",
     "terminalMaxLines": "Terminal max lines (requires restart)",
     "enableTerminal": "Enable Terminal",
