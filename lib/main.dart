@@ -176,7 +176,7 @@ class TriliumStartingOverlay extends StatelessWidget {
     return Container(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -190,7 +190,9 @@ class TriliumStartingOverlay extends StatelessWidget {
                 valueListenable: G.isTriliumReady,
                 builder: (context, ready, child) {
                   return Text(
-                    ready ? l10n.triliumStartedTitle : l10n.triliumStartingTitle,
+                    ready
+                        ? l10n.triliumStartedTitle
+                        : l10n.triliumStartingTitle,
                     textScaler: const TextScaler.linear(1.6),
                     textAlign: TextAlign.center,
                   );

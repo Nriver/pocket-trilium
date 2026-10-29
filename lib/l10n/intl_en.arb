@@ -146,5 +146,9 @@
     "imageFormat": "Image Insert Format",
     "imageFormatSubtitle": "Convert camera-captured JPG photos to WebP before inserting into notes. Turn off to keep the original JPG. Takes effect immediately after changing.",
     "imageFormatJpeg": "Original JPG",
-    "imageFormatWebp": "WebP"
+    "imageFormatWebp": "WebP",
+    "selectAll": "Select all",
+    "copyAllLogs": "Copy all logs",
+    "copiedToClipboard": "Copied to clipboard",
+    "terminalNoOutput": "No terminal output to copy"
 }

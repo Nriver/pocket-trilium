@@ -146,5 +146,9 @@
     "imageFormat": "插入图片格式",
     "imageFormatSubtitle": "将拍照得到的 JPG 照片转换为 WebP 后插入笔记，关闭则保持原始 JPG，修改后立即生效。",
     "imageFormatJpeg": "原始 JPG",
-    "imageFormatWebp": "WebP"
+    "imageFormatWebp": "WebP",
+    "selectAll": "全选",
+    "copyAllLogs": "复制全部日志",
+    "copiedToClipboard": "已复制到剪贴板",
+    "terminalNoOutput": "终端暂无可复制的输出"
 }
