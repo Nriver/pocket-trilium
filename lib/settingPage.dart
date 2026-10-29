@@ -23,14 +23,14 @@ class _SettingPageState extends State<SettingPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildSectionHeader(context, l10n.upgradeReinstallGroup, Icons.system_update_alt),
+        _buildUpgradeReinstallSettings(context, l10n),
+        const Divider(),
         _buildSectionHeader(context, l10n.triliumSettings, Icons.note_alt_outlined),
         _buildTriliumSettings(context, l10n),
         const Divider(),
         _buildSectionHeader(context, l10n.privacySettings, Icons.security),
         _buildPrivacySettings(context, l10n),
-        const Divider(),
-        _buildSectionHeader(context, l10n.upgradeReinstallGroup, Icons.system_update_alt),
-        _buildUpgradeReinstallSettings(context, l10n),
         const Divider(),
         _buildSectionHeader(context, l10n.advancedSettings, Icons.settings_applications),
         _buildAdvancedSettings(context, l10n),
