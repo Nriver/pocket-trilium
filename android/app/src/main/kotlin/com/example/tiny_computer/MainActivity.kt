@@ -6,12 +6,18 @@ import android.content.Intent
 import androidx.annotation.NonNull
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 
 class MainActivity: FlutterFragmentActivity() {
+
+    private var statusBarHidden: Boolean = false
+    private var statusBarLightIcons: Boolean = false
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -27,11 +33,36 @@ class MainActivity: FlutterFragmentActivity() {
                 "getNativeLibraryPath" -> {
                     result.success(getApplicationInfo().nativeLibraryDir)
                 }
+                "setStatusBarMode" -> {
+                    statusBarHidden = call.argument<Boolean>("hidden") ?: false
+                    statusBarLightIcons = call.argument<Boolean>("lightIcons") ?: false
+                    applyStatusBarMode()
+                    result.success(0)
+                }
                 else -> {
                     // 不支持的方法名
                     result.notImplemented()
                 }
             }
+        }
+    }
+
+    private fun applyStatusBarMode() {
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        if (statusBarHidden) {
+            controller.hide(WindowInsetsCompat.Type.statusBars())
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        } else {
+            controller.show(WindowInsetsCompat.Type.statusBars())
+        }
+        controller.isAppearanceLightStatusBars = !statusBarLightIcons
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            applyStatusBarMode()
         }
     }
 

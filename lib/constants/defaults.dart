@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:xterm/xterm.dart';
 
+class StatusBarMode {
+  static const String system = "system";
+  static const String light = "light";
+  static const String dark = "dark";
+  static const String custom = "custom";
+}
+
 //default values
 class D {
 

@@ -136,6 +136,9 @@ class Util {
       case "imageFormat" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(0);
       //按安卓返回键时优先关闭网页内的弹窗和菜单
       case "isBackButtonCloseEnabled" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(true);
+      case "statusBarColorMode" : return b ? G.prefs.getString(key)! : (value){G.prefs.setString(key, value); return value;}(StatusBarMode.system);
+      case "statusBarHideText" : return b ? G.prefs.getBool(key)! : (value){G.prefs.setBool(key, value); return value;}(false);
+      case "statusBarCustomColor" : return b ? G.prefs.getInt(key)! : (value){G.prefs.setInt(key, value); return value;}(0xFF1976D2);
       case "containersInfo" : return G.prefs.getStringList(key)!;
     }
   }
@@ -401,6 +404,90 @@ class Util {
       'back_button_close.js',
       replacements: {'__BACK_CLOSE_ENABLED__': enabled.toString()},
     );
+  }
+
+  static Color statusBarCustomColor() {
+    return Color(G.statusBarCustomColor.value);
+  }
+
+  static bool statusBarIsDark(String mode, Brightness brightness, Color customColor) {
+    switch (mode) {
+      case StatusBarMode.dark:
+        return true;
+      case StatusBarMode.custom:
+        return ThemeData.estimateBrightnessForColor(customColor) == Brightness.dark;
+      case StatusBarMode.system:
+        return brightness == Brightness.dark;
+      default:
+        return false;
+    }
+  }
+
+  static SystemUiOverlayStyle statusBarOverlayStyle(
+    String mode,
+    Brightness brightness,
+    Color customColor,
+  ) {
+    final bool isDark = statusBarIsDark(mode, brightness, customColor);
+    final Color backgroundColor = mode == StatusBarMode.custom
+        ? customColor
+        : (isDark ? Colors.black : Colors.white);
+    return SystemUiOverlayStyle(
+      statusBarColor: backgroundColor,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+    );
+  }
+
+  static Color? statusBarOverlayColor(String mode, Color surface, Color customColor) {
+    switch (mode) {
+      case StatusBarMode.light:
+        return Colors.white;
+      case StatusBarMode.dark:
+        return Colors.black;
+      case StatusBarMode.system:
+        return surface;
+      case StatusBarMode.custom:
+        return customColor;
+      default:
+        return null;
+    }
+  }
+
+  static Future<void> setStatusBarColorMode(String mode) async {
+    await G.prefs.setString("statusBarColorMode", mode);
+    G.statusBarColorMode.value = mode;
+    await applyStatusBarMode();
+  }
+
+  static Future<void> setStatusBarHideText(bool hide) async {
+    await G.prefs.setBool("statusBarHideText", hide);
+    G.statusBarHideText.value = hide;
+    await applyStatusBarMode();
+  }
+
+  static Future<void> setStatusBarCustomColor(Color color) async {
+    final int value = color.toARGB32();
+    await G.prefs.setInt("statusBarCustomColor", value);
+    G.statusBarCustomColor.value = value;
+    await applyStatusBarMode();
+  }
+
+  static Future<void> applyStatusBarMode() async {
+    final String mode = G.statusBarColorMode.value;
+    final bool isDark = statusBarIsDark(
+      mode,
+      PlatformDispatcher.instance.platformBrightness,
+      statusBarCustomColor(),
+    );
+    try {
+      await D.androidChannel.invokeMethod("setStatusBarMode", {
+        "hidden": G.statusBarHideText.value,
+        "lightIcons": isDark,
+      });
+    } catch (e) {
+      debugPrint("设置状态栏失败: $e");
+    }
   }
 
   static Future<void> clearAppCache() async {
@@ -703,6 +790,9 @@ class G {
   static ValueNotifier<bool> bootTextChange = ValueNotifier(true); //更改值，用于刷新启动命令
   static ValueNotifier<String> updateText = ValueNotifier("随身Trilium"); //加载界面的说明文字
   static ValueNotifier<Locale?> locale = ValueNotifier(null); // 界面语言
+  static ValueNotifier<String> statusBarColorMode = ValueNotifier(StatusBarMode.system); // 状态栏颜色模式
+  static ValueNotifier<bool> statusBarHideText = ValueNotifier(false); // 是否隐藏状态栏文字
+  static ValueNotifier<int> statusBarCustomColor = ValueNotifier(0xFF1976D2); // 状态栏自定义颜色
   static String postCommand = ""; //第一次进入容器时额外运行的命令
 
   static late SharedPreferences prefs;

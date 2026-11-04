@@ -396,6 +396,72 @@ class _SettingPageState extends State<SettingPage> {
             },
           ),
         ),
+        ListTile(
+          leading: const Icon(Icons.color_lens_outlined),
+          title: Text(l10n.statusBarColor),
+          subtitle: Text(l10n.statusBarColorSubtitle),
+          trailing: DropdownButton<String>(
+            value: G.statusBarColorMode.value,
+            items: [
+              DropdownMenuItem(
+                  value: StatusBarMode.system,
+                  child: Text(l10n.systemDefault)),
+              DropdownMenuItem(
+                  value: StatusBarMode.light,
+                  child: Text(l10n.statusBarLight)),
+              DropdownMenuItem(
+                  value: StatusBarMode.dark,
+                  child: Text(l10n.statusBarDark)),
+              DropdownMenuItem(
+                  value: StatusBarMode.custom,
+                  child: Text(l10n.statusBarCustom)),
+            ],
+            onChanged: (value) async {
+              if (value == null) return;
+              await Util.setStatusBarColorMode(value);
+              if (!context.mounted) return;
+              setState(() {});
+              if (value == StatusBarMode.custom) {
+                await _showStatusBarColorPicker(context, l10n);
+              }
+            },
+          ),
+        ),
+        if (G.statusBarColorMode.value == StatusBarMode.custom)
+          ListTile(
+            leading: const Icon(Icons.palette_outlined),
+            title: Text(l10n.statusBarCustom),
+            subtitle: Text(l10n.statusBarCustomHint),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Color(G.statusBarCustomColor.value),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Theme.of(context).dividerColor),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.edit_outlined),
+              ],
+            ),
+            onTap: () => _showStatusBarColorPicker(context, l10n),
+          ),
+        SwitchListTile(
+          secondary: const Icon(Icons.visibility_off_outlined),
+          title: Text(l10n.statusBarHideText),
+          subtitle: Text(l10n.statusBarHideTextSubtitle),
+          value: G.statusBarHideText.value,
+          onChanged: (value) async {
+            await Util.setStatusBarHideText(value);
+            if (mounted) {
+              setState(() {});
+            }
+          },
+        ),
         SwitchListTile(
           secondary: const Icon(Icons.wb_sunny_outlined),
           title: Text(l10n.keepScreenOn),
@@ -417,6 +483,25 @@ class _SettingPageState extends State<SettingPage> {
         ),
       ],
     );
+  }
+
+  Future<void> _showStatusBarColorPicker(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    final Color? color = await showDialog<Color>(
+      context: context,
+      builder: (dialogContext) => _StatusBarColorDialog(
+        l10n: l10n,
+        initialColor: Color(G.statusBarCustomColor.value),
+      ),
+    );
+    if (color != null) {
+      await Util.setStatusBarCustomColor(color);
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   String _imageQualityLabel(AppLocalizations l10n, int mode) {
@@ -834,6 +919,170 @@ class _AppStartCommandDialogState extends State<_AppStartCommandDialog> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _StatusBarColorDialog extends StatefulWidget {
+  final AppLocalizations l10n;
+  final Color initialColor;
+
+  const _StatusBarColorDialog({required this.l10n, required this.initialColor});
+
+  @override
+  State<_StatusBarColorDialog> createState() => _StatusBarColorDialogState();
+}
+
+class _StatusBarColorDialogState extends State<_StatusBarColorDialog> {
+  static const List<Color> _presetColors = [
+    Color(0xFF000000),
+    Color(0xFF212121),
+    Color(0xFF424242),
+    Color(0xFF616161),
+    Color(0xFF795548),
+    Color(0xFF3F51B5),
+    Color(0xFF2196F3),
+    Color(0xFF03A9F4),
+    Color(0xFF00BCD4),
+    Color(0xFF009688),
+    Color(0xFF4CAF50),
+    Color(0xFF8BC34A),
+    Color(0xFFFFC107),
+    Color(0xFFFF9800),
+    Color(0xFFFF5722),
+    Color(0xFFF44336),
+    Color(0xFFE91E63),
+    Color(0xFF9C27B0),
+    Color(0xFF673AB7),
+    Color(0xFF607D8B),
+    Color(0xFF9E9E9E),
+    Color(0xFFBDBDBD),
+    Color(0xFFE0E0E0),
+    Color(0xFFFFFFFF),
+  ];
+
+  late Color _color = widget.initialColor;
+  late final TextEditingController _controller =
+      TextEditingController(text: _toHex(widget.initialColor));
+  String? _error;
+
+  static String _toHex(Color color) {
+    return color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase();
+  }
+
+  static Color? _parseColor(String input) {
+    String text = input.trim().replaceAll('#', '');
+    if (text.length == 8) {
+      text = text.substring(2);
+    }
+    if (text.length != 6) {
+      return null;
+    }
+    final int? value = int.tryParse(text, radix: 16);
+    return value == null ? null : Color(0xFF000000 | value);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _selectColor(Color color) {
+    setState(() {
+      _color = color;
+      _controller.text = _toHex(color);
+      _error = null;
+    });
+  }
+
+  void _onHexChanged(String value) {
+    final Color? parsed = _parseColor(value);
+    setState(() {
+      _error = parsed == null ? widget.l10n.statusBarInvalidColor : null;
+      if (parsed != null) {
+        _color = parsed;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    return AlertDialog(
+      title: Text(widget.l10n.statusBarPickColor),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: _color,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _presetColors.map((preset) {
+                final bool selected = preset.toARGB32() == _color.toARGB32();
+                return InkWell(
+                  onTap: () => _selectColor(preset),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: preset,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: selected ? colorScheme.primary : colorScheme.outlineVariant,
+                        width: selected ? 3 : 1,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _controller,
+              maxLength: 8,
+              textCapitalization: TextCapitalization.characters,
+              decoration: InputDecoration(
+                labelText: widget.l10n.statusBarHexColor,
+                prefixText: '#',
+                border: const OutlineInputBorder(),
+                errorText: _error,
+                errorMaxLines: 2,
+              ),
+              onChanged: _onHexChanged,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(widget.l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () {
+            final Color? parsed = _parseColor(_controller.text);
+            if (parsed == null) {
+              setState(() {
+                _error = widget.l10n.statusBarInvalidColor;
+              });
+              return;
+            }
+            Navigator.of(context).pop(parsed);
+          },
+          child: Text(widget.l10n.confirm),
+        ),
+      ],
     );
   }
 }

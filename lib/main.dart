@@ -23,6 +23,43 @@ void main() async {
   if (localeCode != null) {
     G.locale.value = Locale(localeCode);
   }
+  if (G.prefs.containsKey("statusBarMode")) {
+    final String legacyMode =
+        G.prefs.getString("statusBarMode") ?? StatusBarMode.light;
+    String colorMode = StatusBarMode.light;
+    bool hideText = false;
+    switch (legacyMode) {
+      case "system":
+        colorMode = StatusBarMode.system;
+        break;
+      case "dark":
+        colorMode = StatusBarMode.dark;
+        break;
+      case "custom":
+        colorMode = StatusBarMode.custom;
+        break;
+      case "hidden":
+      case "hiddenLight":
+        colorMode = StatusBarMode.light;
+        hideText = true;
+        break;
+      case "hiddenDark":
+        colorMode = StatusBarMode.dark;
+        hideText = true;
+        break;
+    }
+    if (!G.prefs.containsKey("statusBarColorMode")) {
+      await G.prefs.setString("statusBarColorMode", colorMode);
+    }
+    if (!G.prefs.containsKey("statusBarHideText")) {
+      await G.prefs.setBool("statusBarHideText", hideText);
+    }
+    await G.prefs.remove("statusBarMode");
+  }
+  G.statusBarColorMode.value = Util.getGlobal("statusBarColorMode") as String;
+  G.statusBarHideText.value = Util.getGlobal("statusBarHideText") as bool;
+  G.statusBarCustomColor.value = Util.getGlobal("statusBarCustomColor") as int;
+  await Util.applyStatusBarMode();
   runApp(const MyApp());
 }
 
@@ -37,7 +74,8 @@ class MyApp extends StatelessWidget {
         valueListenable: G.locale,
         builder: (context, Locale? locale, child) {
           return MaterialApp(
-            builder: (context, child) => AppLifecycleOverlay(child: child!),
+            builder: (context, child) =>
+                AppLifecycleOverlay(child: StatusBarOverlay(child: child!)),
             locale: locale,
             localizationsDelegates: const [
               AppLocalizations.delegate,
@@ -62,6 +100,50 @@ class MyApp extends StatelessWidget {
         },
       );
     });
+  }
+}
+
+class StatusBarOverlay extends StatelessWidget {
+  final Widget child;
+
+  const StatusBarOverlay({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: Listenable.merge([G.statusBarColorMode, G.statusBarCustomColor]),
+      builder: (context, child) {
+        final String mode = G.statusBarColorMode.value;
+        final Color customColor = Color(G.statusBarCustomColor.value);
+        final double topInset = MediaQuery.paddingOf(context).top;
+        final Color? color = Util.statusBarOverlayColor(
+          mode,
+          Theme.of(context).colorScheme.surface,
+          customColor,
+        );
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: Util.statusBarOverlayStyle(
+            mode,
+            Theme.of(context).brightness,
+            customColor,
+          ),
+          child: Stack(
+            children: [
+              child!,
+              if (color != null && topInset > 0)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: topInset,
+                  child: IgnorePointer(child: ColoredBox(color: color)),
+                ),
+            ],
+          ),
+        );
+      },
+      child: child,
+    );
   }
 }
 
@@ -265,14 +347,26 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    G.statusBarColorMode.addListener(_onStatusBarModeChanged);
+    G.statusBarHideText.addListener(_onStatusBarModeChanged);
+    G.statusBarCustomColor.addListener(_onStatusBarModeChanged);
     Future.delayed(Duration.zero, () {
       _initializeWorkflow();
     });
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge, overlays: []);
+    Util.applyStatusBarMode();
+  }
+
+  void _onStatusBarModeChanged() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   @override
   void dispose() {
+    G.statusBarColorMode.removeListener(_onStatusBarModeChanged);
+    G.statusBarHideText.removeListener(_onStatusBarModeChanged);
+    G.statusBarCustomColor.removeListener(_onStatusBarModeChanged);
     super.dispose();
   }
 
@@ -292,6 +386,11 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(D.containerName),
+        systemOverlayStyle: Util.statusBarOverlayStyle(
+          G.statusBarColorMode.value,
+          Theme.of(context).brightness,
+          Color(G.statusBarCustomColor.value),
+        ),
         actions: [
           ListenableBuilder(
             listenable: Listenable.merge([G.pageIndex, G.isTerminalVisible]),
