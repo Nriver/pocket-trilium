@@ -26,6 +26,28 @@ import 'core/webview_scripts.dart';
 import 'fullScreenWebPage.dart';
 import 'l10n/app_localizations.dart';
 
+//用户在初始化/升级时选择的Trilium安装包来源
+class TriliumSelection {
+  final String kind; // built-in / url / file
+  final String? url;
+  final String? filePath;
+  final String? name;
+
+  const TriliumSelection.builtIn()
+      : kind = 'built-in',
+        url = null,
+        filePath = null,
+        name = null;
+
+  const TriliumSelection.online(this.url, {this.name})
+      : kind = 'url',
+        filePath = null;
+
+  const TriliumSelection.local(this.filePath, this.name)
+      : kind = 'file',
+        url = null;
+}
+
 class Util {
 
   static Future<void> copyAsset(String src, String dst) async {
@@ -49,6 +71,14 @@ class Util {
 
   static void termWrite(String str) {
     G.termPtys[G.currentContainer]!.pty.write(const Utf8Encoder().convert("$str\n"));
+  }
+
+  //打开系统文件选择器，把用户选择的安装包复制到destPath，返回该路径；取消时返回null
+  static Future<String?> pickTriliumPackage(String destPath) async {
+    return await D.androidChannel.invokeMethod<String>(
+      "pickTriliumPackage",
+      {"destPath": destPath},
+    );
   }
 
   static final LocalAuthentication auth = LocalAuthentication();
@@ -878,58 +908,13 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
     }
 
     // 显示版本选择对话框
-    String? selectedUrl = await showTriliumVersionSelector(ctx);
-    // 如果用户关闭对话框没有选择，默认使用内置版本
-    selectedUrl ??= 'built-in';
+    final TriliumSelection selection =
+        await showTriliumVersionSelector(ctx) ?? const TriliumSelection.builtIn();
 
     // ──────────────────────────────
-    //      处理 trilium.tar.xz 文件
+    //      准备 trilium.tar.xz 文件
     // ──────────────────────────────
-    final targetPath = "${G.dataPath}/${D.triliumPackage}";
-
-    if (selectedUrl == 'built-in') {
-      G.updateText.value = AppLocalizations.of(ctx)!.usingBuiltInVersion(D.triliumVersions[0]['name']!);
-      await _copyBuiltInTrilium(targetPath);
-    } else {
-      G.updateText.value = AppLocalizations.of(ctx)!.downloadingTrilium(D.triliumVersions.firstWhere((v) => v['url'] == selectedUrl)['name']!);
-      try {
-        final response = await http.get(Uri.parse(selectedUrl!));
-        if (response.statusCode == 200) {
-          await File(targetPath).writeAsBytes(response.bodyBytes);
-          G.updateText.value = AppLocalizations.of(ctx)!.downloadCompletePreparing;
-        } else {
-          throw Exception("HTTP ${response.statusCode}");
-        }
-      } catch (e, stack) {
-        debugPrint("下载失败: $e\n$stack");
-
-        // 尽量在 context 还可用时提示用户
-        if (ctx.mounted) {
-          await showDialog(
-            context: ctx,
-            barrierDismissible: false, // 建议不让点外面关闭
-            builder: (alertCtx) => AlertDialog(
-              title: Text(AppLocalizations.of(alertCtx)!.downloadFailed),
-              content: Text(AppLocalizations.of(alertCtx)!.downloadFailedMessage),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(alertCtx);
-                    // 然后退出
-                    // SystemNavigator.pop();
-                    exit(0);
-                  },
-                  child: Text(AppLocalizations.of(alertCtx)!.exitApp, style: TextStyle(color: Colors.red)),
-                ),
-              ],
-            ),
-          );
-        }
-
-        // 回退使用内置版本
-        await _copyBuiltInTrilium(targetPath);
-      }
-    }
+    await _prepareTriliumPackage(ctx, selection);
 
     // ──────────────────────────────
     //      继续原有的初始化流程
@@ -947,107 +932,102 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
     G.updateText.value = AppLocalizations.of(ctx)!.installationComplete;
   }
 
-  // 辅助方法：显示版本选择对话框，返回选择的url
-  static Future<String?> showTriliumVersionSelector(BuildContext context) async {
-      String? selectedUrl;
+  // 辅助方法：显示版本选择对话框，返回选择的安装包来源
+  static Future<TriliumSelection?> showTriliumVersionSelector(
+      BuildContext context) {
+    return showDialog<TriliumSelection>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const _TriliumVersionSelectorDialog(),
+    );
+  }
 
-      await showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) {
-          return StatefulBuilder(
-            builder: (context, setDialogState) {
-              return AlertDialog(
-                title: Text(
-                  AppLocalizations.of(dialogContext)!.selectTriliumVersion,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                content: SizedBox(
-                  width: double.maxFinite,
-                  height: MediaQuery.of(dialogContext).size.height * 0.55,
-                  child: ListView.builder(
-                    itemCount: D.triliumVersions.length,
-                    itemBuilder: (context, index) {
-                      final ver = D.triliumVersions[index];
-                      final isSelected = selectedUrl == ver['url'];
-                      return ListTile(
-                        dense: true,
-                        visualDensity: VisualDensity.compact,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                        selected: isSelected,
-                        selectedTileColor: Colors.blue.withOpacity(0.1),
-                        title: Text(
-                          "${ver['name']} ${ver['suffix']}",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 第一行：语言类型
-                            Text(
-                              Util._getLangLabel(ver['lang']!, dialogContext),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Util._getLangColor(ver['lang']!),
-                              ),
-                            ),
-                            // 第二行：内置 / 在线
-                            Text(
-                              ver['url'] == 'built-in'
-                                  ? AppLocalizations.of(dialogContext)!.versionLangBuiltIn
-                                  : AppLocalizations.of(dialogContext)!.onlineDownload,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: ver['url'] == 'built-in' ? Colors.grey : Colors.blue,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: isSelected
-                            ? const Icon(Icons.check_circle, color: Colors.green, size: 24)
-                            : null,
-                        onTap: () {
-                          setDialogState(() {
-                            selectedUrl = ver['url'];
-                          });
-                        },
-                      );
-                    },
-                  ),
-                ),
-                contentPadding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-                actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+  // 校验文件是否为xz压缩包(魔数FD 37 7A 58 5A 00)
+  static Future<bool> _isValidXzArchive(String path) async {
+    try {
+      final file = File(path);
+      if (!file.existsSync() || file.lengthSync() < 6) {
+        return false;
+      }
+      final raf = await file.open();
+      final bytes = await raf.read(6);
+      await raf.close();
+      return bytes.length == 6 &&
+          bytes[0] == 0xFD &&
+          bytes[1] == 0x37 &&
+          bytes[2] == 0x7A &&
+          bytes[3] == 0x58 &&
+          bytes[4] == 0x5A &&
+          bytes[5] == 0x00;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // 根据用户选择准备trilium.tar.xz(内置/在线/本地导入)
+  static Future<void> _prepareTriliumPackage(
+      BuildContext ctx, TriliumSelection selection) async {
+    final targetPath = "${G.dataPath}/${D.triliumPackage}";
+
+    switch (selection.kind) {
+      case 'built-in':
+        G.updateText.value = AppLocalizations.of(ctx)!
+            .usingBuiltInVersion(D.triliumVersions[0]['name']!);
+        await _copyBuiltInTrilium(targetPath);
+        return;
+      case 'file':
+        G.updateText.value = AppLocalizations.of(ctx)!
+            .usingCustomTriliumPackage(selection.name ?? '');
+        return;
+      case 'url':
+      default:
+        G.updateText.value = AppLocalizations.of(ctx)!
+            .downloadingTrilium(selection.name ?? selection.url ?? '');
+        try {
+          final response = await http.get(Uri.parse(selection.url!));
+          if (response.statusCode == 200) {
+            await File(targetPath).writeAsBytes(response.bodyBytes);
+            G.updateText.value =
+                AppLocalizations.of(ctx)!.downloadCompletePreparing;
+          } else {
+            throw Exception("HTTP ${response.statusCode}");
+          }
+        } catch (e, stack) {
+          debugPrint("下载失败: $e\n$stack");
+
+          // 尽量在 context 还可用时提示用户
+          if (ctx.mounted) {
+            await showDialog(
+              context: ctx,
+              barrierDismissible: false, // 建议不让点外面关闭
+              builder: (alertCtx) => AlertDialog(
+                title: Text(AppLocalizations.of(alertCtx)!.downloadFailed),
+                content:
+                    Text(AppLocalizations.of(alertCtx)!.downloadFailedMessage),
                 actions: [
                   TextButton(
-                    onPressed: selectedUrl == null
-                        ? null
-                        : () {
-                            Navigator.of(dialogContext).pop();
-                          },
-                    style: TextButton.styleFrom(
-                      foregroundColor: selectedUrl == null ? Colors.grey : null,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
+                    onPressed: () {
+                      Navigator.pop(alertCtx);
+                      // 然后退出
+                      // SystemNavigator.pop();
+                      exit(0);
+                    },
                     child: Text(
-                      AppLocalizations.of(dialogContext)!.confirm,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      AppLocalizations.of(alertCtx)!.exitApp,
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
                 ],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              );
-            },
-          );
-        },
-      );
+              ),
+            );
+          }
 
-      return selectedUrl;
+          // 回退使用内置版本
+          await _copyBuiltInTrilium(targetPath);
+        }
+        return;
     }
+  }
 
   // 辅助方法：复制内置版本
   static Future<void> _copyBuiltInTrilium([String? customPath]) async {
@@ -1129,58 +1109,13 @@ done
       return;
     }
     // 显示版本选择对话框
-    String? selectedUrl = await showTriliumVersionSelector(ctx);
-    // 如果用户关闭对话框没有选择，默认使用内置版本
-    selectedUrl ??= 'built-in';
+    final TriliumSelection selection =
+        await showTriliumVersionSelector(ctx) ?? const TriliumSelection.builtIn();
 
     // ──────────────────────────────
-    //      处理 trilium.tar.xz 文件
+    //      准备 trilium.tar.xz 文件
     // ──────────────────────────────
-    final targetPath = "${G.dataPath}/${D.triliumPackage}";
-
-    if (selectedUrl == 'built-in') {
-      G.updateText.value = AppLocalizations.of(ctx)!.usingBuiltInVersion(D.triliumVersions[0]['name']!);
-      await _copyBuiltInTrilium(targetPath);
-    } else {
-      G.updateText.value = AppLocalizations.of(ctx)!.downloadingTrilium(D.triliumVersions.firstWhere((v) => v['url'] == selectedUrl)['name']!);
-      try {
-        final response = await http.get(Uri.parse(selectedUrl!));
-        if (response.statusCode == 200) {
-          await File(targetPath).writeAsBytes(response.bodyBytes);
-          G.updateText.value = AppLocalizations.of(ctx)!.downloadCompletePreparing;
-        } else {
-          throw Exception("HTTP ${response.statusCode}");
-        }
-      } catch (e, stack) {
-        debugPrint("下载失败: $e\n$stack");
-
-        // 尽量在 context 还可用时提示用户
-        if (ctx.mounted) {
-          await showDialog(
-            context: ctx,
-            barrierDismissible: false, // 建议不让点外面关闭
-            builder: (alertCtx) => AlertDialog(
-              title: Text(AppLocalizations.of(alertCtx)!.downloadFailed),
-              content: Text(AppLocalizations.of(alertCtx)!.downloadFailedMessage),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(alertCtx);
-                    // 然后退出
-                    // SystemNavigator.pop();
-                    exit(0);
-                  },
-                  child: Text(AppLocalizations.of(alertCtx)!.exitApp, style: TextStyle(color: Colors.red)),
-                ),
-              ],
-            ),
-          );
-        }
-
-        // 回退使用内置版本
-        await _copyBuiltInTrilium(targetPath);
-      }
-    }
+    await _prepareTriliumPackage(ctx, selection);
 
     // ──────────────────────────────
     //      继续原有的初始化流程
@@ -1522,5 +1457,424 @@ clear""");
       launchGUIBackend();
       openWebPage();
     }
+  }
+}
+
+//版本选择对话框：内置/在线版本列表，左下角可进入自定义Trilium界面
+//自定义界面支持填写下载链接，或从手机导入本地arm64安装包
+enum _CustomTriliumSource { url, file }
+
+class _TriliumVersionSelectorDialog extends StatefulWidget {
+  const _TriliumVersionSelectorDialog();
+
+  @override
+  State<_TriliumVersionSelectorDialog> createState() =>
+      _TriliumVersionSelectorDialogState();
+}
+
+class _TriliumVersionSelectorDialogState
+    extends State<_TriliumVersionSelectorDialog> {
+  final TextEditingController _urlController = TextEditingController();
+  TriliumSelection? _selected;
+  bool _customView = false;
+  _CustomTriliumSource _customSource = _CustomTriliumSource.file;
+  bool _importing = false;
+  String? _errorText;
+  String? _pickedFilePath;
+  String? _pickedFileName;
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    super.dispose();
+  }
+
+  bool _isSelectedVersion(Map<String, dynamic> ver) {
+    if (_selected == null) {
+      return false;
+    }
+    if (_selected!.kind == 'built-in') {
+      return ver['url'] == 'built-in';
+    }
+    return _selected!.kind == 'url' && _selected!.url == ver['url'];
+  }
+
+  void _openCustomView() {
+    setState(() {
+      _customView = true;
+      _errorText = null;
+    });
+  }
+
+  //返回应用内版本列表，不关闭整个初始化流程
+  void _backToVersions() {
+    setState(() {
+      _customView = false;
+      _errorText = null;
+    });
+  }
+
+  void _selectVersion(Map<String, dynamic> ver) {
+    setState(() {
+      _selected = ver['url'] == 'built-in'
+          ? const TriliumSelection.builtIn()
+          : TriliumSelection.online(
+              ver['url'] as String,
+              name: ver['name'] as String?,
+            );
+      _errorText = null;
+    });
+  }
+
+  Future<void> _importFromPhone() async {
+    setState(() {
+      _importing = true;
+      _errorText = null;
+    });
+
+    try {
+      final targetPath = "${G.dataPath}/${D.triliumPackage}";
+      final path = await Util.pickTriliumPackage(targetPath);
+      if (!mounted) {
+        return;
+      }
+      if (path == null) {
+        setState(() => _importing = false);
+        return;
+      }
+
+      final bool valid = await Workflow._isValidXzArchive(path);
+      if (!mounted) {
+        return;
+      }
+      if (!valid) {
+        try {
+          File(path).deleteSync();
+        } catch (_) {}
+        setState(() {
+          _importing = false;
+          _errorText = AppLocalizations.of(context)!.invalidTriliumPackage;
+        });
+        return;
+      }
+
+      setState(() {
+        _importing = false;
+        _pickedFilePath = path;
+        _pickedFileName = path.split('/').last;
+      });
+    } catch (e) {
+      debugPrint("导入本地Trilium安装包失败: $e");
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _importing = false;
+        _errorText = AppLocalizations.of(context)!.importFailed;
+      });
+    }
+  }
+
+  void _confirm() {
+    final l10n = AppLocalizations.of(context)!;
+    if (_customView) {
+      if (_customSource == _CustomTriliumSource.url) {
+        final url = _urlController.text.trim();
+        final uri = Uri.tryParse(url);
+        if (uri == null ||
+            (uri.scheme != 'http' && uri.scheme != 'https') ||
+            uri.host.isEmpty) {
+          setState(() => _errorText = l10n.invalidUrl);
+          return;
+        }
+        Navigator.of(context).pop(
+          TriliumSelection.online(url, name: url.split('/').last),
+        );
+      } else {
+        final path = _pickedFilePath;
+        final name = _pickedFileName;
+        if (path == null || name == null) {
+          return;
+        }
+        Navigator.of(context).pop(TriliumSelection.local(path, name));
+      }
+      return;
+    }
+    final selection = _selected;
+    if (selection != null) {
+      Navigator.of(context).pop(selection);
+    }
+  }
+
+  bool get _canConfirmCustom {
+    if (_customSource == _CustomTriliumSource.url) {
+      return _urlController.text.trim().isNotEmpty;
+    }
+    return _pickedFilePath != null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final double screenHeight = MediaQuery.sizeOf(context).height;
+    final double keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
+    double contentHeight = screenHeight * 0.55;
+    if (keyboardHeight > 0) {
+      contentHeight = (contentHeight - keyboardHeight * 0.5)
+          .clamp(240.0, contentHeight)
+          .toDouble();
+    }
+
+    return PopScope(
+      canPop: !_customView,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _customView) {
+          _backToVersions();
+        }
+      },
+      child: AlertDialog(
+        title: Text(
+          _customView ? l10n.customTrilium : l10n.selectTriliumVersion,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          height: contentHeight,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            child: _customView
+                ? KeyedSubtree(
+                    key: const ValueKey('custom'),
+                    child: _buildCustomView(l10n),
+                  )
+                : KeyedSubtree(
+                    key: const ValueKey('versions'),
+                    child: _buildVersionList(l10n),
+                  ),
+          ),
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+        actionsPadding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+        actionsAlignment: MainAxisAlignment.spaceBetween,
+        actions: _buildActions(l10n),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVersionList(AppLocalizations l10n) {
+    return ListView.builder(
+      itemCount: D.triliumVersions.length,
+      itemBuilder: (context, index) {
+        final ver = D.triliumVersions[index];
+        final bool isSelected = _isSelectedVersion(ver);
+        return ListTile(
+          dense: true,
+          visualDensity: VisualDensity.compact,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          selected: isSelected,
+          selectedTileColor: Colors.blue.withOpacity(0.1),
+          title: Text(
+            "${ver['name']} ${ver['suffix']}",
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 第一行：语言类型
+              Text(
+                Util._getLangLabel(ver['lang']!, context),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Util._getLangColor(ver['lang']!),
+                ),
+              ),
+              // 第二行：内置 / 在线
+              Text(
+                ver['url'] == 'built-in'
+                    ? l10n.versionLangBuiltIn
+                    : l10n.onlineDownload,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: ver['url'] == 'built-in' ? Colors.grey : Colors.blue,
+                ),
+              ),
+            ],
+          ),
+          trailing: isSelected
+              ? const Icon(Icons.check_circle, color: Colors.green, size: 24)
+              : null,
+          onTap: () => _selectVersion(ver),
+        );
+      },
+    );
+  }
+
+  Widget _buildCustomView(AppLocalizations l10n) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.customTriliumSubtitle,
+            style: TextStyle(fontSize: 12, color: colorScheme.outline),
+          ),
+          const SizedBox(height: 12),
+          SegmentedButton<_CustomTriliumSource>(
+            segments: [
+              ButtonSegment<_CustomTriliumSource>(
+                value: _CustomTriliumSource.file,
+                icon: const Icon(Icons.folder_open),
+                label: Text(l10n.customSourceLocal),
+              ),
+              ButtonSegment<_CustomTriliumSource>(
+                value: _CustomTriliumSource.url,
+                icon: const Icon(Icons.link),
+                label: Text(l10n.customSourceUrl),
+              ),
+            ],
+            selected: {_customSource},
+            showSelectedIcon: false,
+            onSelectionChanged: (values) {
+              if (_importing) {
+                return;
+              }
+              setState(() {
+                _customSource = values.first;
+                _errorText = null;
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+          if (_customSource == _CustomTriliumSource.url)
+            TextField(
+              controller: _urlController,
+              enabled: !_importing,
+              keyboardType: TextInputType.url,
+              autocorrect: false,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                labelText: l10n.customTriliumUrl,
+                hintText: l10n.customTriliumUrlHint,
+                helperText: l10n.customTriliumUrlHelp,
+                helperMaxLines: 3,
+                prefixIcon: const Icon(Icons.link),
+                border: const OutlineInputBorder(),
+                errorText: _errorText,
+              ),
+              onChanged: (_) => setState(() => _errorText = null),
+            )
+          else
+            _buildFilePicker(l10n),
+          if (_customSource == _CustomTriliumSource.file && _errorText != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                _errorText!,
+                style: TextStyle(fontSize: 12, color: colorScheme.error),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilePicker(AppLocalizations l10n) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final bool hasFile = _pickedFilePath != null;
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: _importing ? null : _importFromPhone,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              if (_importing)
+                const SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                )
+              else
+                Icon(
+                  hasFile ? Icons.check_circle : Icons.upload_file,
+                  size: 32,
+                  color: hasFile ? Colors.green : colorScheme.primary,
+                ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _importing
+                          ? l10n.importingFile
+                          : (_pickedFileName ?? l10n.selectPackageFile),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      hasFile
+                          ? l10n.tapToReselectFile
+                          : l10n.selectPackageFileHint,
+                      style:
+                          TextStyle(fontSize: 12, color: colorScheme.outline),
+                    ),
+                  ],
+                ),
+              ),
+              if (!_importing)
+                Icon(Icons.chevron_right, color: colorScheme.outline),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _buildActions(AppLocalizations l10n) {
+    if (_customView) {
+      return [
+        TextButton(
+          onPressed: _importing ? null : _backToVersions,
+          child: Text(l10n.back),
+        ),
+        TextButton(
+          onPressed: _importing || !_canConfirmCustom ? null : _confirm,
+          child: Text(
+            l10n.confirm,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+        ),
+      ];
+    }
+    return [
+      TextButton.icon(
+        onPressed: _openCustomView,
+        icon: const Icon(Icons.tune),
+        label: Text(l10n.customTrilium),
+      ),
+      TextButton(
+        onPressed: _selected == null ? null : _confirm,
+        child: Text(
+          l10n.confirm,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+    ];
   }
 }
