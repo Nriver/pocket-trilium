@@ -31,14 +31,14 @@ cd /home/builder/termux-packages
 ### 4. 设置 NDK 环境变量
 
 ```bash
-export ANDROID_NDK_HOME=/home/builder/lib/android-ndk-r29
-export NDK=/home/builder/lib/android-ndk-r29
-export TERMUX_NDK=/home/builder/lib/android-ndk-r29
+export ANDROID_NDK_HOME=/home/builder/lib/android-ndk-r30
+export NDK=/home/builder/lib/android-ndk-r30
+export TERMUX_NDK=/home/builder/lib/android-ndk-r30
 ```
 
 ### 5. （可选）设置代理
 
-如果无法连接网络，可设置代理：
+如果无法连接网络，可设置代理。把 `192.168.1.100` 换成**宿主机实际的局域网 IP**，端口保持 `20809`（容器内不能用 `127.0.0.1`）：
 
 ```bash
 export ALL_PROXY=http://192.168.1.100:20809
@@ -48,6 +48,8 @@ export HTTPS_PROXY=http://192.168.1.100:20809
 git config --global --replace-all http.proxy 'http://192.168.1.100:20809'
 git config --global --replace-all https.proxy 'http://192.168.1.100:20809'
 ```
+
+如果之前设置过其它 IP，务必用上面的 `--replace-all` 覆盖旧的 `git` 代理配置，否则克隆源码时仍会走旧代理。
 
 ### 6. 移除不需要的包（推荐）
 

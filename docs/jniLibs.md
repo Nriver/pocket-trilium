@@ -31,14 +31,14 @@ cd /home/builder/termux-packages
 ### 4. Set NDK Environment Variables
 
 ```bash
-export ANDROID_NDK_HOME=/home/builder/lib/android-ndk-r29
-export NDK=/home/builder/lib/android-ndk-r29
-export TERMUX_NDK=/home/builder/lib/android-ndk-r29
+export ANDROID_NDK_HOME=/home/builder/lib/android-ndk-r30
+export NDK=/home/builder/lib/android-ndk-r30
+export TERMUX_NDK=/home/builder/lib/android-ndk-r30
 ```
 
 ### 5. (Optional) Set Proxy
 
-If you have network issues, configure the proxy:
+If you have network issues, configure the proxy. Replace `192.168.1.100` with the **host machine's actual LAN IP** and keep the port `20809` (`127.0.0.1` does not work inside the container):
 
 ```bash
 export ALL_PROXY=http://192.168.1.100:20809
@@ -48,6 +48,8 @@ export HTTPS_PROXY=http://192.168.1.100:20809
 git config --global --replace-all http.proxy 'http://192.168.1.100:20809'
 git config --global --replace-all https.proxy 'http://192.168.1.100:20809'
 ```
+
+If a different IP was configured previously, make sure to override it with `--replace-all` as shown above, otherwise cloning will still use the stale proxy.
 
 ### 6. Remove Unnecessary Packages (Recommended)
 
