@@ -28,16 +28,10 @@ import 'l10n/app_localizations.dart';
 
 //用户在初始化/升级时选择的Trilium安装包来源
 class TriliumSelection {
-  final String kind; // built-in / url / file
+  final String kind; // url / file
   final String? url;
   final String? filePath;
   final String? name;
-
-  const TriliumSelection.builtIn()
-      : kind = 'built-in',
-        url = null,
-        filePath = null,
-        name = null;
 
   const TriliumSelection.online(this.url, {this.name})
       : kind = 'url',
@@ -897,39 +891,55 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
   //初次启动要做的事情
   static Future<void> initForFirstTime() async {
     // 提前保存 context，避免跨 async 使用失效的 context
-    final BuildContext? ctx = G.homePageStateContext;
-    if (ctx == null || !ctx.mounted) {
-      debugPrint("警告：初始化时 context 不可用，将使用内置版本继续");
-      await _copyBuiltInTrilium();
-      await setupBootstrap();
-      await installTrilium();
-      await _finishContainerSetup();
-      return;
-    }
+    final BuildContext ctx = G.homePageStateContext;
+    final bool hasContext = ctx.mounted;
 
-    // 显示版本选择对话框
-    final TriliumSelection selection =
-        await showTriliumVersionSelector(ctx) ?? const TriliumSelection.builtIn();
+    final TriliumSelection selection;
+    if (hasContext) {
+      // 显示版本选择对话框
+      selection = await showTriliumVersionSelector(ctx) ??
+          _defaultOnlineSelection();
+    } else {
+      debugPrint("警告：初始化时 context 不可用，将使用默认在线版本继续");
+      selection = _defaultOnlineSelection();
+    }
 
     // ──────────────────────────────
     //      准备 trilium.tar.xz 文件
     // ──────────────────────────────
-    await _prepareTriliumPackage(ctx, selection);
+    await _prepareTriliumPackage(hasContext ? ctx : null, selection);
 
     // ──────────────────────────────
     //      继续原有的初始化流程
     // ──────────────────────────────
-    G.updateText.value = AppLocalizations.of(ctx)!.installingBootPackage;
+    if (hasContext) {
+      G.updateText.value = AppLocalizations.of(ctx)!.installingBootPackage;
+    }
     await setupBootstrap();
 
-    G.updateText.value = AppLocalizations.of(ctx)!.installingTrilium;
+    if (hasContext) {
+      G.updateText.value = AppLocalizations.of(ctx)!.installingTrilium;
+    }
     await installTrilium();
 
-    G.updateText.value = AppLocalizations.of(ctx)!.copyingContainerSystem;
+    if (hasContext) {
+      G.updateText.value = AppLocalizations.of(ctx)!.copyingContainerSystem;
+    }
 
     await _finishContainerSetup();
 
-    G.updateText.value = AppLocalizations.of(ctx)!.installationComplete;
+    if (hasContext) {
+      G.updateText.value = AppLocalizations.of(ctx)!.installationComplete;
+    }
+  }
+
+  // 默认在线版本，用于无法显示选择框或用户直接关闭选择框时的回退
+  static TriliumSelection _defaultOnlineSelection() {
+    final ver = D.triliumVersions.first;
+    return TriliumSelection.online(
+      ver['url'] as String,
+      name: ver['name'] as String?,
+    );
   }
 
   // 辅助方法：显示版本选择对话框，返回选择的安装包来源
@@ -964,31 +974,33 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
     }
   }
 
-  // 根据用户选择准备trilium.tar.xz(内置/在线/本地导入)
+  // 根据用户选择准备trilium.tar.xz(在线/本地导入)
   static Future<void> _prepareTriliumPackage(
-      BuildContext ctx, TriliumSelection selection) async {
+      BuildContext? ctx, TriliumSelection selection) async {
     final targetPath = "${G.dataPath}/${D.triliumPackage}";
+    final bool hasContext = ctx != null && ctx.mounted;
 
     switch (selection.kind) {
-      case 'built-in':
-        G.updateText.value = AppLocalizations.of(ctx)!
-            .usingBuiltInVersion(D.triliumVersions[0]['name']!);
-        await _copyBuiltInTrilium(targetPath);
-        return;
       case 'file':
-        G.updateText.value = AppLocalizations.of(ctx)!
-            .usingCustomTriliumPackage(selection.name ?? '');
+        if (hasContext) {
+          G.updateText.value = AppLocalizations.of(ctx)!
+              .usingCustomTriliumPackage(selection.name ?? '');
+        }
         return;
       case 'url':
       default:
-        G.updateText.value = AppLocalizations.of(ctx)!
-            .downloadingTrilium(selection.name ?? selection.url ?? '');
+        if (hasContext) {
+          G.updateText.value = AppLocalizations.of(ctx)!
+              .downloadingTrilium(selection.name ?? selection.url ?? '');
+        }
         try {
           final response = await http.get(Uri.parse(selection.url!));
           if (response.statusCode == 200) {
             await File(targetPath).writeAsBytes(response.bodyBytes);
-            G.updateText.value =
-                AppLocalizations.of(ctx)!.downloadCompletePreparing;
+            if (hasContext) {
+              G.updateText.value =
+                  AppLocalizations.of(ctx)!.downloadCompletePreparing;
+            }
           } else {
             throw Exception("HTTP ${response.statusCode}");
           }
@@ -996,7 +1008,7 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
           debugPrint("下载失败: $e\n$stack");
 
           // 尽量在 context 还可用时提示用户
-          if (ctx.mounted) {
+          if (hasContext) {
             await showDialog(
               context: ctx,
               barrierDismissible: false, // 建议不让点外面关闭
@@ -1021,22 +1033,10 @@ mv TriliumNotes-Server-* trilium 2>/dev/null || true
               ),
             );
           }
-
-          // 回退使用内置版本
-          await _copyBuiltInTrilium(targetPath);
+          exit(0);
         }
         return;
     }
-  }
-
-  // 辅助方法：复制内置版本
-  static Future<void> _copyBuiltInTrilium([String? customPath]) async {
-    final target = customPath ?? "${G.dataPath}/${D.triliumPackage}";
-
-    final builtIn = D.triliumVersions.firstWhere((v) => v['url'] == 'built-in');
-    final assetPath = builtIn['filename']!;
-
-    await Util.copyAsset(assetPath, target);
   }
 
   // 辅助方法：完成容器系统安装（原有的后半部分）
@@ -1101,26 +1101,30 @@ done
     // 清理缓存
     await Util.clearAppCache();
     // 提前保存 context，避免跨 async 使用失效的 context
-    final BuildContext? ctx = G.homePageStateContext;
-    if (ctx == null || !ctx.mounted) {
-      debugPrint("警告：初始化时 context 不可用，将使用内置版本继续");
-      await _copyBuiltInTrilium();
-      await installTrilium();
-      return;
+    final BuildContext ctx = G.homePageStateContext;
+    final bool hasContext = ctx.mounted;
+
+    final TriliumSelection selection;
+    if (hasContext) {
+      // 显示版本选择对话框
+      selection = await showTriliumVersionSelector(ctx) ??
+          _defaultOnlineSelection();
+    } else {
+      debugPrint("警告：初始化时 context 不可用，将使用默认在线版本继续");
+      selection = _defaultOnlineSelection();
     }
-    // 显示版本选择对话框
-    final TriliumSelection selection =
-        await showTriliumVersionSelector(ctx) ?? const TriliumSelection.builtIn();
 
     // ──────────────────────────────
     //      准备 trilium.tar.xz 文件
     // ──────────────────────────────
-    await _prepareTriliumPackage(ctx, selection);
+    await _prepareTriliumPackage(hasContext ? ctx : null, selection);
 
     // ──────────────────────────────
     //      继续原有的初始化流程
     // ──────────────────────────────
-    G.updateText.value = AppLocalizations.of(ctx)!.installingTrilium;
+    if (hasContext) {
+      G.updateText.value = AppLocalizations.of(ctx)!.installingTrilium;
+    }
     await installTrilium();
   }
 
@@ -1460,7 +1464,7 @@ clear""");
   }
 }
 
-//版本选择对话框：内置/在线版本列表，左下角可进入自定义Trilium界面
+//版本选择对话框：在线版本列表，左下角可进入自定义Trilium界面
 //自定义界面支持填写下载链接，或从手机导入本地arm64安装包
 enum _CustomTriliumSource { url, file }
 
@@ -1493,9 +1497,6 @@ class _TriliumVersionSelectorDialogState
     if (_selected == null) {
       return false;
     }
-    if (_selected!.kind == 'built-in') {
-      return ver['url'] == 'built-in';
-    }
     return _selected!.kind == 'url' && _selected!.url == ver['url'];
   }
 
@@ -1516,12 +1517,10 @@ class _TriliumVersionSelectorDialogState
 
   void _selectVersion(Map<String, dynamic> ver) {
     setState(() {
-      _selected = ver['url'] == 'built-in'
-          ? const TriliumSelection.builtIn()
-          : TriliumSelection.online(
-              ver['url'] as String,
-              name: ver['name'] as String?,
-            );
+      _selected = TriliumSelection.online(
+        ver['url'] as String,
+        name: ver['name'] as String?,
+      );
       _errorText = null;
     });
   }
@@ -1697,14 +1696,12 @@ class _TriliumVersionSelectorDialogState
                   color: Util._getLangColor(ver['lang']!),
                 ),
               ),
-              // 第二行：内置 / 在线
+              // 第二行：在线下载
               Text(
-                ver['url'] == 'built-in'
-                    ? l10n.versionLangBuiltIn
-                    : l10n.onlineDownload,
-                style: TextStyle(
+                l10n.onlineDownload,
+                style: const TextStyle(
                   fontSize: 11,
-                  color: ver['url'] == 'built-in' ? Colors.grey : Colors.blue,
+                  color: Colors.blue,
                 ),
               ),
             ],

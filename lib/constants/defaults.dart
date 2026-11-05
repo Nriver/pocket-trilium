@@ -17,13 +17,6 @@ class D {
   // Trilium 可选版本列表
   static const List<Map<String, dynamic>> triliumVersions = [
     {
-      'name': '0.63.7-cn',
-      'suffix': '(Built-in)',
-      'url': 'built-in',
-      'filename': 'assets/trilium.tar.xz',
-      'lang': 'zh-only',
-    },
-    {
       'name': '0.106.1',
       'suffix': '(GitHub)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.106.1/TriliumNotes-Server-v0.106.1-linux-arm64.tar.xz',

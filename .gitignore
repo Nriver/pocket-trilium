@@ -51,7 +51,6 @@ app.*.map.json
 /backup
 
 assets/xa*
-assets/trilium*
 
 android/app/src/main/jniLibs/*
 

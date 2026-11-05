@@ -167,7 +167,6 @@ Android 12 及以上设备可能需要在「开发者选项」中关闭「停止
 为避免仓库体积过大，以下几个大文件**未包含**在本仓库中，你需要自行编译或构建：
 
 - **`assets/xa*`** 文件（rootfs）——按照 [rootfs_CN.md](docs/rootfs_CN.md) 中的说明进行构建。
-- **`assets/trilium.tar.xz`** ——内置 Trilium Notes。经典的 0.63.7 版本需要为 arm64 平台重新编译。本仓库内置的是从 [Nriver/trilium-translation](https://github.com/Nriver/trilium-translation) 重新编译的中文优化版。
 - **`android/app/src/main/jniLibs/arm64-v8a/*.so`** ——从 termux-packages 编译并提取的原生库。详细编译说明请参考 [jniLibs_CN.md](docs/jniLibs_CN.md)。
 
 ### `flutter_inappwebview_android` proguard 配置修复
