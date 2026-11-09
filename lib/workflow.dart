@@ -558,18 +558,6 @@ class Util {
     }
   }
 
-  static Color _getLangColor(String langKey) {
-    switch (langKey) {
-      case 'zh-only':
-        return Colors.red.shade700;
-      case 'en-only':
-        return Colors.red.shade700;
-      case 'multi':
-        return Colors.green.shade700;
-      default:
-        return Colors.grey;
-    }
-  }
 }
 
 //来自xterms关于操作ctrl, shift, alt键的示例
@@ -1628,12 +1616,10 @@ class _TriliumVersionSelectorDialogState
     final l10n = AppLocalizations.of(context)!;
     final double screenHeight = MediaQuery.sizeOf(context).height;
     final double keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
-    double contentHeight = screenHeight * 0.55;
-    if (keyboardHeight > 0) {
-      contentHeight = (contentHeight - keyboardHeight * 0.5)
-          .clamp(240.0, contentHeight)
-          .toDouble();
-    }
+    final double maxContentHeight =
+        ((screenHeight - keyboardHeight) * 0.6)
+            .clamp(200.0, screenHeight * 0.62)
+            .toDouble();
 
     return PopScope(
       canPop: !_customView && !_historyView,
@@ -1643,8 +1629,18 @@ class _TriliumVersionSelectorDialogState
         }
       },
       child: AlertDialog(
+        titlePadding: const EdgeInsets.fromLTRB(20, 18, 12, 8),
+        contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+        actionsPadding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
+        actionsAlignment: MainAxisAlignment.spaceBetween,
+        actions: _buildActions(l10n),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
         title: Row(
           children: [
+            _buildHeaderIcon(),
+            const SizedBox(width: 12),
             Expanded(
               child: Text(
                 _customView
@@ -1652,7 +1648,10 @@ class _TriliumVersionSelectorDialogState
                     : (_historyView
                         ? l10n.historicalVersions
                         : l10n.selectTriliumVersion),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             _buildLanguageButton(l10n),
@@ -1660,33 +1659,28 @@ class _TriliumVersionSelectorDialogState
         ),
         content: SizedBox(
           width: double.maxFinite,
-          height: contentHeight,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            switchInCurve: Curves.easeOut,
-            switchOutCurve: Curves.easeIn,
-            child: _customView
-                ? KeyedSubtree(
-                    key: const ValueKey('custom'),
-                    child: _buildCustomView(l10n),
-                  )
-                : _historyView
-                    ? KeyedSubtree(
-                        key: const ValueKey('history'),
-                        child: _buildHistoryView(l10n),
-                      )
-                    : KeyedSubtree(
-                        key: const ValueKey('versions'),
-                        child: _buildVersionList(l10n),
-                      ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxContentHeight),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              switchInCurve: Curves.easeOut,
+              switchOutCurve: Curves.easeIn,
+              child: _customView
+                  ? KeyedSubtree(
+                      key: const ValueKey('custom'),
+                      child: _buildCustomView(l10n),
+                    )
+                  : _historyView
+                      ? KeyedSubtree(
+                          key: const ValueKey('history'),
+                          child: _buildHistoryView(l10n),
+                        )
+                      : KeyedSubtree(
+                          key: const ValueKey('versions'),
+                          child: _buildVersionList(l10n),
+                        ),
+            ),
           ),
-        ),
-        contentPadding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-        actionsPadding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-        actionsAlignment: MainAxisAlignment.spaceBetween,
-        actions: _buildActions(l10n),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
@@ -1728,16 +1722,59 @@ class _TriliumVersionSelectorDialogState
     );
   }
 
+  Widget _buildHeaderIcon() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Icon(
+        _customView
+            ? Icons.tune_rounded
+            : (_historyView
+                ? Icons.history_rounded
+                : Icons.inventory_2_outlined),
+        size: 20,
+        color: colorScheme.onPrimaryContainer,
+      ),
+    );
+  }
+
   Widget _buildHistoryView(AppLocalizations l10n) {
     final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-          child: Text(
-            l10n.historicalVersionsSubtitle,
-            style: TextStyle(fontSize: 12, color: colorScheme.outline),
+        Container(
+          margin: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: colorScheme.tertiaryContainer.withValues(alpha: 0.45),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: 16,
+                color: colorScheme.onTertiaryContainer,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l10n.historicalVersionsSubtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.35,
+                    color: colorScheme.onTertiaryContainer,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -1756,53 +1793,185 @@ class _TriliumVersionSelectorDialogState
     List<Map<String, dynamic>> versions = D.triliumVersions,
     bool historical = false,
   }) {
-    return ListView.builder(
+    return ListView.separated(
+      shrinkWrap: true,
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
       itemCount: versions.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 7),
       itemBuilder: (context, index) {
-        final ver = versions[index];
-        final bool isSelected = _isSelectedVersion(ver);
-        return ListTile(
-          dense: true,
-          visualDensity: VisualDensity.compact,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-          selected: isSelected,
-          selectedTileColor: Colors.blue.withOpacity(0.1),
-          title: Text(
-            "${ver['name']} ${ver['suffix']}",
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 第一行：语言类型
-              Text(
-                Util._getLangLabel(ver['lang']!, context),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Util._getLangColor(ver['lang']!),
-                ),
-              ),
-              // 第二行：下载来源
-              Text(
-                historical ? l10n.historicalVersions : l10n.onlineDownload,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: historical ? Colors.orange : Colors.blue,
-                ),
-              ),
-            ],
-          ),
-          trailing: isSelected
-              ? const Icon(Icons.check_circle, color: Colors.green, size: 24)
-              : null,
-          onTap: () => _selectVersion(ver),
+        return _buildVersionCard(
+          l10n,
+          versions[index],
+          historical: historical,
         );
       },
     );
+  }
+
+  Widget _buildVersionCard(
+    AppLocalizations l10n,
+    Map<String, dynamic> ver, {
+    required bool historical,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final bool isSelected = _isSelectedVersion(ver);
+    final String lang = ver['lang'] as String? ?? 'multi';
+    final String name = ver['name'] as String? ?? '';
+    final String suffix =
+        (ver['suffix'] as String? ?? '').replaceAll(RegExp(r'[()]'), '').trim();
+    final Color langColor = _langBadgeColor(colorScheme, lang);
+
+    final Color cardColor = isSelected
+        ? Color.alphaBlend(
+            colorScheme.primary.withValues(alpha: 0.12),
+            colorScheme.surface,
+          )
+        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.35);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSelected
+              ? colorScheme.primary
+              : colorScheme.outlineVariant.withValues(alpha: 0.6),
+          width: isSelected ? 1.6 : 1,
+        ),
+      ),
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _selectVersion(ver),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 10, 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withValues(
+                      alpha: isSelected ? 0.16 : 0.08,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    historical
+                        ? Icons.history_rounded
+                        : Icons.cloud_download_outlined,
+                    size: 20,
+                    color: isSelected
+                        ? colorScheme.primary
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.1,
+                          color: isSelected
+                              ? colorScheme.primary
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          _buildTag(
+                            color: langColor,
+                            icon: Icons.translate_rounded,
+                            label: Util._getLangLabel(lang, context),
+                          ),
+                          if (suffix.isNotEmpty)
+                            _buildTag(
+                              color: colorScheme.secondary,
+                              icon: Icons.cloud_outlined,
+                              label: suffix,
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 150),
+                  child: isSelected
+                      ? Icon(
+                          Icons.check_circle_rounded,
+                          key: const ValueKey('selected'),
+                          color: colorScheme.primary,
+                          size: 22,
+                        )
+                      : Icon(
+                          Icons.radio_button_unchecked_rounded,
+                          key: const ValueKey('unselected'),
+                          color: colorScheme.outlineVariant,
+                          size: 20,
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTag({
+    required Color color,
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _langBadgeColor(ColorScheme colorScheme, String lang) {
+    switch (lang) {
+      case 'zh-only':
+        return colorScheme.error;
+      case 'en-only':
+        return colorScheme.tertiary;
+      case 'multi':
+      default:
+        return colorScheme.primary;
+    }
   }
 
   Widget _buildCustomView(AppLocalizations l10n) {
@@ -1942,32 +2111,26 @@ class _TriliumVersionSelectorDialogState
           onPressed: _importing ? null : _backToVersions,
           child: Text(l10n.back),
         ),
-        TextButton(
+        FilledButton(
           onPressed: _importing || !canConfirm ? null : _confirm,
-          child: Text(
-            l10n.confirm,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
+          child: Text(l10n.confirm),
         ),
       ];
     }
     return [
       TextButton.icon(
         onPressed: _openCustomView,
-        icon: const Icon(Icons.tune, size: 18),
+        icon: const Icon(Icons.tune_rounded, size: 18),
         label: Text(l10n.customTrilium),
       ),
       TextButton.icon(
         onPressed: _openHistoryView,
-        icon: const Icon(Icons.history, size: 18),
+        icon: const Icon(Icons.history_rounded, size: 18),
         label: Text(l10n.historicalVersions),
       ),
-      TextButton(
+      FilledButton(
         onPressed: _selected == null ? null : _confirm,
-        child: Text(
-          l10n.confirm,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
+        child: Text(l10n.confirm),
       ),
     ];
   }
