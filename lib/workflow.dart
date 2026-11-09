@@ -1456,6 +1456,8 @@ clear""");
 //自定义界面支持填写下载链接，或从手机导入本地arm64安装包
 enum _CustomTriliumSource { url, file }
 
+enum _TriliumSubPage { none, custom, history }
+
 class _TriliumVersionSelectorDialog extends StatefulWidget {
   const _TriliumVersionSelectorDialog();
 
@@ -1467,9 +1469,12 @@ class _TriliumVersionSelectorDialog extends StatefulWidget {
 class _TriliumVersionSelectorDialogState
     extends State<_TriliumVersionSelectorDialog> {
   final TextEditingController _urlController = TextEditingController();
+  final PageController _pageController = PageController();
   TriliumSelection? _selected;
   bool _customView = false;
   bool _historyView = false;
+  _TriliumSubPage _subPage = _TriliumSubPage.none;
+  int _navToken = 0;
   _CustomTriliumSource _customSource = _CustomTriliumSource.file;
   bool _importing = false;
   String? _errorText;
@@ -1479,6 +1484,7 @@ class _TriliumVersionSelectorDialogState
   @override
   void dispose() {
     _urlController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -1489,29 +1495,51 @@ class _TriliumVersionSelectorDialogState
     return _selected!.kind == 'url' && _selected!.url == ver['url'];
   }
 
-  void _openCustomView() {
-    setState(() {
-      _customView = true;
-      _historyView = false;
-      _errorText = null;
-    });
-  }
+  void _openCustomView() => _openSubPage(_TriliumSubPage.custom);
 
-  void _openHistoryView() {
+  void _openHistoryView() => _openSubPage(_TriliumSubPage.history);
+
+  void _openSubPage(_TriliumSubPage page) {
+    _navToken++;
     setState(() {
-      _customView = false;
-      _historyView = true;
+      _subPage = page;
+      _customView = page == _TriliumSubPage.custom;
+      _historyView = page == _TriliumSubPage.history;
       _errorText = null;
     });
+    _animateToPage(1);
   }
 
   //返回应用内版本列表，不关闭整个初始化流程
-  void _backToVersions() {
+  Future<void> _backToVersions() async {
+    final int token = ++_navToken;
     setState(() {
       _customView = false;
       _historyView = false;
       _errorText = null;
     });
+    if (!_pageController.hasClients) {
+      return;
+    }
+    await _pageController.animateToPage(
+      0,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOutCubic,
+    );
+    if (!mounted || token != _navToken) {
+      return;
+    }
+    setState(() => _subPage = _TriliumSubPage.none);
+  }
+
+  void _animateToPage(int index) {
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+      );
+    }
   }
 
   void _selectVersion(Map<String, dynamic> ver) {
@@ -1616,10 +1644,11 @@ class _TriliumVersionSelectorDialogState
     final l10n = AppLocalizations.of(context)!;
     final double screenHeight = MediaQuery.sizeOf(context).height;
     final double keyboardHeight = MediaQuery.viewInsetsOf(context).bottom;
-    final double maxContentHeight =
-        ((screenHeight - keyboardHeight) * 0.6)
-            .clamp(200.0, screenHeight * 0.62)
-            .toDouble();
+    final double contentHeight = keyboardHeight > 0
+        ? ((screenHeight - keyboardHeight) * 0.55)
+            .clamp(180.0, screenHeight * 0.5)
+            .toDouble()
+        : (screenHeight * 0.4).clamp(260.0, 380.0).toDouble();
 
     return PopScope(
       canPop: !_customView && !_historyView,
@@ -1629,6 +1658,8 @@ class _TriliumVersionSelectorDialogState
         }
       },
       child: AlertDialog(
+        insetPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         titlePadding: const EdgeInsets.fromLTRB(20, 18, 12, 8),
         contentPadding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
         actionsPadding: const EdgeInsets.fromLTRB(12, 4, 12, 12),
@@ -1659,27 +1690,18 @@ class _TriliumVersionSelectorDialogState
         ),
         content: SizedBox(
           width: double.maxFinite,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: maxContentHeight),
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              switchInCurve: Curves.easeOut,
-              switchOutCurve: Curves.easeIn,
-              child: _customView
-                  ? KeyedSubtree(
-                      key: const ValueKey('custom'),
-                      child: _buildCustomView(l10n),
-                    )
-                  : _historyView
-                      ? KeyedSubtree(
-                          key: const ValueKey('history'),
-                          child: _buildHistoryView(l10n),
-                        )
-                      : KeyedSubtree(
-                          key: const ValueKey('versions'),
-                          child: _buildVersionList(l10n),
-                        ),
-            ),
+          height: contentHeight,
+          child: PageView(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _buildVersionList(l10n),
+              switch (_subPage) {
+                _TriliumSubPage.custom => _buildCustomView(l10n),
+                _TriliumSubPage.history => _buildHistoryView(l10n),
+                _TriliumSubPage.none => const SizedBox.shrink(),
+              },
+            ],
           ),
         ),
       ),
@@ -1794,7 +1816,6 @@ class _TriliumVersionSelectorDialogState
     bool historical = false,
   }) {
     return ListView.separated(
-      shrinkWrap: true,
       padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
       itemCount: versions.length,
       separatorBuilder: (_, __) => const SizedBox(height: 7),
@@ -1888,21 +1909,23 @@ class _TriliumVersionSelectorDialogState
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 4,
+                      Row(
                         children: [
-                          _buildTag(
-                            color: langColor,
-                            icon: Icons.translate_rounded,
-                            label: Util._getLangLabel(lang, context),
-                          ),
-                          if (suffix.isNotEmpty)
-                            _buildTag(
-                              color: colorScheme.secondary,
-                              icon: Icons.cloud_outlined,
-                              label: suffix,
+                          Flexible(
+                            child: _buildTag(
+                              color: langColor,
+                              label: Util._getLangLabel(lang, context),
                             ),
+                          ),
+                          if (suffix.isNotEmpty) ...[
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: _buildTag(
+                                color: colorScheme.secondary,
+                                label: suffix,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -1935,29 +1958,23 @@ class _TriliumVersionSelectorDialogState
 
   Widget _buildTag({
     required Color color,
-    required IconData icon,
     required String label,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 3),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: color,
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: color,
+        ),
       ),
     );
   }
@@ -2108,30 +2125,81 @@ class _TriliumVersionSelectorDialogState
           _customView ? _canConfirmCustom : _selected != null;
       return [
         TextButton(
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            visualDensity: VisualDensity.compact,
+            textStyle: const TextStyle(fontSize: 13),
+          ),
           onPressed: _importing ? null : _backToVersions,
           child: Text(l10n.back),
         ),
         FilledButton(
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 18),
+            visualDensity: VisualDensity.compact,
+            textStyle: const TextStyle(fontSize: 13),
+          ),
           onPressed: _importing || !canConfirm ? null : _confirm,
           child: Text(l10n.confirm),
         ),
       ];
     }
     return [
-      TextButton.icon(
-        onPressed: _openCustomView,
-        icon: const Icon(Icons.tune_rounded, size: 18),
-        label: Text(l10n.customTrilium),
-      ),
-      TextButton.icon(
-        onPressed: _openHistoryView,
-        icon: const Icon(Icons.history_rounded, size: 18),
-        label: Text(l10n.historicalVersions),
-      ),
-      FilledButton(
-        onPressed: _selected == null ? null : _confirm,
-        child: Text(l10n.confirm),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildFooterAction(
+                icon: Icons.tune_rounded,
+                label: l10n.customTrilium,
+                onPressed: _openCustomView,
+              ),
+              const SizedBox(height: 8),
+              _buildFooterAction(
+                icon: Icons.history_rounded,
+                label: l10n.historicalVersions,
+                onPressed: _openHistoryView,
+              ),
+            ],
+          ),
+          const Spacer(),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              textStyle:
+                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            onPressed: _selected == null ? null : _confirm,
+            child: Text(l10n.confirm),
+          ),
+        ],
       ),
     ];
+  }
+
+  Widget _buildFooterAction({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return FilledButton.tonal(
+      style: FilledButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        textStyle: const TextStyle(fontSize: 13),
+      ),
+      onPressed: onPressed,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16),
+          const SizedBox(width: 6),
+          Text(label),
+        ],
+      ),
+    );
   }
 }
