@@ -1651,7 +1651,7 @@ class _TriliumVersionSelectorDialogState
         : (screenHeight * 0.4).clamp(260.0, 380.0).toDouble();
 
     return PopScope(
-      canPop: !_customView && !_historyView,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop && (_customView || _historyView)) {
           _backToVersions();
