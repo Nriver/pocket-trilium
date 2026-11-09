@@ -1643,13 +1643,20 @@ class _TriliumVersionSelectorDialogState
         }
       },
       child: AlertDialog(
-        title: Text(
-          _customView
-              ? l10n.customTrilium
-              : (_historyView
-                  ? l10n.historicalVersions
-                  : l10n.selectTriliumVersion),
-          style: const TextStyle(fontWeight: FontWeight.bold),
+        title: Row(
+          children: [
+            Expanded(
+              child: Text(
+                _customView
+                    ? l10n.customTrilium
+                    : (_historyView
+                        ? l10n.historicalVersions
+                        : l10n.selectTriliumVersion),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
+            _buildLanguageButton(l10n),
+          ],
         ),
         content: SizedBox(
           width: double.maxFinite,
@@ -1682,6 +1689,42 @@ class _TriliumVersionSelectorDialogState
           borderRadius: BorderRadius.circular(16),
         ),
       ),
+    );
+  }
+
+  Widget _buildLanguageButton(AppLocalizations l10n) {
+    final String current = (Util.getGlobal("locale") as String?) ?? "system";
+    return PopupMenuButton<String>(
+      tooltip: l10n.language,
+      icon: const Icon(Icons.language),
+      initialValue: current,
+      onSelected: (value) {
+        if (value == "system") {
+          G.prefs.remove("locale");
+          G.locale.value = null;
+        } else {
+          G.prefs.setString("locale", value);
+          G.locale.value = Locale(value);
+        }
+        setState(() {});
+      },
+      itemBuilder: (context) => [
+        CheckedPopupMenuItem<String>(
+          value: "system",
+          checked: current == "system",
+          child: Text(l10n.systemDefault),
+        ),
+        CheckedPopupMenuItem<String>(
+          value: "zh",
+          checked: current == "zh",
+          child: const Text("中文"),
+        ),
+        CheckedPopupMenuItem<String>(
+          value: "en",
+          checked: current == "en",
+          child: const Text("English"),
+        ),
+      ],
     );
   }
 
