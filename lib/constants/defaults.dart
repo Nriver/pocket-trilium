@@ -27,7 +27,12 @@ class D {
       'suffix': '(Gitee)',
       'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.106.1-linux-arm64.tar.xz',
       'lang': 'multi',
-    },
+    }
+  ];
+
+  // Trilium 历史版本列表
+  // 记录之前提供过的旧版本，按从新到旧排列，供需要时选择安装
+  static const List<Map<String, dynamic>> triliumHistoricalVersions = [
     {
       'name': '0.106.0',
       'suffix': '(GitHub)',
@@ -71,21 +76,9 @@ class D {
       'lang': 'multi',
     },
     {
-      'name': '0.104.0',
-      'suffix': '(Gitee)',
-      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.104.0-linux-arm64.tar.xz',
-      'lang': 'multi',
-    },
-    {
       'name': '0.103.0',
       'suffix': '(GitHub)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.103.0/TriliumNotes-Server-v0.103.0-linux-arm64.tar.xz',
-      'lang': 'multi',
-    },
-    {
-      'name': '0.103.0',
-      'suffix': '(Gitee)',
-      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.103.0-linux-arm64.tar.xz',
       'lang': 'multi',
     },
     {
@@ -95,21 +88,9 @@ class D {
       'lang': 'multi',
     },
     {
-      'name': '0.102.2',
-      'suffix': '(Gitee)',
-      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.102.2-linux-arm64.tar.xz',
-      'lang': 'multi',
-    },
-    {
       'name': '0.102.1',
       'suffix': '(GitHub)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.102.1/TriliumNotes-Server-v0.102.1-linux-arm64.tar.xz',
-      'lang': 'multi',
-    },
-    {
-      'name': '0.102.1',
-      'suffix': '(Gitee)',
-      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.102.1-linux-arm64.tar.xz',
       'lang': 'multi',
     },
     {
@@ -119,21 +100,9 @@ class D {
       'lang': 'multi',
     },
     {
-      'name': '0.102.0',
-      'suffix': '(Gitee)',
-      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.102.0-linux-arm64.tar.xz',
-      'lang': 'multi',
-    },
-    {
       'name': '0.101.3',
       'suffix': '(GitHub)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.101.3/TriliumNotes-Server-v0.101.3-linux-arm64.tar.xz',
-      'lang': 'multi',
-    },
-    {
-      'name': '0.101.3',
-      'suffix': '(Gitee)',
-      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.101.3-linux-arm64.tar.xz',
       'lang': 'multi',
     },
     {

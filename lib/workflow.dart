@@ -1481,6 +1481,7 @@ class _TriliumVersionSelectorDialogState
   final TextEditingController _urlController = TextEditingController();
   TriliumSelection? _selected;
   bool _customView = false;
+  bool _historyView = false;
   _CustomTriliumSource _customSource = _CustomTriliumSource.file;
   bool _importing = false;
   String? _errorText;
@@ -1503,6 +1504,15 @@ class _TriliumVersionSelectorDialogState
   void _openCustomView() {
     setState(() {
       _customView = true;
+      _historyView = false;
+      _errorText = null;
+    });
+  }
+
+  void _openHistoryView() {
+    setState(() {
+      _customView = false;
+      _historyView = true;
       _errorText = null;
     });
   }
@@ -1511,6 +1521,7 @@ class _TriliumVersionSelectorDialogState
   void _backToVersions() {
     setState(() {
       _customView = false;
+      _historyView = false;
       _errorText = null;
     });
   }
@@ -1625,15 +1636,19 @@ class _TriliumVersionSelectorDialogState
     }
 
     return PopScope(
-      canPop: !_customView,
+      canPop: !_customView && !_historyView,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop && _customView) {
+        if (!didPop && (_customView || _historyView)) {
           _backToVersions();
         }
       },
       child: AlertDialog(
         title: Text(
-          _customView ? l10n.customTrilium : l10n.selectTriliumVersion,
+          _customView
+              ? l10n.customTrilium
+              : (_historyView
+                  ? l10n.historicalVersions
+                  : l10n.selectTriliumVersion),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         content: SizedBox(
@@ -1648,10 +1663,15 @@ class _TriliumVersionSelectorDialogState
                     key: const ValueKey('custom'),
                     child: _buildCustomView(l10n),
                   )
-                : KeyedSubtree(
-                    key: const ValueKey('versions'),
-                    child: _buildVersionList(l10n),
-                  ),
+                : _historyView
+                    ? KeyedSubtree(
+                        key: const ValueKey('history'),
+                        child: _buildHistoryView(l10n),
+                      )
+                    : KeyedSubtree(
+                        key: const ValueKey('versions'),
+                        child: _buildVersionList(l10n),
+                      ),
           ),
         ),
         contentPadding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
@@ -1665,11 +1685,38 @@ class _TriliumVersionSelectorDialogState
     );
   }
 
-  Widget _buildVersionList(AppLocalizations l10n) {
+  Widget _buildHistoryView(AppLocalizations l10n) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+          child: Text(
+            l10n.historicalVersionsSubtitle,
+            style: TextStyle(fontSize: 12, color: colorScheme.outline),
+          ),
+        ),
+        Expanded(
+          child: _buildVersionList(
+            l10n,
+            versions: D.triliumHistoricalVersions,
+            historical: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVersionList(
+    AppLocalizations l10n, {
+    List<Map<String, dynamic>> versions = D.triliumVersions,
+    bool historical = false,
+  }) {
     return ListView.builder(
-      itemCount: D.triliumVersions.length,
+      itemCount: versions.length,
       itemBuilder: (context, index) {
-        final ver = D.triliumVersions[index];
+        final ver = versions[index];
         final bool isSelected = _isSelectedVersion(ver);
         return ListTile(
           dense: true,
@@ -1696,12 +1743,12 @@ class _TriliumVersionSelectorDialogState
                   color: Util._getLangColor(ver['lang']!),
                 ),
               ),
-              // 第二行：在线下载
+              // 第二行：下载来源
               Text(
-                l10n.onlineDownload,
-                style: const TextStyle(
+                historical ? l10n.historicalVersions : l10n.onlineDownload,
+                style: TextStyle(
                   fontSize: 11,
-                  color: Colors.blue,
+                  color: historical ? Colors.orange : Colors.blue,
                 ),
               ),
             ],
@@ -1844,14 +1891,16 @@ class _TriliumVersionSelectorDialogState
   }
 
   List<Widget> _buildActions(AppLocalizations l10n) {
-    if (_customView) {
+    if (_customView || _historyView) {
+      final bool canConfirm =
+          _customView ? _canConfirmCustom : _selected != null;
       return [
         TextButton(
           onPressed: _importing ? null : _backToVersions,
           child: Text(l10n.back),
         ),
         TextButton(
-          onPressed: _importing || !_canConfirmCustom ? null : _confirm,
+          onPressed: _importing || !canConfirm ? null : _confirm,
           child: Text(
             l10n.confirm,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
@@ -1862,8 +1911,13 @@ class _TriliumVersionSelectorDialogState
     return [
       TextButton.icon(
         onPressed: _openCustomView,
-        icon: const Icon(Icons.tune),
+        icon: const Icon(Icons.tune, size: 18),
         label: Text(l10n.customTrilium),
+      ),
+      TextButton.icon(
+        onPressed: _openHistoryView,
+        icon: const Icon(Icons.history, size: 18),
+        label: Text(l10n.historicalVersions),
       ),
       TextButton(
         onPressed: _selected == null ? null : _confirm,

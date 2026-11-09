@@ -70,6 +70,8 @@
     "pressAgainToExitBrowser": "Press again to exit browser",
     "enterNumberBetween": "Please enter a number between {min} and {max}",
     "selectTriliumVersion": "Select Trilium Version",
+    "historicalVersions": "Historical Versions",
+    "historicalVersionsSubtitle": "Older versions are kept for compatibility. Back up your data before downgrading.",
     "customTrilium": "Custom Trilium",
     "customTriliumSubtitle": "Download from your own URL or import an arm64 package from your phone",
     "customTriliumUrl": "Trilium Download URL",

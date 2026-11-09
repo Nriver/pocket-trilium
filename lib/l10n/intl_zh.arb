@@ -70,6 +70,8 @@
     "pressAgainToExitBrowser": "再按一次退出浏览器",
     "enterNumberBetween": "请输入{min}到{max}之间的数字",
     "selectTriliumVersion": "选择 Trilium 版本",
+    "historicalVersions": "历史版本",
+    "historicalVersionsSubtitle": "旧版本仅供兼容使用，降级前请先备份数据。",
     "customTrilium": "自定义 Trilium",
     "customTriliumSubtitle": "使用自定义链接下载，或从手机导入 arm64 安装包",
     "customTriliumUrl": "Trilium 下载地址",
