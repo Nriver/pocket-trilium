@@ -17,6 +17,35 @@ class D {
   // Trilium 可选版本列表
   static const List<Map<String, dynamic>> triliumVersions = [
     {
+      'name': '0.107.0',
+      'suffix': '(GitHub)',
+      'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.107.0/TriliumNotes-Server-v0.107.0-linux-arm64.tar.xz',
+      'lang': 'multi',
+    },
+    {
+      'name': '0.107.0',
+      'suffix': '(Gitee)',
+      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.107.0-linux-arm64.tar.xz',
+      'lang': 'multi',
+    },
+    {
+      'name': '0.64.1 Plus',
+      'suffix': '(Gitee)',
+      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/trilium-linux-arm64-server-0.64.1-cn.tar.xz',
+      'lang': 'zh-only',
+    },
+    {
+      'name': '0.64.1 Plus',
+      'suffix': '(Github)',
+      'url': 'https://github.com/Nriver/trilium-plus/releases/download/v0.64.1/trilium-linux-arm64-server-0.64.1.tar.xz',
+      'lang': 'en-only',
+    },
+  ];
+
+  // Trilium 历史版本列表
+  // 记录之前提供过的旧版本，按从新到旧排列，供需要时选择安装
+  static const List<Map<String, dynamic>> triliumHistoricalVersions = [
+    {
       'name': '0.106.1',
       'suffix': '(GitHub)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.106.1/TriliumNotes-Server-v0.106.1-linux-arm64.tar.xz',
@@ -27,12 +56,7 @@ class D {
       'suffix': '(Gitee)',
       'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/TriliumNotes-Server-v0.106.1-linux-arm64.tar.xz',
       'lang': 'multi',
-    }
-  ];
-
-  // Trilium 历史版本列表
-  // 记录之前提供过的旧版本，按从新到旧排列，供需要时选择安装
-  static const List<Map<String, dynamic>> triliumHistoricalVersions = [
+    },
     {
       'name': '0.106.0',
       'suffix': '(GitHub)',
