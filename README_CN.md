@@ -107,6 +107,12 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
 
 应用重启后，你将看到一个选择 Trilium 版本的弹出菜单。
 
+## 什么是 Trilium Plus 版？
+
+**Trilium Plus** 是 [zadam/trilium](https://github.com/zadam/trilium) **0.63.7** 版本的延续分支，它继承并保留了原版 0.63.7 的代码与修改，并在此基础上继续开发，主要聚焦于安全相关依赖的升级、问题修复以及使用体验的改进。Trilium Plus 使用独立的版本号（当前为 `0.64.1 Plus`），**并非** Trilium / TriliumNext 的官方版本。
+
+Trilium Plus 的代码在 [Nriver/trilium-plus](https://github.com/Nriver/trilium-plus) 项目中维护，相关问题请提交到该仓库。
+
 ## 无法连接 Traefik 反代的 Trilium — “无法解析内部 DNS” 或 “证书不匹配” 错误
 
 有 2 种解决方法：
