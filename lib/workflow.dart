@@ -1911,11 +1911,9 @@ class _TriliumVersionSelectorDialogState
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Flexible(
-                            child: _buildTag(
-                              color: langColor,
-                              label: Util._getLangLabel(lang, context),
-                            ),
+                          _buildTag(
+                            color: langColor,
+                            label: Util._getLangLabel(lang, context),
                           ),
                           if (suffix.isNotEmpty) ...[
                             const SizedBox(width: 6),
