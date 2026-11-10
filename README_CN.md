@@ -35,10 +35,17 @@ Pocket Trilium 让你可以在 Android 设备上运行功能完整的 [Trilium N
 首次启动时可以选择 Trilium 版本：
 
 <div style="display:flex; gap:12px;">
-    <img src="docs/screenshot_2.jpg" width="200"/>
-    <img src="docs/screenshot_2_2.jpg" width="200"/>
+    <img src="docs/trilium_select_cn.jpg" width="200"/>
+    <img src="docs/trilium_select_en.jpg" width="200"/>
     <img src="docs/screenshot_3.jpg" width="200"/>
     <img src="docs/screenshot_4.jpg" width="200"/>
+</div>
+
+或者你可以选择自定义的 Trilium arm64 服务器版的 tar.xz 的安装包
+
+<div style="display:flex; gap:12px;">
+    <img src="docs/trilium_cusotm_cn.jpg" width="200"/>
+    <img src="docs/trilium_custom_en.jpg" width="200"/>
 </div>
 
 ---

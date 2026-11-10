@@ -37,10 +37,17 @@ Run Trilium on your phone.
 You can choose your Trilium version on first start.
 
 <div style="display:flex; gap:12px;">
-    <img src="docs/screenshot_2.jpg" width="200"/>
-    <img src="docs/screenshot_2_2.jpg" width="200"/>
+    <img src="docs/trilium_select_cn.jpg" width="200"/>
+    <img src="docs/trilium_select_en.jpg" width="200"/>
     <img src="docs/screenshot_3.jpg" width="200"/>
     <img src="docs/screenshot_4.jpg" width="200"/>
+</div>
+
+Or you can choose a customized Trilium arm64 server's tar.xz package from your phone
+
+<div style="display:flex; gap:12px;">
+    <img src="docs/trilium_cusotm_cn.jpg" width="200"/>
+    <img src="docs/trilium_custom_en.jpg" width="200"/>
 </div>
 
 ---
