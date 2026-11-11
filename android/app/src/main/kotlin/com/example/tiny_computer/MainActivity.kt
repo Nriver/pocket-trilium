@@ -278,8 +278,20 @@ class MainActivity: FlutterFragmentActivity() {
         val matcher = Patterns.WEB_URL.matcher(text)
         while (matcher.find()) {
             var candidate = matcher.group().trim()
+            val matchEnd = matcher.end()
+
+            // A trailing '?' can be part of the URL (empty query string).
+            // Patterns.WEB_URL may stop before it, so append it when it is
+            // the last character of the shared text.
+            if (matchEnd < text.length &&
+                text[matchEnd] == '?' &&
+                text.substring(matchEnd + 1).isBlank()
+            ) {
+                candidate += "?"
+            }
+
             candidate = candidate.trimEnd(
-                '.', ',', ';', ':', '!', '?', ')', ']', '}',
+                '.', ',', ';', ':', '!', ')', ']', '}',
                 '"', '\'', '，', '。', '！', '？', '）', '】', '》'
             )
             if (candidate.isBlank()) continue
@@ -293,7 +305,7 @@ class MainActivity: FlutterFragmentActivity() {
 
         val regex = Regex("""https?://[^\s<>"']+""", RegexOption.IGNORE_CASE)
         return regex.find(text)?.value?.trimEnd(
-            '.', ',', ';', ':', '!', '?', ')', ']', '}', '"', '\''
+            '.', ',', ';', ':', '!', ')', ']', '}', '"', '\''
         )
     }
 

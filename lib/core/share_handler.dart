@@ -54,7 +54,7 @@ class SharePayload {
   static String? _trimUrl(String? value) {
     if (value == null) return null;
     return value.trim().replaceFirst(
-          RegExp(r'''[.,;:!?)\]}"'，。！？）】》]+$'''),
+          RegExp(r'''[.,;:!)\]}"'，。！？）】》]+$'''),
           '',
         );
   }
