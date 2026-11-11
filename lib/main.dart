@@ -10,6 +10,7 @@ import 'package:pocket_trilium/terminalPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants/defaults.dart';
+import 'core/share_handler.dart';
 import 'core/webview_scripts.dart';
 import 'infoPage.dart';
 import 'l10n/app_localizations.dart';
@@ -60,6 +61,7 @@ void main() async {
   G.statusBarHideText.value = Util.getGlobal("statusBarHideText") as bool;
   G.statusBarCustomColor.value = Util.getGlobal("statusBarCustomColor") as int;
   await Util.applyStatusBarMode();
+  await ShareHandler.init();
   runApp(const MyApp());
 }
 
@@ -376,6 +378,7 @@ class _MyHomePageState extends State<MyHomePage> {
       setState(() {
         isLoadingComplete = true;
       });
+      ShareHandler.markUiReady(context);
     }
   }
 

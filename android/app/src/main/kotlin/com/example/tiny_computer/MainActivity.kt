@@ -3,6 +3,8 @@ package nriver.pocket.trilium
 import android.system.Os.setenv
 
 import android.content.Intent
+import android.os.Bundle
+import android.util.Patterns
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.NonNull
 import androidx.annotation.Keep
@@ -24,6 +26,9 @@ class MainActivity: FlutterFragmentActivity() {
 
     private var pendingPickResult: MethodChannel.Result? = null
     private var pendingPickDestPath: String? = null
+
+    private var shareChannel: MethodChannel? = null
+    private var pendingShare: Map<String, Any?>? = null
 
     private val pickTriliumPackageLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -58,9 +63,21 @@ class MainActivity: FlutterFragmentActivity() {
             }
         }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        handleShareIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShareIntent(intent)
+    }
+
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "android").setMethodCallHandler {
+        shareChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "android")
+        shareChannel?.setMethodCallHandler {
             // 注册通道并设置方法调用处理器
             call, result ->
             // 判断方法名
@@ -96,12 +113,71 @@ class MainActivity: FlutterFragmentActivity() {
                         }
                     }
                 }
+                "getPendingShare" -> {
+                    result.success(pendingShare)
+                }
+                "consumePendingShare" -> {
+                    pendingShare = null
+                    result.success(0)
+                }
                 else -> {
                     // 不支持的方法名
                     result.notImplemented()
                 }
             }
         }
+    }
+
+    private fun handleShareIntent(intent: Intent?) {
+        if (intent == null) return
+        val action = intent.action ?: return
+        if (action != Intent.ACTION_SEND && action != Intent.ACTION_VIEW) return
+
+        val viewUrl = if (action == Intent.ACTION_VIEW) intent.data?.toString() else null
+        val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+        val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
+            ?: intent.getCharSequenceExtra(Intent.EXTRA_HTML_TEXT)?.toString()
+
+        if (text.isNullOrBlank() && viewUrl.isNullOrBlank()) return
+
+        val share = mapOf<String, Any?>(
+            "text" to text,
+            "subject" to subject,
+            "url" to extractUrl(viewUrl ?: text),
+            "action" to action,
+            "timestamp" to System.currentTimeMillis()
+        )
+        pendingShare = share
+        try {
+            shareChannel?.invokeMethod("onShareReceived", share)
+        } catch (_: Exception) {
+            // Flutter side is not ready yet; it will pull pendingShare later.
+        }
+    }
+
+    private fun extractUrl(text: String?): String? {
+        if (text.isNullOrBlank()) return null
+
+        val matcher = Patterns.WEB_URL.matcher(text)
+        while (matcher.find()) {
+            var candidate = matcher.group().trim()
+            candidate = candidate.trimEnd(
+                '.', ',', ';', ':', '!', '?', ')', ']', '}',
+                '"', '\'', '，', '。', '！', '？', '）', '】', '》'
+            )
+            if (candidate.isBlank()) continue
+            if (!candidate.startsWith("http://", ignoreCase = true) &&
+                !candidate.startsWith("https://", ignoreCase = true)
+            ) {
+                candidate = "https://$candidate"
+            }
+            return candidate
+        }
+
+        val regex = Regex("""https?://[^\s<>"']+""", RegexOption.IGNORE_CASE)
+        return regex.find(text)?.value?.trimEnd(
+            '.', ',', ';', ':', '!', '?', ')', ']', '}', '"', '\''
+        )
     }
 
     private fun applyStatusBarMode() {

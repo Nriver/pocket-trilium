@@ -177,6 +177,8 @@ class Util {
       case "appStartCommand" : return (value){addCurrentProp(key, value); return value;}(D.triliumStartCommand);
       // Trilium homepage
       case "webUrl" : return (value){addCurrentProp(key, value); return value;}(D.webUrl);
+      // 用于把分享内容写入 Trilium 的 ETAPI token
+      case "etapiToken" : return (value){addCurrentProp(key, value); return value;}("");
     }
   }
 
@@ -1379,13 +1381,26 @@ clear""");
     return webUrl;
   }
 
+  //本地 API 地址: 固定走 127.0.0.1, 端口沿用自动探测结果
+  static String resolveLocalApiUrl() {
+    final Uri url = Uri.parse(resolveWebUrl());
+    return url.replace(host: '127.0.0.1').toString();
+  }
+
+  //生成笔记在网页端的打开地址
+  static String noteUrl(String noteId) {
+    final base = resolveWebUrl().replaceAll(RegExp(r'/+$'), '');
+    return '$base/#$noteId';
+  }
+
   //等待Trilium服务就绪, 返回是否确认可访问
   //开启自动检测时, 只有读到本次启动写入的端口记录后才按实际端口探测,
   //记录没生成前不会去连配置地址, 因此不会误开占用端口的其它程序的页面
   //轮询间隔很短, 服务一就绪立即返回, 尽量少等待; 总时长超过maxWait仍未确认则返回false
-  static Future<bool> waitForConnection() async {
+  static Future<bool> waitForConnection({
+    Duration maxWait = const Duration(seconds: 15),
+  }) async {
     const pollInterval = Duration(milliseconds: 300);
-    const maxWait = Duration(seconds: 15);
     final deadline = DateTime.now().add(maxWait);
     final autoDetect = Util.getGlobal("autoDetectPort") as bool;
 
@@ -1417,9 +1432,12 @@ clear""");
   //等服务就绪后再打开页面
   //[forceOpen]为true时(用户手动点击按钮)跳过等待, 立即打开页面
   //否则等待确认服务就绪后才打开, 未确认则不自动打开, 防止误开占用端口的其它程序
-  static Future<void> openWebPage({bool forceOpen = false}) async {
+  static Future<void> openWebPage({
+    bool forceOpen = false,
+    Duration maxWait = const Duration(seconds: 15),
+  }) async {
     if (!forceOpen) {
-      final ready = await waitForConnection();
+      final ready = await waitForConnection(maxWait: maxWait);
       if (!ready) {
         debugPrint("服务未确认就绪, 不自动打开页面, 可手动点击按钮打开");
         return;
@@ -1432,7 +1450,6 @@ clear""");
     final String webUrl = resolveWebUrl();
 
     G.isTriliumReady.value = true;
-
     Navigator.push(
       G.homePageStateContext,
       MaterialPageRoute(
@@ -1441,13 +1458,30 @@ clear""");
     );
   }
 
+  //冷启动自动打开图形界面的完成信号(无论最终是否成功打开都会完成)
+  static Completer<void>? _autoOpenCompleter;
+
+  //分享弹窗等待自动打开图形界面的流程结束, 避免网页盖住弹窗
+  static Future<void> waitForAutoOpen() async {
+    final completer = _autoOpenCompleter;
+    if (completer == null) return;
+    await completer.future;
+  }
+
   static Future<void> workflow() async {
     await initData();
     await initTerminalForCurrent();
     launchCurrentContainer();
     if (Util.getGlobal("autoLaunchGUI") as bool) {
       launchGUIBackend();
-      openWebPage();
+      //分享弹窗不影响后台自动启动图形界面, 两者独立进行
+      final completer = Completer<void>();
+      _autoOpenCompleter = completer;
+      unawaited(openWebPage(maxWait: const Duration(seconds: 60)).whenComplete(() {
+        if (!completer.isCompleted) {
+          completer.complete();
+        }
+      }));
     }
   }
 }

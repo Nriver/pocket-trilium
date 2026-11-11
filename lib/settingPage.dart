@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'constants/defaults.dart';
+import 'core/etapi_token_dialog.dart';
 import 'l10n/app_localizations.dart';
 import 'workflow.dart';
 
@@ -110,8 +111,28 @@ class _SettingPageState extends State<SettingPage> {
           trailing: const Icon(Icons.edit_outlined),
           onTap: () => _showImageFormatPicker(context, l10n),
         ),
+        ListTile(
+          leading: const Icon(Icons.vpn_key_outlined),
+          title: Text(l10n.etapiToken),
+          subtitle: Text(
+            '${Util.getCurrentProp("etapiToken") == "" ? l10n.etapiTokenNotSet : _maskToken(Util.getCurrentProp("etapiToken") as String)}\n'
+            '${l10n.etapiTokenSubtitle}',
+          ),
+          trailing: const Icon(Icons.edit_outlined),
+          onTap: () async {
+            final bool saved = await showEtapiTokenDialog(context);
+            if (saved && mounted) {
+              setState(() {});
+            }
+          },
+        ),
       ],
     );
+  }
+
+  String _maskToken(String token) {
+    if (token.length <= 8) return '••••••••';
+    return '••••••••${token.substring(token.length - 4)}';
   }
 
   Widget _buildPrivacySettings(BuildContext context, AppLocalizations l10n) {
