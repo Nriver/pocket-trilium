@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../workflow.dart';
 import 'clipper_client.dart';
 import 'etapi_token_dialog.dart';
+import 'page_clipper.dart';
 
 class SharedImage {
   final String path;
@@ -290,6 +291,8 @@ class _ShareCaptureSheet extends StatefulWidget {
   State<_ShareCaptureSheet> createState() => _ShareCaptureSheetState();
 }
 
+enum _ClipMode { link, fullPage }
+
 class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
   bool _initialized = false;
   late final TextEditingController _titleController;
@@ -298,6 +301,13 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
   bool _saving = false;
   bool _authError = false;
   String? _error;
+  _ClipMode _clipMode = _ClipMode.link;
+  String _initialTitle = '';
+
+  bool get _hasUrl =>
+      widget.payload.url != null && widget.payload.url!.isNotEmpty;
+
+  bool get _canClipFullPage => _hasUrl && widget.payload.images.isEmpty;
 
   @override
   void didChangeDependencies() {
@@ -336,6 +346,7 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
     _titleController = TextEditingController(text: title);
     _contentController = TextEditingController(text: content);
     _includeLink = url != null && url.isNotEmpty;
+    _initialTitle = title;
   }
 
   @override
@@ -397,7 +408,8 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
   Future<void> _save(AppLocalizations l10n) async {
     final String content = _buildContent(l10n);
     final bool hasImages = widget.payload.images.isNotEmpty;
-    if (content.isEmpty && !hasImages) {
+    final bool fullPage = _canClipFullPage && _clipMode == _ClipMode.fullPage;
+    if (content.isEmpty && !hasImages && !fullPage) {
       setState(() => _error = l10n.shareEmpty);
       return;
     }
@@ -410,7 +422,8 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
 
     try {
       final String? url = widget.payload.url;
-      final String title = _titleController.text.trim().isEmpty
+      final String typedTitle = _titleController.text.trim();
+      final String title = typedTitle.isEmpty
           ? (hasImages
               ? (widget.payload.images.length > 1
                   ? l10n.shareImagesTitleFallback(widget.payload.images.length)
@@ -418,7 +431,7 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
               : ((url != null && url.isNotEmpty)
                   ? l10n.shareLinkTitleFallback
                   : l10n.shareTextTitleFallback))
-          : _titleController.text.trim();
+          : typedTitle;
 
       final String noteId;
       if (hasImages) {
@@ -441,6 +454,14 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
             // Ignore cleanup failures.
           }
         }
+      } else if (fullPage && url != null && url.isNotEmpty) {
+        final PageClipResult result = await PageClipper.clip(
+          url: url,
+          remarkHtml: content,
+          currentTitle: title,
+          preferArticleTitle: typedTitle.isEmpty || typedTitle == _initialTitle,
+        );
+        noteId = result.noteId;
       } else if (url == null || url.isEmpty) {
         final String inboxId = await TriliumClipperClient.getInboxNoteId();
         noteId = await TriliumClipperClient.createEtapiNote(
@@ -463,7 +484,8 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _error = e.toString();
+        _error =
+            fullPage ? l10n.shareFullPageFailed(e.toString()) : e.toString();
         _authError = e is ClipperException && e.statusCode == 401;
       });
     }
@@ -473,6 +495,7 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final ThemeData theme = Theme.of(context);
+    final bool fullPage = _canClipFullPage && _clipMode == _ClipMode.fullPage;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -550,6 +573,39 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+            ],
+            if (_canClipFullPage) ...[
+              SegmentedButton<_ClipMode>(
+                segments: <ButtonSegment<_ClipMode>>[
+                  ButtonSegment<_ClipMode>(
+                    value: _ClipMode.link,
+                    label: Text(l10n.shareClipModeLink),
+                    icon: const Icon(Icons.link),
+                  ),
+                  ButtonSegment<_ClipMode>(
+                    value: _ClipMode.fullPage,
+                    label: Text(l10n.shareClipModeFullPage),
+                    icon: const Icon(Icons.article_outlined),
+                  ),
+                ],
+                selected: <_ClipMode>{_clipMode},
+                onSelectionChanged: _saving
+                    ? null
+                    : (Set<_ClipMode> selection) {
+                        setState(() => _clipMode = selection.first);
+                      },
+              ),
+              if (fullPage)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    l10n.shareFullPageHint,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 12),
             ],
             if (widget.payload.images.isNotEmpty) ...[
@@ -648,7 +704,11 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.save_outlined),
-                  label: Text(_saving ? l10n.shareSaving : l10n.shareSave),
+                  label: Text(
+                    _saving
+                        ? (fullPage ? l10n.shareClippingPage : l10n.shareSaving)
+                        : l10n.shareSave,
+                  ),
                 ),
               ],
             ),

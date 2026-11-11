@@ -284,6 +284,56 @@ class TriliumClipperClient {
     );
   }
 
+  /// Saves a full-page clipping through the web clipper API.
+  static Future<String> createPageClipping({
+    required String title,
+    required String content,
+    required String pageUrl,
+    List<Map<String, dynamic>> images = const [],
+    Map<String, String> labels = const {},
+  }) async {
+    if (!hasToken) {
+      throw const ClipperException("ETAPI token is not set");
+    }
+
+    late http.Response response;
+    try {
+      response = await http
+          .post(
+            _uri('/api/clipper/notes'),
+            headers: _headers(token, json: true),
+            body: jsonEncode({
+              'title': title,
+              'content': content,
+              'pageUrl': pageUrl,
+              'clipType': 'page',
+              if (images.isNotEmpty) 'images': images,
+              if (labels.isNotEmpty) 'labels': labels,
+            }),
+          )
+          .timeout(const Duration(seconds: 90));
+    } catch (e) {
+      throw ClipperException("Cannot reach Trilium: $e");
+    }
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      throw const ClipperException("Invalid ETAPI token", statusCode: 401);
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ClipperException(
+        _errorMessage(response),
+        statusCode: response.statusCode,
+      );
+    }
+
+    final dynamic data = jsonDecode(utf8.decode(response.bodyBytes));
+    final dynamic noteId = data is Map ? data['noteId'] : null;
+    if (noteId is! String || noteId.isEmpty) {
+      throw const ClipperException("Trilium did not return a noteId");
+    }
+    return noteId;
+  }
+
   static Future<String> _createClipping({
     required String title,
     required String content,
