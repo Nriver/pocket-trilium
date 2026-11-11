@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../constants/defaults.dart';
@@ -7,12 +9,37 @@ import '../workflow.dart';
 import 'clipper_client.dart';
 import 'etapi_token_dialog.dart';
 
+class SharedImage {
+  final String path;
+  final String? mime;
+  final String? name;
+
+  const SharedImage({required this.path, this.mime, this.name});
+
+  static SharedImage? tryFromMap(dynamic value) {
+    if (value is! Map) return null;
+    final String? path = SharePayload._clean(value['path']);
+    if (path == null) return null;
+    return SharedImage(
+      path: path,
+      mime: SharePayload._clean(value['mime']),
+      name: SharePayload._clean(value['name']),
+    );
+  }
+}
+
 class SharePayload {
   final String? text;
   final String? subject;
   final String? url;
+  final List<SharedImage> images;
 
-  const SharePayload({this.text, this.subject, this.url});
+  const SharePayload({
+    this.text,
+    this.subject,
+    this.url,
+    this.images = const [],
+  });
 
   static final RegExp _urlPattern =
       RegExp(r'''https?://[^\s<>"']+''', caseSensitive: false);
@@ -41,15 +68,30 @@ class SharePayload {
     if (url == null && text != null) {
       url = _urlPattern.firstMatch(text)?.group(0);
     }
+
+    final List<SharedImage> images = <SharedImage>[];
+    final dynamic rawImages = value['images'];
+    if (rawImages is List) {
+      for (final dynamic item in rawImages) {
+        final SharedImage? image = SharedImage.tryFromMap(item);
+        if (image != null) {
+          images.add(image);
+        }
+      }
+    }
+
     return SharePayload(
       text: text,
       subject: subject,
       url: _trimUrl(url),
+      images: images,
     );
   }
 
   bool get isEmpty =>
-      (text == null || text!.isEmpty) && (url == null || url!.isEmpty);
+      (text == null || text!.isEmpty) &&
+      (url == null || url!.isEmpty) &&
+      images.isEmpty;
 }
 
 class ShareHandler {
@@ -278,6 +320,10 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
       title = subject;
     } else if (content.isNotEmpty) {
       title = _firstLine(content, 80);
+    } else if (payload.images.isNotEmpty) {
+      title = payload.images.length > 1
+          ? l10n.shareImagesTitleFallback(payload.images.length)
+          : l10n.shareImageTitleFallback;
     } else if (url != null && url.isNotEmpty) {
       final String? host = Uri.tryParse(url)?.host;
       title = (host != null && host.isNotEmpty)
@@ -350,7 +396,8 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
 
   Future<void> _save(AppLocalizations l10n) async {
     final String content = _buildContent(l10n);
-    if (content.isEmpty) {
+    final bool hasImages = widget.payload.images.isNotEmpty;
+    if (content.isEmpty && !hasImages) {
       setState(() => _error = l10n.shareEmpty);
       return;
     }
@@ -364,13 +411,37 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
     try {
       final String? url = widget.payload.url;
       final String title = _titleController.text.trim().isEmpty
-          ? ((url != null && url.isNotEmpty)
-              ? l10n.shareLinkTitleFallback
-              : l10n.shareTextTitleFallback)
+          ? (hasImages
+              ? (widget.payload.images.length > 1
+                  ? l10n.shareImagesTitleFallback(widget.payload.images.length)
+                  : l10n.shareImageTitleFallback)
+              : ((url != null && url.isNotEmpty)
+                  ? l10n.shareLinkTitleFallback
+                  : l10n.shareTextTitleFallback))
           : _titleController.text.trim();
 
       final String noteId;
-      if (url == null || url.isEmpty) {
+      if (hasImages) {
+        noteId = await TriliumClipperClient.createImageClipping(
+          title: title,
+          remarkHtml: content,
+          images: [
+            for (final SharedImage image in widget.payload.images)
+              ClippingImage(path: image.path, mime: image.mime),
+          ],
+          pageUrl: url,
+        );
+        for (final SharedImage image in widget.payload.images) {
+          try {
+            final File file = File(image.path);
+            if (await file.exists()) {
+              await file.delete();
+            }
+          } catch (_) {
+            // Ignore cleanup failures.
+          }
+        }
+      } else if (url == null || url.isEmpty) {
         final String inboxId = await TriliumClipperClient.getInboxNoteId();
         noteId = await TriliumClipperClient.createEtapiNote(
           parentNoteId: inboxId,
@@ -477,6 +548,38 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
                       ),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            if (widget.payload.images.isNotEmpty) ...[
+              SizedBox(
+                height: 96,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.payload.images.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final SharedImage image = widget.payload.images[index];
+                    return ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        File(image.path),
+                        width: 96,
+                        height: 96,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 96,
+                          height: 96,
+                          color: theme.colorScheme.surfaceContainerHighest,
+                          child: Icon(
+                            Icons.broken_image_outlined,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 12),

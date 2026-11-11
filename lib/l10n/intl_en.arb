@@ -192,6 +192,8 @@
     "shareStartTimeout": "Trilium is not ready yet. Please start it in the app and try again.",
     "shareLinkTitleFallback": "Web clipping",
     "shareTextTitleFallback": "Shared content",
+    "shareImageTitleFallback": "Shared image",
+    "shareImagesTitleFallback": "Shared images ({count})",
     "etapiToken": "ETAPI Token",
     "etapiTokenNotSet": "Not set",
     "etapiTokenSubtitle": "Used to save shared links and text into Trilium",

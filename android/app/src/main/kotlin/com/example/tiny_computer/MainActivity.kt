@@ -3,8 +3,10 @@ package nriver.pocket.trilium
 import android.system.Os.setenv
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Patterns
+import android.webkit.MimeTypeMap
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.NonNull
 import androidx.annotation.Keep
@@ -131,27 +133,142 @@ class MainActivity: FlutterFragmentActivity() {
     private fun handleShareIntent(intent: Intent?) {
         if (intent == null) return
         val action = intent.action ?: return
-        if (action != Intent.ACTION_SEND && action != Intent.ACTION_VIEW) return
+        if (action != Intent.ACTION_SEND &&
+            action != Intent.ACTION_SEND_MULTIPLE &&
+            action != Intent.ACTION_VIEW
+        ) {
+            return
+        }
 
         val viewUrl = if (action == Intent.ACTION_VIEW) intent.data?.toString() else null
         val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
         val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
             ?: intent.getCharSequenceExtra(Intent.EXTRA_HTML_TEXT)?.toString()
 
-        if (text.isNullOrBlank() && viewUrl.isNullOrBlank()) return
+        val imageUris = if (action == Intent.ACTION_VIEW) {
+            emptyList()
+        } else {
+            getSharedImageUris(intent)
+        }
 
-        val share = mapOf<String, Any?>(
+        if (imageUris.isNotEmpty()) {
+            // Copying images may take a while, do it off the UI thread.
+            thread {
+                val images = imageUris.mapIndexedNotNull { index, uri ->
+                    copySharedImage(uri, index, intent.type)
+                }
+                runOnUiThread {
+                    deliverShare(action, text, subject, viewUrl, images)
+                }
+            }
+            return
+        }
+
+        if (text.isNullOrBlank() && viewUrl.isNullOrBlank()) return
+        deliverShare(action, text, subject, viewUrl, emptyList())
+    }
+
+    private fun deliverShare(
+        action: String,
+        text: String?,
+        subject: String?,
+        viewUrl: String?,
+        images: List<Map<String, String>>,
+    ) {
+        val share = mutableMapOf<String, Any?>(
             "text" to text,
             "subject" to subject,
             "url" to extractUrl(viewUrl ?: text),
             "action" to action,
             "timestamp" to System.currentTimeMillis()
         )
+        if (images.isNotEmpty()) {
+            share["images"] = images
+        }
         pendingShare = share
         try {
             shareChannel?.invokeMethod("onShareReceived", share)
         } catch (_: Exception) {
             // Flutter side is not ready yet; it will pull pendingShare later.
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun getSharedImageUris(intent: Intent): List<Uri> {
+        val uris = mutableListOf<Uri>()
+
+        if (intent.action == Intent.ACTION_SEND_MULTIPLE) {
+            val list: ArrayList<Uri>? =
+                intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM)
+            if (list != null) {
+                uris.addAll(list)
+            }
+        }
+        if (uris.isEmpty()) {
+            val single: Uri? = intent.getParcelableExtra(Intent.EXTRA_STREAM)
+            if (single != null) {
+                uris.add(single)
+            }
+        }
+        if (uris.isEmpty()) {
+            val clip = intent.clipData
+            if (clip != null) {
+                for (i in 0 until clip.itemCount) {
+                    clip.getItemAt(i)?.uri?.let { uris.add(it) }
+                }
+            }
+        }
+
+        val intentType = intent.type
+        return uris.filter { uri ->
+            val mime = contentResolver.getType(uri)
+            mime?.startsWith("image/") == true ||
+                (mime == null && intentType?.startsWith("image/") == true)
+        }
+    }
+
+    private fun copySharedImage(
+        uri: Uri,
+        index: Int,
+        fallbackMime: String?,
+    ): Map<String, String>? {
+        return try {
+            val mime = contentResolver.getType(uri)
+                ?: fallbackMime?.takeIf { it.startsWith("image/") }
+                ?: guessImageMime(uri.lastPathSegment)
+                ?: "image/jpeg"
+            val ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) ?: "jpg"
+            val dir = File(cacheDir, "shared_images")
+            if (!dir.exists() && !dir.mkdirs()) {
+                return null
+            }
+            val file = File(dir, "shared_${System.currentTimeMillis()}_$index.$ext")
+            contentResolver.openInputStream(uri)?.use { input ->
+                file.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            } ?: return null
+
+            mapOf(
+                "path" to file.absolutePath,
+                "mime" to mime,
+                "name" to (uri.lastPathSegment?.substringAfterLast('/') ?: file.name)
+            )
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun guessImageMime(name: String?): String? {
+        val lower = name?.lowercase() ?: return null
+        return when {
+            lower.endsWith(".png") -> "image/png"
+            lower.endsWith(".webp") -> "image/webp"
+            lower.endsWith(".gif") -> "image/gif"
+            lower.endsWith(".bmp") -> "image/bmp"
+            lower.endsWith(".heic") || lower.endsWith(".heif") -> "image/heic"
+            lower.endsWith(".jpg") || lower.endsWith(".jpeg") -> "image/jpeg"
+            else -> null
         }
     }
 

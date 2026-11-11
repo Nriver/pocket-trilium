@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -12,6 +13,13 @@ class ClipperException implements Exception {
 
   @override
   String toString() => message;
+}
+
+class ClippingImage {
+  final String path;
+  final String? mime;
+
+  const ClippingImage({required this.path, this.mime});
 }
 
 /// Minimal client for Trilium's built-in web clipper API.
@@ -221,6 +229,111 @@ class TriliumClipperClient {
       throw const ClipperException("Trilium did not return a noteId");
     }
     return noteId;
+  }
+
+  /// Saves one or more shared images as a clipping note.
+  static Future<String> createImageClipping({
+    required String title,
+    required String remarkHtml,
+    required List<ClippingImage> images,
+    String? pageUrl,
+  }) async {
+    if (!hasToken) {
+      throw const ClipperException("ETAPI token is not set");
+    }
+    if (images.isEmpty) {
+      throw const ClipperException("No image to save");
+    }
+
+    final List<Map<String, dynamic>> imagePayloads = <Map<String, dynamic>>[];
+    final List<String> parts = <String>[];
+    final int stamp = DateTime.now().microsecondsSinceEpoch;
+
+    for (int i = 0; i < images.length; i++) {
+      final File file = File(images[i].path);
+      if (!await file.exists()) continue;
+      final bytes = await file.readAsBytes();
+      final String mime = images[i].mime ?? _guessImageMime(file.path);
+      final String imageId = 'shared_image_${stamp}_$i';
+      parts.add('<img src="$imageId">');
+      imagePayloads.add({
+        'imageId': imageId,
+        'src': file.uri.pathSegments.last,
+        'dataUrl': 'data:$mime;base64,${base64Encode(bytes)}',
+      });
+    }
+
+    if (imagePayloads.isEmpty) {
+      throw const ClipperException("No readable image to save");
+    }
+    if (remarkHtml.isNotEmpty) {
+      parts.add(remarkHtml);
+    }
+
+    // The clipper API stores a pageUrl label. Use a unique synthetic URL for
+    // image-only shares so separate shares don't get merged into one note.
+    final String uniquePageUrl = (pageUrl != null && pageUrl.isNotEmpty)
+        ? pageUrl
+        : 'https://pocket-trilium.local/shared-image/$stamp';
+
+    return _createClipping(
+      title: title,
+      content: parts.join(),
+      pageUrl: uniquePageUrl,
+      images: imagePayloads,
+    );
+  }
+
+  static Future<String> _createClipping({
+    required String title,
+    required String content,
+    required String pageUrl,
+    required List<Map<String, dynamic>> images,
+  }) async {
+    late http.Response response;
+    try {
+      response = await http
+          .post(
+            _uri('/api/clipper/clippings'),
+            headers: _headers(token, json: true),
+            body: jsonEncode({
+              'title': title,
+              'content': content,
+              'pageUrl': pageUrl,
+              'images': images,
+            }),
+          )
+          .timeout(_timeout);
+    } catch (e) {
+      throw ClipperException("Cannot reach Trilium: $e");
+    }
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      throw const ClipperException("Invalid ETAPI token", statusCode: 401);
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ClipperException(
+        _errorMessage(response),
+        statusCode: response.statusCode,
+      );
+    }
+
+    final dynamic data = jsonDecode(utf8.decode(response.bodyBytes));
+    final dynamic noteId = data is Map ? data['noteId'] : null;
+    if (noteId is! String || noteId.isEmpty) {
+      throw const ClipperException("Trilium did not return a noteId");
+    }
+    return noteId;
+  }
+
+  static String _guessImageMime(String path) {
+    final String lower = path.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.gif')) return 'image/gif';
+    if (lower.endsWith('.bmp')) return 'image/bmp';
+    if (lower.endsWith('.heic') || lower.endsWith('.heif')) return 'image/heic';
+    return 'image/jpeg';
   }
 
   static String _errorMessage(http.Response response) {

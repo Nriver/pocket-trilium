@@ -192,6 +192,8 @@
     "shareStartTimeout": "Trilium 尚未就绪，请先在应用中启动后重试。",
     "shareLinkTitleFallback": "网页剪藏",
     "shareTextTitleFallback": "分享内容",
+    "shareImageTitleFallback": "分享的图片",
+    "shareImagesTitleFallback": "分享的图片（{count}）",
     "etapiToken": "ETAPI 令牌",
     "etapiTokenNotSet": "未设置",
     "etapiTokenSubtitle": "用于把分享的链接和文字保存到 Trilium",
