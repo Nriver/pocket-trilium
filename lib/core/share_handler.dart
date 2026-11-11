@@ -33,12 +33,14 @@ class SharePayload {
   final String? text;
   final String? subject;
   final String? url;
+  final String? sourceApp;
   final List<SharedImage> images;
 
   const SharePayload({
     this.text,
     this.subject,
     this.url,
+    this.sourceApp,
     this.images = const [],
   });
 
@@ -65,6 +67,7 @@ class SharePayload {
     }
     final String? text = _clean(value['text']);
     final String? subject = _clean(value['subject']);
+    final String? sourceApp = _clean(value['sourceApp']);
     String? url = _clean(value['url']);
     if (url == null && text != null) {
       url = _urlPattern.firstMatch(text)?.group(0);
@@ -85,6 +88,7 @@ class SharePayload {
       text: text,
       subject: subject,
       url: _trimUrl(url),
+      sourceApp: sourceApp,
       images: images,
     );
   }
@@ -326,14 +330,12 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
 
     String title;
     final String? subject = payload.subject;
-    if (subject != null && subject.isNotEmpty && !_looksLikeUrl(subject)) {
+    if (payload.images.isNotEmpty) {
+      title = _imageShareTitle(l10n, payload);
+    } else if (subject != null && subject.isNotEmpty && !_looksLikeUrl(subject)) {
       title = subject;
     } else if (content.isNotEmpty) {
       title = _firstLine(content, 80);
-    } else if (payload.images.isNotEmpty) {
-      title = payload.images.length > 1
-          ? l10n.shareImagesTitleFallback(payload.images.length)
-          : l10n.shareImageTitleFallback;
     } else if (url != null && url.isNotEmpty) {
       final String? host = Uri.tryParse(url)?.host;
       title = (host != null && host.isNotEmpty)
@@ -366,6 +368,30 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
     final String line = text.split('\n').first.trim();
     if (line.length <= maxLength) return line;
     return '${line.substring(0, maxLength)}…';
+  }
+
+  static String _imageShareTitle(
+    AppLocalizations l10n,
+    SharePayload payload,
+  ) {
+    final int count = payload.images.length;
+    final String fallback = count > 1
+        ? l10n.shareImagesTitleFromGallery(count)
+        : l10n.shareImageTitleFromGallery;
+
+    final String? app = payload.sourceApp;
+    if (app != null && app.isNotEmpty) {
+      final String title = count > 1
+          ? l10n.shareImagesTitleFromApp(app, count)
+          : l10n.shareImageTitleFromApp(app);
+      if (title.trim().isNotEmpty) {
+        return title;
+      }
+    }
+
+    return fallback.trim().isNotEmpty
+        ? fallback
+        : l10n.shareTextTitleFallback;
   }
 
   static String _escapeHtml(String value) {
@@ -425,9 +451,7 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
       final String typedTitle = _titleController.text.trim();
       final String title = typedTitle.isEmpty
           ? (hasImages
-              ? (widget.payload.images.length > 1
-                  ? l10n.shareImagesTitleFallback(widget.payload.images.length)
-                  : l10n.shareImageTitleFallback)
+              ? _imageShareTitle(l10n, widget.payload)
               : ((url != null && url.isNotEmpty)
                   ? l10n.shareLinkTitleFallback
                   : l10n.shareTextTitleFallback))

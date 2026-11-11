@@ -67,13 +67,13 @@ class MainActivity: FlutterFragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        handleShareIntent(intent)
+        handleShareIntent(intent, true)
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleShareIntent(intent)
+        handleShareIntent(intent, false)
     }
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
@@ -130,7 +130,7 @@ class MainActivity: FlutterFragmentActivity() {
         }
     }
 
-    private fun handleShareIntent(intent: Intent?) {
+    private fun handleShareIntent(intent: Intent?, fromOnCreate: Boolean) {
         if (intent == null) return
         val action = intent.action ?: return
         if (action != Intent.ACTION_SEND &&
@@ -150,6 +150,7 @@ class MainActivity: FlutterFragmentActivity() {
         } else {
             getSharedImageUris(intent)
         }
+        val sourceApp = resolveSourceAppLabel(intent, fromOnCreate, imageUris)
 
         if (imageUris.isNotEmpty()) {
             // Copying images may take a while, do it off the UI thread.
@@ -158,14 +159,14 @@ class MainActivity: FlutterFragmentActivity() {
                     copySharedImage(uri, index, intent.type)
                 }
                 runOnUiThread {
-                    deliverShare(action, text, subject, viewUrl, images)
+                    deliverShare(action, text, subject, viewUrl, images, sourceApp)
                 }
             }
             return
         }
 
         if (text.isNullOrBlank() && viewUrl.isNullOrBlank()) return
-        deliverShare(action, text, subject, viewUrl, emptyList())
+        deliverShare(action, text, subject, viewUrl, emptyList(), sourceApp)
     }
 
     private fun deliverShare(
@@ -174,12 +175,14 @@ class MainActivity: FlutterFragmentActivity() {
         subject: String?,
         viewUrl: String?,
         images: List<Map<String, String>>,
+        sourceApp: String?,
     ) {
         val share = mutableMapOf<String, Any?>(
             "text" to text,
             "subject" to subject,
             "url" to extractUrl(viewUrl ?: text),
             "action" to action,
+            "sourceApp" to sourceApp,
             "timestamp" to System.currentTimeMillis()
         )
         if (images.isNotEmpty()) {
@@ -190,6 +193,108 @@ class MainActivity: FlutterFragmentActivity() {
             shareChannel?.invokeMethod("onShareReceived", share)
         } catch (_: Exception) {
             // Flutter side is not ready yet; it will pull pendingShare later.
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun resolveSourceAppLabel(
+        intent: Intent,
+        fromOnCreate: Boolean,
+        imageUris: List<Uri>,
+    ): String? {
+        val action = intent.action
+        if (action != Intent.ACTION_SEND && action != Intent.ACTION_SEND_MULTIPLE) {
+            return null
+        }
+
+        val intentReferrer: Uri? = intent.getParcelableExtra(Intent.EXTRA_REFERRER)
+        appLabelFromReferrer(intentReferrer)?.let { return it }
+
+        val referrerName = intent.getStringExtra(Intent.EXTRA_REFERRER_NAME)
+        if (!referrerName.isNullOrBlank()) {
+            appLabelFromReferrer(Uri.parse(referrerName))?.let { return it }
+            appLabelForPackage(referrerName)?.let { return it }
+        }
+
+        // Content providers are often app-specific (FileProvider, gallery
+        // providers, ...) and work for both cold and warm shares where the
+        // system referrer is unavailable.
+        sourceAppFromContentUris(imageUris)?.let { return it }
+
+        // The launching package is only reliable for the initial share.
+        if (fromOnCreate) {
+            appLabelForPackage(getLaunchedFromPackage())?.let { return it }
+            appLabelFromReferrer(referrer)?.let { return it }
+        }
+
+        return null
+    }
+
+    private fun sourceAppFromContentUris(uris: List<Uri>): String? {
+        for (uri in uris) {
+            if (uri.scheme != "content") continue
+            val authority = uri.authority ?: continue
+            if (isGenericFileAuthority(authority)) continue
+
+            val providerPackage = try {
+                packageManager.resolveContentProvider(authority, 0)?.packageName
+            } catch (_: Exception) {
+                null
+            }
+            appLabelForPackage(providerPackage)?.let { return it }
+
+            appLabelForPackage(authority)?.let { return it }
+
+            val parts = authority.split('.')
+            for (i in parts.size downTo 2) {
+                appLabelForPackage(parts.take(i).joinToString("."))?.let { return it }
+            }
+        }
+        return null
+    }
+
+    private fun isGenericFileAuthority(authority: String): Boolean {
+        val lower = authority.lowercase()
+        return lower == "media" ||
+            lower.contains("providers.media") ||
+            lower.contains("externalstorage") ||
+            lower.contains("documentsui") ||
+            lower.contains("downloads")
+    }
+
+    private fun appLabelFromReferrer(uri: Uri?): String? {
+        if (uri == null) return null
+        return when (uri.scheme) {
+            "android-app" -> appLabelForPackage(uri.host)
+            null -> appLabelForPackage(uri.toString())
+            else -> null
+        }
+    }
+
+    private val homePackages: Set<String> by lazy {
+        try {
+            val homeIntent = Intent(Intent.ACTION_MAIN)
+                .addCategory(Intent.CATEGORY_HOME)
+            packageManager.queryIntentActivities(homeIntent, 0)
+                .mapNotNull { it.activityInfo?.packageName }
+                .toSet()
+        } catch (_: Exception) {
+            emptySet()
+        }
+    }
+
+    private fun appLabelForPackage(packageName: String?): String? {
+        if (packageName.isNullOrBlank() ||
+            packageName == this.packageName ||
+            homePackages.contains(packageName)
+        ) {
+            return null
+        }
+        return try {
+            val info = packageManager.getApplicationInfo(packageName, 0)
+            packageManager.getApplicationLabel(info).toString().trim().ifEmpty { null }
+        } catch (_: Exception) {
+            null
         }
     }
 
