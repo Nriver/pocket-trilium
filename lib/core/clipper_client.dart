@@ -22,6 +22,20 @@ class ClippingImage {
   const ClippingImage({required this.path, this.mime});
 }
 
+class ClippingFile {
+  final String path;
+  final String? mime;
+  final String name;
+  final bool isImage;
+
+  const ClippingFile({
+    required this.path,
+    this.mime,
+    required this.name,
+    this.isImage = false,
+  });
+}
+
 /// Minimal client for Trilium's built-in web clipper API.
 ///
 /// Pocket Trilium runs a local Trilium server, so we can talk to it directly
@@ -332,6 +346,209 @@ class TriliumClipperClient {
       throw const ClipperException("Trilium did not return a noteId");
     }
     return noteId;
+  }
+
+  /// Saves arbitrary files as attachments on a new note in the inbox.
+  static Future<String> createFileClipping({
+    required String title,
+    required String remarkHtml,
+    required List<ClippingFile> files,
+  }) async {
+    if (!hasToken) {
+      throw const ClipperException("ETAPI token is not set");
+    }
+    if (files.isEmpty) {
+      throw const ClipperException("No file to save");
+    }
+
+    final String inboxId = await getInboxNoteId();
+    final String noteId = await createEtapiNote(
+      parentNoteId: inboxId,
+      title: title,
+      content: '',
+    );
+
+    final List<String> parts = <String>[];
+    for (final ClippingFile file in files) {
+      final String mime = file.mime ??
+          _guessMimeFromName(file.name) ??
+          'application/octet-stream';
+      final String role = file.isImage ? 'image' : 'file';
+      final String attachmentId = await _createAttachment(
+        ownerId: noteId,
+        role: role,
+        mime: mime,
+        title: file.name,
+      );
+      await _uploadAttachmentContent(
+        attachmentId: attachmentId,
+        path: file.path,
+      );
+
+      if (file.isImage) {
+        parts.add(
+          '<img src="api/attachments/$attachmentId/image/'
+          '${Uri.encodeComponent(file.name)}">',
+        );
+      } else {
+        parts.add(
+          '<p><a class="reference-link" '
+          'href="#root/$noteId?viewMode=attachments&attachmentId=$attachmentId">'
+          '${_escapeHtml(file.name)}</a></p>',
+        );
+      }
+    }
+
+    if (remarkHtml.isNotEmpty) {
+      parts.add(remarkHtml);
+    }
+
+    await _updateNoteContent(noteId: noteId, content: parts.join());
+    return noteId;
+  }
+
+  static Future<String> _createAttachment({
+    required String ownerId,
+    required String role,
+    required String mime,
+    required String title,
+  }) async {
+    late http.Response response;
+    try {
+      response = await http
+          .post(
+            _uri('/etapi/attachments'),
+            headers: _headers(token, json: true),
+            body: jsonEncode({
+              'ownerId': ownerId,
+              'role': role,
+              'mime': mime,
+              'title': title,
+            }),
+          )
+          .timeout(_timeout);
+    } catch (e) {
+      throw ClipperException("Cannot reach Trilium: $e");
+    }
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      throw const ClipperException("Invalid ETAPI token", statusCode: 401);
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ClipperException(
+        _errorMessage(response),
+        statusCode: response.statusCode,
+      );
+    }
+
+    final dynamic data = jsonDecode(utf8.decode(response.bodyBytes));
+    final dynamic attachmentId = data is Map ? data['attachmentId'] : null;
+    if (attachmentId is! String || attachmentId.isEmpty) {
+      throw const ClipperException("Trilium did not return an attachmentId");
+    }
+    return attachmentId;
+  }
+
+  static Future<void> _uploadAttachmentContent({
+    required String attachmentId,
+    required String path,
+  }) async {
+    final File file = File(path);
+    if (!await file.exists()) {
+      throw const ClipperException("Shared file no longer exists");
+    }
+
+    final int length = await file.length();
+    if (length > 100 * 1024 * 1024) {
+      throw const ClipperException("File is larger than 100 MB");
+    }
+
+    final http.StreamedRequest request = http.StreamedRequest(
+      'PUT',
+      _uri('/etapi/attachments/$attachmentId/content'),
+    );
+    request.headers.addAll(_headers(token));
+    request.headers['Content-Type'] = 'application/octet-stream';
+    request.contentLength = length;
+
+    final http.Client client = http.Client();
+    try {
+      final Future<http.StreamedResponse> responseFuture = client.send(request);
+      await file.openRead().pipe(request.sink);
+      final http.StreamedResponse streamedResponse = await responseFuture;
+      final http.Response response =
+          await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 401 || response.statusCode == 403) {
+        throw const ClipperException("Invalid ETAPI token", statusCode: 401);
+      }
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ClipperException(
+          _errorMessage(response),
+          statusCode: response.statusCode,
+        );
+      }
+    } finally {
+      client.close();
+    }
+  }
+
+  static Future<void> _updateNoteContent({
+    required String noteId,
+    required String content,
+  }) async {
+    late http.Response response;
+    try {
+      response = await http
+          .put(
+            _uri('/etapi/notes/$noteId/content'),
+            headers: {
+              ..._headers(token),
+              'Content-Type': 'text/plain; charset=utf-8',
+            },
+            body: content,
+          )
+          .timeout(_timeout);
+    } catch (e) {
+      throw ClipperException("Cannot reach Trilium: $e");
+    }
+
+    if (response.statusCode == 401 || response.statusCode == 403) {
+      throw const ClipperException("Invalid ETAPI token", statusCode: 401);
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ClipperException(
+        _errorMessage(response),
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  static String? _guessMimeFromName(String name) {
+    final String lower = name.toLowerCase();
+    if (lower.endsWith('.png')) return 'image/png';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    if (lower.endsWith('.gif')) return 'image/gif';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.svg')) return 'image/svg+xml';
+    if (lower.endsWith('.pdf')) return 'application/pdf';
+    if (lower.endsWith('.zip')) return 'application/zip';
+    if (lower.endsWith('.json')) return 'application/json';
+    if (lower.endsWith('.txt')) return 'text/plain';
+    if (lower.endsWith('.md')) return 'text/markdown';
+    if (lower.endsWith('.csv')) return 'text/csv';
+    if (lower.endsWith('.mp3')) return 'audio/mpeg';
+    if (lower.endsWith('.mp4')) return 'video/mp4';
+    if (lower.endsWith('.webm')) return 'video/webm';
+    return null;
+  }
+
+  static String _escapeHtml(String value) {
+    return value
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;');
   }
 
   static Future<String> _createClipping({

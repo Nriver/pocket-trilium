@@ -29,12 +29,51 @@ class SharedImage {
   }
 }
 
+class SharedFile {
+  final String path;
+  final String? mime;
+  final String? name;
+  final int? size;
+  final bool isImage;
+
+  const SharedFile({
+    required this.path,
+    this.mime,
+    this.name,
+    this.size,
+    this.isImage = false,
+  });
+
+  static SharedFile? tryFromMap(dynamic value) {
+    if (value is! Map) return null;
+    final String? path = SharePayload._clean(value['path']);
+    if (path == null) return null;
+
+    final String? mime = SharePayload._clean(value['mime']);
+    final dynamic rawSize = value['size'];
+    final int? size = rawSize is num
+        ? rawSize.toInt()
+        : int.tryParse(rawSize?.toString() ?? '');
+    final bool isImage =
+        value['isImage'] == true || (mime?.startsWith('image/') ?? false);
+
+    return SharedFile(
+      path: path,
+      mime: mime,
+      name: SharePayload._clean(value['name']),
+      size: size,
+      isImage: isImage,
+    );
+  }
+}
+
 class SharePayload {
   final String? text;
   final String? subject;
   final String? url;
   final String? sourceApp;
   final List<SharedImage> images;
+  final List<SharedFile> files;
 
   const SharePayload({
     this.text,
@@ -42,6 +81,7 @@ class SharePayload {
     this.url,
     this.sourceApp,
     this.images = const [],
+    this.files = const [],
   });
 
   static final RegExp _urlPattern =
@@ -84,19 +124,32 @@ class SharePayload {
       }
     }
 
+    final List<SharedFile> files = <SharedFile>[];
+    final dynamic rawFiles = value['files'];
+    if (rawFiles is List) {
+      for (final dynamic item in rawFiles) {
+        final SharedFile? file = SharedFile.tryFromMap(item);
+        if (file != null) {
+          files.add(file);
+        }
+      }
+    }
+
     return SharePayload(
       text: text,
       subject: subject,
       url: _trimUrl(url),
       sourceApp: sourceApp,
       images: images,
+      files: files,
     );
   }
 
   bool get isEmpty =>
       (text == null || text!.isEmpty) &&
       (url == null || url!.isEmpty) &&
-      images.isEmpty;
+      images.isEmpty &&
+      files.isEmpty;
 }
 
 class ShareHandler {
@@ -311,7 +364,10 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
   bool get _hasUrl =>
       widget.payload.url != null && widget.payload.url!.isNotEmpty;
 
-  bool get _canClipFullPage => _hasUrl && widget.payload.images.isEmpty;
+  bool get _canClipFullPage =>
+      _hasUrl &&
+      widget.payload.images.isEmpty &&
+      widget.payload.files.isEmpty;
 
   @override
   void didChangeDependencies() {
@@ -330,7 +386,9 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
 
     String title;
     final String? subject = payload.subject;
-    if (payload.images.isNotEmpty) {
+    if (payload.files.isNotEmpty) {
+      title = _fileShareTitle(l10n, payload);
+    } else if (payload.images.isNotEmpty) {
       title = _imageShareTitle(l10n, payload);
     } else if (subject != null && subject.isNotEmpty && !_looksLikeUrl(subject)) {
       title = subject;
@@ -353,9 +411,35 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
 
   @override
   void dispose() {
+    if (!_saving) {
+      _deleteCachedFiles();
+    }
     _titleController.dispose();
     _contentController.dispose();
     super.dispose();
+  }
+
+  Future<void> _deleteCachedFiles() async {
+    for (final SharedImage image in widget.payload.images) {
+      try {
+        final File file = File(image.path);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (_) {
+        // Ignore cleanup failures.
+      }
+    }
+    for (final SharedFile file in widget.payload.files) {
+      try {
+        final File cachedFile = File(file.path);
+        if (await cachedFile.exists()) {
+          await cachedFile.delete();
+        }
+      } catch (_) {
+        // Ignore cleanup failures.
+      }
+    }
   }
 
   static bool _looksLikeUrl(String value) {
@@ -392,6 +476,46 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
     return fallback.trim().isNotEmpty
         ? fallback
         : l10n.shareTextTitleFallback;
+  }
+
+  static String _fileShareTitle(
+    AppLocalizations l10n,
+    SharePayload payload,
+  ) {
+    final List<SharedFile> files = payload.files;
+    final int count = files.length;
+
+    if (count == 1) {
+      final String? name = files.first.name;
+      if (name != null && name.isNotEmpty) {
+        return name;
+      }
+    }
+
+    final String? app = payload.sourceApp;
+    if (app != null && app.isNotEmpty) {
+      final String title = count > 1
+          ? l10n.shareFilesTitleFromApp(app, count)
+          : l10n.shareFileTitleFromApp(app);
+      if (title.trim().isNotEmpty) {
+        return title;
+      }
+    }
+
+    return count > 1
+        ? l10n.shareFilesTitleFallback(count)
+        : l10n.shareFileTitleFallback;
+  }
+
+  static String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) {
+      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    }
+    if (bytes < 1024 * 1024 * 1024) {
+      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+    }
+    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 
   static String _escapeHtml(String value) {
@@ -433,9 +557,10 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
 
   Future<void> _save(AppLocalizations l10n) async {
     final String content = _buildContent(l10n);
+    final bool hasFiles = widget.payload.files.isNotEmpty;
     final bool hasImages = widget.payload.images.isNotEmpty;
     final bool fullPage = _canClipFullPage && _clipMode == _ClipMode.fullPage;
-    if (content.isEmpty && !hasImages && !fullPage) {
+    if (content.isEmpty && !hasFiles && !hasImages && !fullPage) {
       setState(() => _error = l10n.shareEmpty);
       return;
     }
@@ -450,15 +575,41 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
       final String? url = widget.payload.url;
       final String typedTitle = _titleController.text.trim();
       final String title = typedTitle.isEmpty
-          ? (hasImages
-              ? _imageShareTitle(l10n, widget.payload)
-              : ((url != null && url.isNotEmpty)
-                  ? l10n.shareLinkTitleFallback
-                  : l10n.shareTextTitleFallback))
+          ? (hasFiles
+              ? _fileShareTitle(l10n, widget.payload)
+              : (hasImages
+                  ? _imageShareTitle(l10n, widget.payload)
+                  : ((url != null && url.isNotEmpty)
+                      ? l10n.shareLinkTitleFallback
+                      : l10n.shareTextTitleFallback)))
           : typedTitle;
 
       final String noteId;
-      if (hasImages) {
+      if (hasFiles) {
+        noteId = await TriliumClipperClient.createFileClipping(
+          title: title,
+          remarkHtml: content,
+          files: [
+            for (final SharedFile file in widget.payload.files)
+              ClippingFile(
+                path: file.path,
+                mime: file.mime,
+                name: file.name ?? 'file',
+                isImage: file.isImage,
+              ),
+          ],
+        );
+        for (final SharedFile file in widget.payload.files) {
+          try {
+            final File cachedFile = File(file.path);
+            if (await cachedFile.exists()) {
+              await cachedFile.delete();
+            }
+          } catch (_) {
+            // Ignore cleanup failures.
+          }
+        }
+      } else if (hasImages) {
         noteId = await TriliumClipperClient.createImageClipping(
           title: title,
           remarkHtml: content,
@@ -661,6 +812,43 @@ class _ShareCaptureSheetState extends State<_ShareCaptureSheet> {
                     );
                   },
                 ),
+              ),
+              const SizedBox(height: 12),
+            ],
+            if (widget.payload.files.isNotEmpty) ...[
+              Column(
+                children: [
+                  for (final SharedFile file in widget.payload.files)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: file.isImage
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                File(file.path),
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Icon(
+                                  Icons.broken_image_outlined,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            )
+                          : Icon(
+                              Icons.insert_drive_file,
+                              color: theme.colorScheme.primary,
+                            ),
+                      title: Text(
+                        file.name ?? 'file',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: file.size == null
+                          ? null
+                          : Text(_formatFileSize(file.size!)),
+                    ),
+                ],
               ),
               const SizedBox(height: 12),
             ],

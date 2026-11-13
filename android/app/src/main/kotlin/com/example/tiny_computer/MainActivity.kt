@@ -5,6 +5,7 @@ import android.system.Os.setenv
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.util.Patterns
 import android.webkit.MimeTypeMap
 import androidx.activity.result.contract.ActivityResultContracts
@@ -145,28 +146,43 @@ class MainActivity: FlutterFragmentActivity() {
         val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
             ?: intent.getCharSequenceExtra(Intent.EXTRA_HTML_TEXT)?.toString()
 
-        val imageUris = if (action == Intent.ACTION_VIEW) {
+        val uris = if (action == Intent.ACTION_VIEW) {
             emptyList()
         } else {
-            getSharedImageUris(intent)
+            getSharedUris(intent)
         }
-        val sourceApp = resolveSourceAppLabel(intent, fromOnCreate, imageUris)
+        val sourceApp = resolveSourceAppLabel(intent, fromOnCreate, uris)
 
-        if (imageUris.isNotEmpty()) {
-            // Copying images may take a while, do it off the UI thread.
+        if (uris.isNotEmpty()) {
+            val hasNonImage = uris.any { !isImageUri(it, intent.type) }
+
+            // Copying files may take a while, do it off the UI thread.
             thread {
-                val images = imageUris.mapIndexedNotNull { index, uri ->
-                    copySharedImage(uri, index, intent.type)
+                val copied = uris.mapIndexedNotNull { index, uri ->
+                    copySharedFile(uri, index, intent.type)
                 }
                 runOnUiThread {
-                    deliverShare(action, text, subject, viewUrl, images, sourceApp)
+                    if (hasNonImage) {
+                        deliverShare(
+                            action, text, subject, viewUrl,
+                            images = emptyList(), files = copied, sourceApp = sourceApp
+                        )
+                    } else {
+                        deliverShare(
+                            action, text, subject, viewUrl,
+                            images = copied, files = emptyList(), sourceApp = sourceApp
+                        )
+                    }
                 }
             }
             return
         }
 
         if (text.isNullOrBlank() && viewUrl.isNullOrBlank()) return
-        deliverShare(action, text, subject, viewUrl, emptyList(), sourceApp)
+        deliverShare(
+            action, text, subject, viewUrl,
+            images = emptyList(), files = emptyList(), sourceApp = sourceApp
+        )
     }
 
     private fun deliverShare(
@@ -174,7 +190,8 @@ class MainActivity: FlutterFragmentActivity() {
         text: String?,
         subject: String?,
         viewUrl: String?,
-        images: List<Map<String, String>>,
+        images: List<Map<String, Any?>>,
+        files: List<Map<String, Any?>>,
         sourceApp: String?,
     ) {
         val share = mutableMapOf<String, Any?>(
@@ -188,6 +205,9 @@ class MainActivity: FlutterFragmentActivity() {
         if (images.isNotEmpty()) {
             share["images"] = images
         }
+        if (files.isNotEmpty()) {
+            share["files"] = files
+        }
         pendingShare = share
         try {
             shareChannel?.invokeMethod("onShareReceived", share)
@@ -200,7 +220,7 @@ class MainActivity: FlutterFragmentActivity() {
     private fun resolveSourceAppLabel(
         intent: Intent,
         fromOnCreate: Boolean,
-        imageUris: List<Uri>,
+        uris: List<Uri>,
     ): String? {
         val action = intent.action
         if (action != Intent.ACTION_SEND && action != Intent.ACTION_SEND_MULTIPLE) {
@@ -219,7 +239,7 @@ class MainActivity: FlutterFragmentActivity() {
         // Content providers are often app-specific (FileProvider, gallery
         // providers, ...) and work for both cold and warm shares where the
         // system referrer is unavailable.
-        sourceAppFromContentUris(imageUris)?.let { return it }
+        sourceAppFromContentUris(uris)?.let { return it }
 
         // The launching package is only reliable for the initial share.
         if (fromOnCreate) {
@@ -299,7 +319,7 @@ class MainActivity: FlutterFragmentActivity() {
     }
 
     @Suppress("DEPRECATION")
-    private fun getSharedImageUris(intent: Intent): List<Uri> {
+    private fun getSharedUris(intent: Intent): List<Uri> {
         val uris = mutableListOf<Uri>()
 
         if (intent.action == Intent.ACTION_SEND_MULTIPLE) {
@@ -324,30 +344,38 @@ class MainActivity: FlutterFragmentActivity() {
             }
         }
 
-        val intentType = intent.type
-        return uris.filter { uri ->
-            val mime = contentResolver.getType(uri)
-            mime?.startsWith("image/") == true ||
-                (mime == null && intentType?.startsWith("image/") == true)
-        }
+        return uris
     }
 
-    private fun copySharedImage(
+    private fun isImageUri(uri: Uri, fallbackMime: String?): Boolean {
+        val mime = contentResolver.getType(uri)
+            ?: fallbackMime?.takeIf { it.isNotBlank() && it != "*/*" }
+            ?: guessMimeFromName(displayNameFor(uri))
+        return mime?.startsWith("image/") == true
+    }
+
+    private fun copySharedFile(
         uri: Uri,
         index: Int,
         fallbackMime: String?,
-    ): Map<String, String>? {
+    ): Map<String, Any?>? {
         return try {
+            val displayName = displayNameFor(uri)
             val mime = contentResolver.getType(uri)
-                ?: fallbackMime?.takeIf { it.startsWith("image/") }
-                ?: guessImageMime(uri.lastPathSegment)
-                ?: "image/jpeg"
-            val ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(mime) ?: "jpg"
-            val dir = File(cacheDir, "shared_images")
+                ?: fallbackMime?.takeIf { it.isNotBlank() && it != "*/*" }
+                ?: guessMimeFromName(displayName)
+                ?: "application/octet-stream"
+
+            val extension = MimeTypeMap.getSingleton()
+                .getExtensionFromMimeType(mime)
+                ?: displayName?.substringAfterLast('.', "")?.takeIf { it.isNotEmpty() }
+                ?: "bin"
+
+            val dir = File(cacheDir, "shared_files")
             if (!dir.exists() && !dir.mkdirs()) {
                 return null
             }
-            val file = File(dir, "shared_${System.currentTimeMillis()}_$index.$ext")
+            val file = File(dir, "shared_${System.currentTimeMillis()}_$index.$extension")
             contentResolver.openInputStream(uri)?.use { input ->
                 file.outputStream().use { output ->
                     input.copyTo(output)
@@ -357,24 +385,44 @@ class MainActivity: FlutterFragmentActivity() {
             mapOf(
                 "path" to file.absolutePath,
                 "mime" to mime,
-                "name" to (uri.lastPathSegment?.substringAfterLast('/') ?: file.name)
+                "name" to (displayName ?: file.name),
+                "size" to file.length(),
+                "isImage" to mime.startsWith("image/")
             )
         } catch (_: Exception) {
             null
         }
     }
 
-    private fun guessImageMime(name: String?): String? {
-        val lower = name?.lowercase() ?: return null
-        return when {
-            lower.endsWith(".png") -> "image/png"
-            lower.endsWith(".webp") -> "image/webp"
-            lower.endsWith(".gif") -> "image/gif"
-            lower.endsWith(".bmp") -> "image/bmp"
-            lower.endsWith(".heic") || lower.endsWith(".heif") -> "image/heic"
-            lower.endsWith(".jpg") || lower.endsWith(".jpeg") -> "image/jpeg"
-            else -> null
+    private fun displayNameFor(uri: Uri): String? {
+        return queryDisplayName(uri) ?: uri.lastPathSegment
+    }
+
+    private fun queryDisplayName(uri: Uri): String? {
+        return try {
+            contentResolver.query(
+                uri,
+                arrayOf(OpenableColumns.DISPLAY_NAME),
+                null,
+                null,
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (index >= 0) cursor.getString(index) else null
+                } else {
+                    null
+                }
+            }
+        } catch (_: Exception) {
+            null
         }
+    }
+
+    private fun guessMimeFromName(name: String?): String? {
+        val extension = name?.substringAfterLast('.', "")?.lowercase() ?: return null
+        if (extension.isEmpty()) return null
+        return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
     }
 
     private fun extractUrl(text: String?): String? {
