@@ -15,7 +15,8 @@
     ".dropdown-menu.show",
     ".dropdown-menu.in",
     ".popover.show",
-    ".offcanvas.show"
+    ".offcanvas.show",
+    "[data-back-overlay]"
   ].join(", ");
 
   let enabled = __BACK_CLOSE_ENABLED__;
@@ -62,6 +63,33 @@
     const toggle = findDropdownToggle(menu);
 
     return !toggle || !isVisible(toggle);
+  }
+
+  // 标记为 data-back-close="false" 的浮层不因返回键关闭（例如需要常驻的窗口）
+  function isBackPersistent(el) {
+    return !!el && el.getAttribute("data-back-close") === "false";
+  }
+
+  // 自定义浮层：优先点击指定的关闭按钮，否则发送 Escape 让业务自行清理
+  function closeCustomOverlay(overlay) {
+    const selector = overlay.getAttribute("data-back-close-selector");
+
+    if (selector) {
+      const closeButton = overlay.querySelector(selector);
+
+      if (closeButton) {
+        closeButton.click();
+        return;
+      }
+    }
+
+    dispatchEscape(overlay);
+
+    setTimeout(function () {
+      if (isVisible(overlay)) {
+        forceHide(overlay);
+      }
+    }, 200);
   }
 
   // 记录弹窗打开的顺序，最后打开的在最上层
@@ -336,6 +364,11 @@
   }
 
   function closeOverlay(overlay) {
+    if (overlay.hasAttribute("data-back-overlay")) {
+      closeCustomOverlay(overlay);
+      return;
+    }
+
     const contextMenu = getContextMenuContainer(overlay);
 
     if (contextMenu) {
@@ -416,6 +449,13 @@
 
     // 只关闭最上层的浮层，嵌套弹窗可以一层一层返回
     const topOverlay = overlays[overlays.length - 1];
+
+    // 禁止返回关闭的浮层：拦截本次返回但不关闭，重新压入守卫
+    if (isBackPersistent(topOverlay)) {
+      pushGuard();
+      return;
+    }
+
     const index = overlayStack.indexOf(topOverlay);
 
     if (index !== -1) {
