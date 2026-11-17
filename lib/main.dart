@@ -10,6 +10,7 @@ import 'package:pocket_trilium/terminalPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'constants/defaults.dart';
+import 'core/deep_link_handler.dart';
 import 'core/share_handler.dart';
 import 'core/webview_scripts.dart';
 import 'infoPage.dart';
@@ -62,6 +63,7 @@ void main() async {
   G.statusBarCustomColor.value = Util.getGlobal("statusBarCustomColor") as int;
   await Util.applyStatusBarMode();
   await ShareHandler.init();
+  await DeepLinkHandler.init();
   runApp(const MyApp());
 }
 
@@ -76,6 +78,8 @@ class MyApp extends StatelessWidget {
         valueListenable: G.locale,
         builder: (context, Locale? locale, child) {
           return MaterialApp(
+            navigatorKey: G.navigatorKey,
+            navigatorObservers: [G.navigatorObserver],
             builder: (context, child) =>
                 AppLifecycleOverlay(child: StatusBarOverlay(child: child!)),
             locale: locale,
@@ -373,12 +377,20 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _initializeWorkflow() async {
-    await Workflow.workflow();
-    if (mounted) {
-      setState(() {
-        isLoadingComplete = true;
-      });
-      ShareHandler.markUiReady(context);
+    try {
+      await Workflow.workflow(
+        skipStartIfServerRunning: DeepLinkHandler.hasPending,
+      );
+    } catch (e, stack) {
+      debugPrint("初始化失败: $e\n$stack");
+    } finally {
+      if (mounted) {
+        setState(() {
+          isLoadingComplete = true;
+        });
+        ShareHandler.markUiReady(context);
+        DeepLinkHandler.markUiReady(context);
+      }
     }
   }
 

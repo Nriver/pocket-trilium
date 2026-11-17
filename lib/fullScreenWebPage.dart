@@ -30,10 +30,17 @@ class _InAppWebViewFullScreenPageState extends State<InAppWebViewFullScreenPage>
   @override
   void initState() {
     super.initState();
+    G.webViewCount++;
   }
 
   @override
   void dispose() {
+    if (G.webViewCount > 0) {
+      G.webViewCount--;
+    }
+    if (identical(G.controller, webViewController)) {
+      G.controller = null;
+    }
     super.dispose();
   }
 

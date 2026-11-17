@@ -783,9 +783,38 @@ class _AppLifecycleOverlayState extends State<AppLifecycleOverlay> with WidgetsB
   }
 }
 
+const String kWebViewRouteName = 'pocketWebView';
+
+class PocketNavigatorObserver extends NavigatorObserver {
+  void _update(Route<dynamic>? route) {
+    G.currentRouteName = route?.settings.name;
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _update(route);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _update(previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    _update(newRoute);
+  }
+}
+
 class G {
-  static late final String dataPath;
+  static late String dataPath;
   static InAppWebViewController? controller;
+  static int webViewCount = 0;
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+  static final PocketNavigatorObserver navigatorObserver =
+      PocketNavigatorObserver();
+  static String? currentRouteName;
   static late BuildContext homePageStateContext;
   static late int currentContainer; //目前运行第几个容器
   static late Map<int, TermPty> termPtys; //为容器<int>存放TermPty数据
@@ -813,6 +842,8 @@ class G {
 }
 
 class Workflow {
+
+  static bool _initialized = false;
 
   static Future<void> setupBootstrap() async {
     //用来共享数据文件的文件夹
@@ -1393,6 +1424,54 @@ clear""");
     return '$base/#$noteId';
   }
 
+  static String noteUrlFromFragment(String fragment) {
+    final base = resolveWebUrl()
+        .split('#')
+        .first
+        .replaceAll(RegExp(r'/+$'), '');
+    final normalized =
+        fragment.startsWith('#') ? fragment.substring(1) : fragment;
+    return '$base/#$normalized';
+  }
+
+  static Future<void> openNoteFragment(String fragment) async {
+    final String url = noteUrlFromFragment(fragment);
+    final controller = G.controller;
+    if (G.currentRouteName == kWebViewRouteName && controller != null) {
+      try {
+        await controller.evaluateJavascript(
+          source: 'window.location.href = ${jsonEncode(url)};',
+        );
+        return;
+      } catch (e) {
+        debugPrint("跳转笔记失败: $e");
+      }
+    }
+
+    final navigator = G.navigatorKey.currentState;
+    navigator?.popUntil(
+      (route) => route.settings.name != kWebViewRouteName,
+    );
+    launchBrowser(url: url);
+  }
+
+  //检查是否已经有 Trilium 在运行, 避免 Activity 重建时重复启动容器
+  static Future<bool> isTriliumAlreadyRunning({
+    Duration timeout = const Duration(seconds: 2),
+  }) async {
+    try {
+      final Uri healthUri = Uri.parse(resolveWebUrl()).replace(
+        path: '/api/health-check',
+        query: null,
+        fragment: null,
+      );
+      final response = await http.get(healthUri).timeout(timeout);
+      return response.statusCode == 200 && response.body.contains('"status"');
+    } catch (_) {
+      return false;
+    }
+  }
+
   //等待Trilium服务就绪, 返回是否确认可访问
   //开启自动检测时, 只有读到本次启动写入的端口记录后才按实际端口探测,
   //记录没生成前不会去连配置地址, 因此不会误开占用端口的其它程序的页面
@@ -1446,16 +1525,20 @@ clear""");
     launchBrowser();
   }
 
-  static Future<void> launchBrowser() async {
-    final String webUrl = resolveWebUrl();
+  static Future<void> launchBrowser({String? url}) async {
+    final String webUrl = url ?? resolveWebUrl();
 
     G.isTriliumReady.value = true;
-    Navigator.push(
-      G.homePageStateContext,
-      MaterialPageRoute(
-        builder: (context) => InAppWebViewFullScreenPage(url: webUrl),
-      ),
+    final route = MaterialPageRoute(
+      settings: const RouteSettings(name: kWebViewRouteName),
+      builder: (context) => InAppWebViewFullScreenPage(url: webUrl),
     );
+    final navigator = G.navigatorKey.currentState;
+    if (navigator != null) {
+      navigator.push(route);
+    } else {
+      Navigator.push(G.homePageStateContext, route);
+    }
   }
 
   //冷启动自动打开图形界面的完成信号(无论最终是否成功打开都会完成)
@@ -1468,9 +1551,27 @@ clear""");
     await completer.future;
   }
 
-  static Future<void> workflow() async {
+  static Future<void> workflow({bool skipStartIfServerRunning = false}) async {
+    if (_initialized) {
+      G.isTriliumReady.value = true;
+      if (!skipStartIfServerRunning &&
+          (Util.getGlobal("autoLaunchGUI") as bool) &&
+          G.currentRouteName != kWebViewRouteName) {
+        launchBrowser();
+      }
+      return;
+    }
+
     await initData();
     await initTerminalForCurrent();
+    _initialized = true;
+
+    //深链启动且已有 Trilium 在运行时, 直接复用现有服务, 不再重新启动容器
+    if (skipStartIfServerRunning && await isTriliumAlreadyRunning()) {
+      G.isTriliumReady.value = true;
+      return;
+    }
+
     launchCurrentContainer();
     if (Util.getGlobal("autoLaunchGUI") as bool) {
       launchGUIBackend();

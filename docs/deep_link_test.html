@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pocket Trilium Deep Link Test</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f7fb;
+    --card: #ffffff;
+    --text: #1c1f26;
+    --muted: #6b7280;
+    --border: #d9dce5;
+    --primary: #2f6fed;
+    --primary-soft: #e8efff;
+    --ok: #17803d;
+    --danger: #c0392b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121418;
+      --card: #1b1e24;
+      --text: #e8eaef;
+      --muted: #9aa1ad;
+      --border: #323742;
+      --primary: #7aa2ff;
+      --primary-soft: #22304f;
+      --ok: #4ade80;
+      --danger: #ff8b7d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  main { max-width: 1120px; margin: 0 auto; }
+  .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  h1 { font-size: 22px; margin: 0; }
+  .subtitle { color: var(--muted); font-size: 13px; margin: 4px 0 18px; }
+  .lang-switch {
+    display: flex;
+    flex: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--card);
+  }
+  .lang-switch button {
+    border: 0;
+    border-radius: 0;
+    padding: 6px 10px;
+    font-size: 12px;
+    background: transparent;
+  }
+  .lang-switch button.active {
+    background: var(--primary);
+    color: #fff;
+  }
+  [hidden] { display: none !important; }
+  .mode-switch {
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--card);
+    margin-bottom: 16px;
+  }
+  .mode-switch button {
+    border: 0;
+    border-radius: 0;
+    padding: 8px 14px;
+    background: transparent;
+  }
+  .mode-switch button.active {
+    background: var(--primary);
+    color: #fff;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 290px) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+  }
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding-right: 2px;
+  }
+  .content {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .sidebar .card,
+  .content .card {
+    margin-bottom: 0;
+  }
+  .card.hero {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+  }
+  .card.hero .value {
+    padding: 14px;
+    font-size: 15px;
+  }
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  input {
+    width: 100%;
+    padding: 12px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    font-size: 15px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  input:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+  .field { margin-bottom: 14px; }
+  .note-choices {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+    gap: 8px;
+  }
+  .note-choice {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    text-align: left;
+    line-height: 1.35;
+  }
+  .note-choice code {
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    word-break: break-all;
+  }
+  .note-choice span {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 400;
+  }
+  .format-options { display: flex; flex-direction: column; gap: 8px; }
+  .format-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    padding: 10px 11px;
+    border: 1px solid var(--border);
+    border-radius: 11px;
+    cursor: pointer;
+    font-weight: 400;
+  }
+  .format-option.active {
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+  .format-option input {
+    width: auto;
+    margin: 3px 0 0;
+    padding: 0;
+    accent-color: var(--primary);
+  }
+  .format-option code {
+    display: block;
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    word-break: break-all;
+  }
+  .format-option small {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.4;
+    margin-top: 2px;
+  }
+  .batch-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .batch-group-title {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+  .batch-item {
+    display: grid;
+    grid-template-columns: minmax(170px, .8fr) minmax(0, 1.35fr);
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .batch-note {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+  .batch-note code {
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    word-break: break-all;
+  }
+  .batch-note span {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+  .batch-link { min-width: 0; }
+  .batch-link .value {
+    margin-top: 0;
+    font-size: 12px;
+    padding: 9px 10px;
+  }
+  .batch-link .actions { margin-top: 6px; }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 6px; }
+  .invalid { color: var(--danger); }
+  .ok { color: var(--ok); }
+  .row { margin-top: 14px; }
+  .row-title { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .row-title strong { font-size: 14px; }
+  .row-title span { color: var(--muted); font-size: 12px; }
+  .value {
+    display: block;
+    margin-top: 8px;
+    padding: 11px 12px;
+    border-radius: 10px;
+    background: var(--primary-soft);
+    color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    word-break: break-all;
+    text-decoration: none;
+    border: 1px solid transparent;
+  }
+  a.value:hover { border-color: var(--primary); }
+  .actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  button {
+    appearance: none;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 9px 13px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  button:hover { filter: brightness(1.04); }
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    background: #111827;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease;
+    max-width: 90vw;
+  }
+  .toast.show { opacity: 1; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  pre {
+    overflow: auto;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--primary-soft);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .batch-item { grid-template-columns: 1fr; }
+    .sidebar {
+      position: static;
+      max-height: none;
+      overflow: visible;
+      order: 2;
+    }
+    .content { order: 1; }
+    #batchLayout .sidebar { order: 1; }
+    #batchLayout .content { order: 2; }
+  }
+  @media (max-width: 480px) {
+    h1 { font-size: 19px; }
+    .page-header { align-items: center; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="page-header">
+    <h1 data-i18n="pageTitle">Pocket Trilium Deep Link Test</h1>
+    <div class="lang-switch" role="group" aria-label="Language">
+      <button type="button" data-lang="zh">中文</button>
+      <button type="button" data-lang="en">English</button>
+    </div>
+  </div>
+  <div class="subtitle" data-i18n="subtitle">Enter a note ID or note path to generate clickable deep links in real time. You can also copy them for HTTP Shortcuts / adb.</div>
+
+  <div class="mode-switch" role="group">
+    <button type="button" id="modeSingleBtn" data-mode="single" class="active" data-i18n="modeSingle">Single link</button>
+    <button type="button" id="modeBatchBtn" data-mode="batch" data-i18n="modeBatch">Batch list</button>
+  </div>
+
+  <div class="layout" id="singleLayout">
+  <aside class="sidebar">
+<section class="card">
+    <div class="row-title">
+      <strong data-i18n="commonTitle">Quick select: shared by Plus / Next</strong>
+      <span data-i18n="commonAction">Click to fill the note ID</span>
+    </div>
+    <div class="hint" data-i18n="commonHint">These special notes exist in both Trilium Plus and Trilium Next.</div>
+    <div class="note-choices">
+      <button type="button" class="note-choice" data-note="root">
+        <code>root</code>
+        <span data-i18n="noteRoot">Root note, the starting point of the note tree</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_options">
+        <code>_options</code>
+        <span data-i18n="noteOptions">Settings home containing all options pages</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsAppearance">
+        <code>_optionsAppearance</code>
+        <span data-i18n="noteAppearance">Appearance: theme, colors, fonts, layout</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsShortcuts">
+        <code>_optionsShortcuts</code>
+        <span data-i18n="noteShortcuts">Shortcuts: keyboard shortcuts and actions</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsTextNotes">
+        <code>_optionsTextNotes</code>
+        <span data-i18n="noteTextNotes">Text notes: editor, Markdown, default format</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsCodeNotes">
+        <code>_optionsCodeNotes</code>
+        <span data-i18n="noteCodeNotes">Code notes: code blocks, highlighting, indentation</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsImages">
+        <code>_optionsImages</code>
+        <span data-i18n="noteImages">Image settings (moved to _optionsMedia in Next)</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsSpellcheck">
+        <code>_optionsSpellcheck</code>
+        <span data-i18n="noteSpellcheck">Spellcheck: languages, dictionaries, corrections</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsPassword">
+        <code>_optionsPassword</code>
+        <span data-i18n="notePassword">Password and authentication: protected session, login</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsEtapi">
+        <code>_optionsEtapi</code>
+        <span data-i18n="noteEtapi">ETAPI: external API tokens and integrations</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsBackup">
+        <code>_optionsBackup</code>
+        <span data-i18n="noteBackup">Backup: automatic backup, location, frequency</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsSync">
+        <code>_optionsSync</code>
+        <span data-i18n="noteSync">Sync: server, direction, and status</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsOther">
+        <code>_optionsOther</code>
+        <span data-i18n="noteOther">Other settings not covered by other categories</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsAdvanced">
+        <code>_optionsAdvanced</code>
+        <span data-i18n="noteAdvanced">Advanced: developer and experimental options</span>
+      </button>
+    </div>
+  </section>
+<section class="card">
+    <div class="row-title">
+      <strong data-i18n="nextTitle">Quick select: Trilium Next only</strong>
+      <span data-i18n="nextAction">Not available in Trilium Plus</span>
+    </div>
+    <div class="hint" data-i18n="nextHint">These settings pages are new or exclusive to Trilium Next.</div>
+    <div class="note-choices">
+      <button type="button" class="note-choice" data-note="_optionsLocalization">
+        <code>_optionsLocalization</code>
+        <span data-i18n="noteLocalization">Language and region settings</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsDesktop">
+        <code>_optionsDesktop</code>
+        <span data-i18n="noteDesktop">Desktop settings: Electron-specific options</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsMedia">
+        <code>_optionsMedia</code>
+        <span data-i18n="noteMedia">Media: images, audio, video (replaces _optionsImages)</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsContentManager">
+        <code>_optionsContentManager</code>
+        <span data-i18n="noteContentManager">Content manager: attachment and resource usage</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsTranscription">
+        <code>_optionsTranscription</code>
+        <span data-i18n="noteTranscription">Audio transcription (Beta, mainly desktop)</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsLlm">
+        <code>_optionsLlm</code>
+        <span data-i18n="noteLlm">AI / LLM: models, API, and chat settings</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsDatabase">
+        <code>_optionsDatabase</code>
+        <span data-i18n="noteDatabase">Database settings and maintenance</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsResources">
+        <code>_optionsResources</code>
+        <span data-i18n="noteResources">Downloaded resource management</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsSecurity">
+        <code>_optionsSecurity</code>
+        <span data-i18n="noteSecurity">Security settings</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsMFA">
+        <code>_optionsMFA</code>
+        <span data-i18n="noteMfa">Multi-factor authentication (MFA)</span>
+      </button>
+      <button type="button" class="note-choice" data-note="_optionsAi">
+        <code>_optionsAi</code>
+        <span data-i18n="noteAi">Legacy AI Chat entry (may have moved to _optionsLlm)</span>
+      </button>
+    </div>
+  </section>
+  </aside>
+  <div class="content">
+<section class="card">
+    <div class="field">
+      <label for="noteId" data-i18n="noteLabel">Note ID or note path</label>
+      <input id="noteId" value="F0XgkCKd8Jps" data-i18n-placeholder="notePlaceholder" placeholder="e.g. F0XgkCKd8Jps or root/parentId/noteId" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div class="hint" id="idHint"></div>
+    </div>
+
+    <div class="field" style="margin-bottom:0">
+      <label for="serverUrl" data-i18n="serverLabel">Trilium server URL (for wrapped trilium:// links)</label>
+      <input id="serverUrl" value="http://127.0.0.1:8080" placeholder="http://127.0.0.1:8080" autocomplete="off" spellcheck="false">
+      <div class="hint" data-i18n="serverHint">Only used to generate trilium://open?url=... links that wrap a full Trilium web URL.</div>
+    </div>
+  </section>
+<section class="card hero">
+    <div class="row-title">
+      <strong data-i18n="linkShortTitle">Recommended: simplest form</strong>
+      <span>trilium://&lt;noteId&gt;</span>
+    </div>
+    <a class="value" id="linkShort" href="#">-</a>
+    <div class="actions">
+      <button type="button" class="primary" data-copy="linkShort" data-i18n="copy">Copy</button>
+      <button type="button" data-open="linkShort" data-i18n="open">Try to open</button>
+    </div>
+  </section>
+<section class="card">
+    <div class="row-title">
+      <strong data-i18n="linkNoteTitle">Explicit note prefix</strong>
+      <span>trilium://note/&lt;noteId&gt;</span>
+    </div>
+    <a class="value" id="linkNote" href="#">-</a>
+    <div class="actions">
+      <button type="button" class="primary" data-copy="linkNote" data-i18n="copy">Copy</button>
+      <button type="button" data-open="linkNote" data-i18n="open">Try to open</button>
+    </div>
+  </section>
+<section class="card">
+    <div class="row-title">
+      <strong data-i18n="linkHashTitle">With Trilium hash path</strong>
+      <span>trilium://note/#root/&lt;noteId&gt;</span>
+    </div>
+    <a class="value" id="linkHash" href="#">-</a>
+    <div class="actions">
+      <button type="button" class="primary" data-copy="linkHash" data-i18n="copy">Copy</button>
+      <button type="button" data-open="linkHash" data-i18n="open">Try to open</button>
+    </div>
+  </section>
+<section class="card">
+    <div class="row-title">
+      <strong data-i18n="linkWrappedTitle">Wrap a full URL</strong>
+      <span>trilium://open?url=...</span>
+    </div>
+    <a class="value" id="linkWrapped" href="#">-</a>
+    <div class="actions">
+      <button type="button" class="primary" data-copy="linkWrapped" data-i18n="copy">Copy</button>
+      <button type="button" data-open="linkWrapped" data-i18n="open">Try to open</button>
+    </div>
+  </section>
+<section class="card">
+    <div class="row-title">
+      <strong data-i18n="adbTitle">adb test command</strong>
+      <span data-i18n="adbAction">Run on your computer</span>
+    </div>
+    <pre id="adbCommand">-</pre>
+    <div class="actions">
+      <button type="button" data-copy="adbCommand" data-i18n="copyCommand">Copy command</button>
+    </div>
+  </section>
+  </div>
+</div>
+
+  <div class="layout" id="batchLayout" hidden>
+    <aside class="sidebar">
+      <section class="card">
+        <div class="row-title">
+          <strong data-i18n="batchFormatTitle">Link format</strong>
+          <span data-i18n="batchFormatHint">Choose one format</span>
+        </div>
+        <div class="format-options" id="formatOptions">
+          <label class="format-option active">
+            <input type="radio" name="batchFormat" value="short" checked>
+            <span>
+              <code>trilium://&lt;noteId&gt;</code>
+              <small data-i18n="formatShortHint">Use the note ID directly</small>
+            </span>
+          </label>
+          <label class="format-option">
+            <input type="radio" name="batchFormat" value="note">
+            <span>
+              <code>trilium://note/&lt;noteId&gt;</code>
+              <small data-i18n="formatNoteHint">Use the explicit note prefix</small>
+            </span>
+          </label>
+          <label class="format-option">
+            <input type="radio" name="batchFormat" value="hash">
+            <span>
+              <code>trilium://note/#root/&lt;noteId&gt;</code>
+              <small data-i18n="formatHashHint">Use the #root/ hash path</small>
+            </span>
+          </label>
+          <label class="format-option">
+            <input type="radio" name="batchFormat" value="wrapped">
+            <span>
+              <code>trilium://open?url=...</code>
+              <small data-i18n="formatWrappedHint">Wrap a full Trilium web URL</small>
+            </span>
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="field" style="margin-bottom:0">
+          <label for="batchServerUrl" data-i18n="serverLabel">Trilium server URL (for wrapped trilium:// links)</label>
+          <input id="batchServerUrl" value="http://127.0.0.1:8080" placeholder="http://127.0.0.1:8080" autocomplete="off" spellcheck="false">
+          <div class="hint" data-i18n="serverHint">Only used to generate trilium://open?url=... links that wrap a full Trilium web URL.</div>
+        </div>
+      </section>
+    </aside>
+
+    <div class="content">
+      <section class="card">
+        <div class="row-title">
+          <strong data-i18n="batchListTitle">Special note links</strong>
+          <span data-i18n="batchListHint">Open or copy any link</span>
+        </div>
+        <div class="batch-list" id="batchList"></div>
+      </section>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const I18N = {
+    zh: {
+      pageTitle: 'Pocket Trilium Deep Link 测试',
+      subtitle: '输入笔记 ID 或笔记路径，实时生成可点击的深链。也可以复制后用 HTTP Shortcuts / adb 测试。',
+      modeSingle: '单个链接',
+      modeBatch: '批量列表',
+      batchFormatTitle: '链接格式',
+      batchFormatHint: '选择一种格式',
+      formatShortHint: '直接使用笔记 ID',
+      formatNoteHint: '使用 note/ 前缀',
+      formatHashHint: '使用 #root/ hash 路径',
+      formatWrappedHint: '包裹完整 Trilium 网页地址',
+      batchListTitle: '特殊笔记链接',
+      batchListHint: '快速打开或复制',
+      batchEmpty: '没有可生成的链接',
+      noteLabel: '笔记 ID 或笔记路径',
+      notePlaceholder: '例如 F0XgkCKd8Jps 或 root/parentId/noteId',
+      serverLabel: 'Trilium 服务器地址（用于生成包裹式 trilium:// 链接）',
+      serverHint: '仅用于生成 trilium://open?url=... 形式，把完整 Trilium 网页地址包装成深链。',
+      commonTitle: '快速选择：Plus / Next 共有',
+      commonAction: '点击填入笔记 ID',
+      commonHint: '以下特殊笔记在 Trilium Plus 和 Trilium Next 中都存在。',
+      nextTitle: '快速选择：Trilium Next 独有',
+      nextAction: 'Trilium Plus 中没有这些选项',
+      nextHint: '这些是 Trilium Next 新增或专用的设置页面。',
+      linkShortTitle: '推荐：最简单的写法',
+      linkNoteTitle: '显式 note 前缀',
+      linkHashTitle: '带 Trilium hash 路径',
+      linkWrappedTitle: '包裹完整 URL',
+      adbTitle: 'adb 测试命令',
+      adbAction: '在电脑上执行',
+      copy: '复制',
+      open: '尝试打开',
+      copyCommand: '复制命令',
+      invalidId: '请输入有效的笔记 ID（至少 4 位字母、数字或下划线），多级路径用 / 分隔。',
+      currentPath: '当前路径：',
+      emptyLink: '输入有效内容后生成',
+      emptyAdb: '输入有效笔记 ID 后生成',
+      nothingToCopy: '没有可复制的内容',
+      copied: '已复制',
+      copyFailed: '复制失败，请长按链接手动复制',
+      linkNotReady: '链接还未生成',
+      selected: '已选择 ',
+      noteRoot: '根笔记，整个笔记树的起点',
+      noteOptions: '设置总入口，包含所有选项子页面',
+      noteAppearance: '外观设置：主题、配色、字体、布局等',
+      noteShortcuts: '快捷键设置：键盘快捷键与操作绑定',
+      noteTextNotes: '文本笔记设置：编辑器、Markdown、默认格式',
+      noteCodeNotes: '代码笔记设置：代码块、语法高亮、缩进',
+      noteImages: '图片设置（Next 中已迁移到 _optionsMedia）',
+      noteSpellcheck: '拼写检查：语言、词典、自动纠错',
+      notePassword: '密码与认证：保护会话、登录密码',
+      noteEtapi: 'ETAPI：外部 API 令牌与集成',
+      noteBackup: '备份：自动备份、备份位置和频率',
+      noteSync: '同步：同步服务器、方向和状态',
+      noteOther: '其他设置：不属于其他分类的选项',
+      noteAdvanced: '高级设置：开发者、实验性选项',
+      noteLocalization: '语言与地区设置',
+      noteDesktop: '桌面端设置：Electron 相关选项',
+      noteMedia: '媒体设置：图片、音频、视频（取代 _optionsImages）',
+      noteContentManager: '内容管理器：附件和资源的占用与清理',
+      noteTranscription: '音频转写设置（Beta，主要面向桌面端）',
+      noteLlm: 'AI / LLM：模型、API 和聊天设置',
+      noteDatabase: '数据库设置与维护',
+      noteResources: '已下载资源管理',
+      noteSecurity: '安全设置',
+      noteMfa: '多因素认证（MFA）',
+      noteAi: '旧版 AI Chat 入口（可能已迁移到 _optionsLlm）'
+    },
+    en: {
+      pageTitle: 'Pocket Trilium Deep Link Test',
+      subtitle: 'Enter a note ID or note path to generate clickable deep links in real time. You can also copy them for HTTP Shortcuts / adb.',
+      modeSingle: 'Single link',
+      modeBatch: 'Batch list',
+      batchFormatTitle: 'Link format',
+      batchFormatHint: 'Choose one format',
+      formatShortHint: 'Use the note ID directly',
+      formatNoteHint: 'Use the explicit note/ prefix',
+      formatHashHint: 'Use the #root/ hash path',
+      formatWrappedHint: 'Wrap a full Trilium web URL',
+      batchListTitle: 'Special note links',
+      batchListHint: 'Open or copy any link',
+      batchEmpty: 'No links to generate',
+      noteLabel: 'Note ID or note path',
+      notePlaceholder: 'e.g. F0XgkCKd8Jps or root/parentId/noteId',
+      serverLabel: 'Trilium server URL (for wrapped trilium:// links)',
+      serverHint: 'Only used to generate trilium://open?url=... links that wrap a full Trilium web URL.',
+      commonTitle: 'Quick select: shared by Plus / Next',
+      commonAction: 'Click to fill the note ID',
+      commonHint: 'These special notes exist in both Trilium Plus and Trilium Next.',
+      nextTitle: 'Quick select: Trilium Next only',
+      nextAction: 'Not available in Trilium Plus',
+      nextHint: 'These settings pages are new or exclusive to Trilium Next.',
+      linkShortTitle: 'Recommended: simplest form',
+      linkNoteTitle: 'Explicit note prefix',
+      linkHashTitle: 'With Trilium hash path',
+      linkWrappedTitle: 'Wrap a full URL',
+      adbTitle: 'adb test command',
+      adbAction: 'Run on your computer',
+      copy: 'Copy',
+      open: 'Try to open',
+      copyCommand: 'Copy command',
+      invalidId: 'Enter a valid note ID (at least 4 letters, digits, or underscores). Separate multiple path segments with /.',
+      currentPath: 'Current path: ',
+      emptyLink: 'Enter valid content to generate',
+      emptyAdb: 'Enter a valid note ID to generate',
+      nothingToCopy: 'Nothing to copy',
+      copied: 'Copied',
+      copyFailed: 'Copy failed. Long-press the link to copy it manually.',
+      linkNotReady: 'The link has not been generated yet',
+      selected: 'Selected ',
+      noteRoot: 'Root note, the starting point of the note tree',
+      noteOptions: 'Settings home containing all options pages',
+      noteAppearance: 'Appearance: theme, colors, fonts, layout',
+      noteShortcuts: 'Shortcuts: keyboard shortcuts and actions',
+      noteTextNotes: 'Text notes: editor, Markdown, default format',
+      noteCodeNotes: 'Code notes: code blocks, highlighting, indentation',
+      noteImages: 'Image settings (moved to _optionsMedia in Next)',
+      noteSpellcheck: 'Spellcheck: languages, dictionaries, corrections',
+      notePassword: 'Password and authentication: protected session, login',
+      noteEtapi: 'ETAPI: external API tokens and integrations',
+      noteBackup: 'Backup: automatic backup, location, frequency',
+      noteSync: 'Sync: server, direction, and status',
+      noteOther: 'Other settings not covered by other categories',
+      noteAdvanced: 'Advanced: developer and experimental options',
+      noteLocalization: 'Language and region settings',
+      noteDesktop: 'Desktop settings: Electron-specific options',
+      noteMedia: 'Media: images, audio, video (replaces _optionsImages)',
+      noteContentManager: 'Content manager: attachment and resource usage',
+      noteTranscription: 'Audio transcription (Beta, mainly desktop)',
+      noteLlm: 'AI / LLM: models, API, and chat settings',
+      noteDatabase: 'Database settings and maintenance',
+      noteResources: 'Downloaded resource management',
+      noteSecurity: 'Security settings',
+      noteMfa: 'Multi-factor authentication (MFA)',
+      noteAi: 'Legacy AI Chat entry (may have moved to _optionsLlm)'
+    }
+  };
+
+  const noteInput = document.getElementById('noteId');
+  const serverInput = document.getElementById('serverUrl');
+  const batchServerInput = document.getElementById('batchServerUrl');
+  const idHint = document.getElementById('idHint');
+  const linkIds = ['linkShort', 'linkNote', 'linkHash', 'linkWrapped'];
+  const noteSegment = /^[_a-z0-9]{4,}$/i;
+  const langButtons = document.querySelectorAll('[data-lang]');
+  const modeButtons = document.querySelectorAll('[data-mode]');
+  const formatInputs = document.querySelectorAll('input[name="batchFormat"]');
+  const batchList = document.getElementById('batchList');
+  const batchLinks = new Map();
+
+  const SPECIAL_NOTES = [
+    { id: 'root', key: 'noteRoot', group: 'common' },
+    { id: '_options', key: 'noteOptions', group: 'common' },
+    { id: '_optionsAppearance', key: 'noteAppearance', group: 'common' },
+    { id: '_optionsShortcuts', key: 'noteShortcuts', group: 'common' },
+    { id: '_optionsTextNotes', key: 'noteTextNotes', group: 'common' },
+    { id: '_optionsCodeNotes', key: 'noteCodeNotes', group: 'common' },
+    { id: '_optionsImages', key: 'noteImages', group: 'common' },
+    { id: '_optionsSpellcheck', key: 'noteSpellcheck', group: 'common' },
+    { id: '_optionsPassword', key: 'notePassword', group: 'common' },
+    { id: '_optionsEtapi', key: 'noteEtapi', group: 'common' },
+    { id: '_optionsBackup', key: 'noteBackup', group: 'common' },
+    { id: '_optionsSync', key: 'noteSync', group: 'common' },
+    { id: '_optionsOther', key: 'noteOther', group: 'common' },
+    { id: '_optionsAdvanced', key: 'noteAdvanced', group: 'common' },
+    { id: '_optionsLocalization', key: 'noteLocalization', group: 'next' },
+    { id: '_optionsDesktop', key: 'noteDesktop', group: 'next' },
+    { id: '_optionsMedia', key: 'noteMedia', group: 'next' },
+    { id: '_optionsContentManager', key: 'noteContentManager', group: 'next' },
+    { id: '_optionsTranscription', key: 'noteTranscription', group: 'next' },
+    { id: '_optionsLlm', key: 'noteLlm', group: 'next' },
+    { id: '_optionsDatabase', key: 'noteDatabase', group: 'next' },
+    { id: '_optionsResources', key: 'noteResources', group: 'next' },
+    { id: '_optionsSecurity', key: 'noteSecurity', group: 'next' },
+    { id: '_optionsMFA', key: 'noteMfa', group: 'next' },
+    { id: '_optionsAi', key: 'noteAi', group: 'next' }
+  ];
+
+  let lang = 'en';
+  let mode = 'single';
+  let batchFormat = 'short';
+
+  function t(key) {
+    return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
+  }
+
+  function readSavedLanguage() {
+    try {
+      return localStorage.getItem('deepLinkLang');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function saveLanguage(value) {
+    try {
+      localStorage.setItem('deepLinkLang', value);
+    } catch (_) {}
+  }
+
+  function detectLanguage() {
+    const saved = readSavedLanguage();
+    if (saved === 'zh' || saved === 'en') return saved;
+    const browser = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+    return browser.startsWith('zh') ? 'zh' : 'en';
+  }
+
+  function applyLanguage(next, persist = true) {
+    lang = next === 'zh' ? 'zh' : 'en';
+    document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+    document.title = t('pageTitle');
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      el.placeholder = t(el.dataset.i18nPlaceholder);
+    });
+    langButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+    if (persist) {
+      saveLanguage(lang);
+    }
+    refresh();
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>"']/g, ch => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch]));
+  }
+
+  function refresh() {
+    buildLinks();
+    renderBatchList();
+  }
+
+  function setMode(next) {
+    mode = next === 'batch' ? 'batch' : 'single';
+    document.getElementById('singleLayout').hidden = mode !== 'single';
+    document.getElementById('batchLayout').hidden = mode !== 'batch';
+    modeButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === mode);
+    });
+    if (mode === 'batch') {
+      renderBatchList();
+    }
+  }
+
+  function formatLink(id, format) {
+    const encoded = encodeURIComponent(id);
+    switch (format) {
+      case 'note':
+        return 'trilium://note/' + encoded;
+      case 'hash':
+        return 'trilium://note/#root/' + encoded;
+      case 'wrapped': {
+        const server = normalizeServer(batchServerInput.value);
+        return server ? 'trilium://open?url=' + encodeURIComponent(server + '/#root/' + id) : '';
+      }
+      case 'short':
+      default:
+        return 'trilium://' + encoded;
+    }
+  }
+
+  function renderBatchList() {
+    if (!batchList) return;
+    batchLinks.clear();
+    const groups = [
+      { title: 'commonTitle', group: 'common' },
+      { title: 'nextTitle', group: 'next' }
+    ];
+    const parts = [];
+    for (const group of groups) {
+      const notes = SPECIAL_NOTES.filter(note => note.group === group.group);
+      parts.push('<div class="batch-group-title">' + escapeHtml(t(group.title)) + '</div>');
+      for (const note of notes) {
+        const link = formatLink(note.id, batchFormat);
+        if (link) {
+          batchLinks.set(note.id, link);
+        }
+        const disabled = link ? '' : ' disabled';
+        parts.push(
+          '<div class="batch-item">' +
+            '<div class="batch-note">' +
+              '<code>' + escapeHtml(note.id) + '</code>' +
+              '<span>' + escapeHtml(t(note.key)) + '</span>' +
+            '</div>' +
+            '<div class="batch-link">' +
+              '<a class="value batch-value" href="' + (link ? escapeHtml(link) : '#') + '">' +
+                escapeHtml(link || t('emptyLink')) +
+              '</a>' +
+              '<div class="actions">' +
+                '<button type="button" class="primary" data-batch-copy="' + escapeHtml(note.id) + '"' + disabled + '>' + escapeHtml(t('copy')) + '</button>' +
+                '<button type="button" data-batch-open="' + escapeHtml(note.id) + '"' + disabled + '>' + escapeHtml(t('open')) + '</button>' +
+              '</div>' +
+            '</div>' +
+          '</div>'
+        );
+      }
+    }
+    batchList.innerHTML = parts.join('');
+  }
+
+  function normalizePath(value) {
+    return value
+      .trim()
+      .replace(/^#/, '')
+      .replace(/^\/+|\/+$/g, '')
+      .split('/')
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  function normalizeServer(value) {
+    let server = value.trim();
+    if (!server) return '';
+    if (!/^https?:\/\//i.test(server)) {
+      server = 'https://' + server;
+    }
+    return server.replace(/\/+$/, '').replace(/#.*$/, '');
+  }
+
+  function buildLinks() {
+    const segments = normalizePath(noteInput.value);
+    const path = segments.join('/');
+    const valid = segments.length > 0 && segments.every(s => noteSegment.test(s));
+    const server = normalizeServer(serverInput.value);
+
+    if (!valid) {
+      idHint.textContent = t('invalidId');
+      idHint.className = 'hint invalid';
+    } else {
+      idHint.textContent = t('currentPath') + path;
+      idHint.className = 'hint ok';
+    }
+
+    const links = {
+      linkShort: valid && segments.length === 1
+        ? 'trilium://' + encodeURIComponent(segments[0])
+        : (valid ? 'trilium://note/' + path.split('/').map(encodeURIComponent).join('/') : ''),
+      linkNote: valid ? 'trilium://note/' + path.split('/').map(encodeURIComponent).join('/') : '',
+      linkHash: valid ? 'trilium://note/#root/' + path.split('/').map(encodeURIComponent).join('/') : '',
+      linkWrapped: valid && server
+        ? 'trilium://open?url=' + encodeURIComponent(server + '/#root/' + path)
+        : '',
+    };
+
+    for (const id of linkIds) {
+      const el = document.getElementById(id);
+      const value = links[id];
+      el.textContent = value || t('emptyLink');
+      if (value) {
+        el.setAttribute('href', value);
+      } else {
+        el.removeAttribute('href');
+      }
+    }
+
+    const adb = valid
+      ? `adb shell am start -a android.intent.action.VIEW -d "trilium://note/${path}" nriver.pocket.trilium`
+      : t('emptyAdb');
+    document.getElementById('adbCommand').textContent = adb;
+  }
+
+  async function copyText(text) {
+    if (!text || text === '-') {
+      showToast(t('nothingToCopy'));
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast(t('copied'));
+    } catch (e) {
+      const area = document.createElement('textarea');
+      area.value = text;
+      document.body.appendChild(area);
+      area.select();
+      try {
+        document.execCommand('copy');
+        showToast(t('copied'));
+      } catch (_) {
+        showToast(t('copyFailed'));
+      }
+      area.remove();
+    }
+  }
+
+  async function copyById(id) {
+    const el = document.getElementById(id);
+    const text = el.tagName === 'PRE' ? el.textContent : (el.getAttribute('href') || el.textContent);
+    await copyText(text);
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.add('show');
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+
+  document.addEventListener('click', (event) => {
+    const modeTarget = event.target.closest('[data-mode]');
+    if (modeTarget) {
+      setMode(modeTarget.dataset.mode);
+      return;
+    }
+
+    const batchCopyTarget = event.target.closest('[data-batch-copy]');
+    if (batchCopyTarget) {
+      copyText(batchLinks.get(batchCopyTarget.dataset.batchCopy) || '');
+      return;
+    }
+
+    const batchOpenTarget = event.target.closest('[data-batch-open]');
+    if (batchOpenTarget) {
+      const link = batchLinks.get(batchOpenTarget.dataset.batchOpen);
+      if (!link) {
+        showToast(t('linkNotReady'));
+        return;
+      }
+      window.location.href = link;
+      return;
+    }
+
+    const langTarget = event.target.closest('[data-lang]');
+    if (langTarget) {
+      applyLanguage(langTarget.dataset.lang);
+      return;
+    }
+
+    const noteTarget = event.target.closest('[data-note]');
+    if (noteTarget) {
+      noteInput.value = noteTarget.dataset.note;
+      buildLinks();
+      showToast(t('selected') + noteTarget.dataset.note);
+      return;
+    }
+
+    const copyTarget = event.target.closest('[data-copy]');
+    if (copyTarget) {
+      copyById(copyTarget.dataset.copy);
+      return;
+    }
+
+    const openTarget = event.target.closest('[data-open]');
+    if (openTarget) {
+      const el = document.getElementById(openTarget.dataset.open);
+      const href = el.getAttribute('href');
+      if (!href) {
+        showToast(t('linkNotReady'));
+        return;
+      }
+      window.location.href = href;
+    }
+  });
+
+  document.addEventListener('change', (event) => {
+    const input = event.target.closest('input[name="batchFormat"]');
+    if (!input) return;
+    batchFormat = input.value;
+    formatInputs.forEach(item => {
+      item.closest('.format-option').classList.toggle('active', item.checked);
+    });
+    renderBatchList();
+  });
+
+  noteInput.addEventListener('input', buildLinks);
+  serverInput.addEventListener('input', buildLinks);
+  batchServerInput.addEventListener('input', renderBatchList);
+  applyLanguage(detectLanguage(), false);
+  const initialMode = new URLSearchParams(window.location.search).get('mode');
+  setMode(initialMode === 'batch' ? 'batch' : 'single');
+</script>
+</body>
+</html>

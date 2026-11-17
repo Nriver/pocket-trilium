@@ -7,6 +7,7 @@ import '../fullScreenWebPage.dart';
 import '../l10n/app_localizations.dart';
 import '../workflow.dart';
 import 'clipper_client.dart';
+import 'deep_link_handler.dart';
 import 'etapi_token_dialog.dart';
 import 'page_clipper.dart';
 
@@ -166,6 +167,8 @@ class ShareHandler {
     D.androidChannel.setMethodCallHandler((call) async {
       if (call.method == 'onShareReceived') {
         _enqueue(SharePayload.fromMap(call.arguments));
+      } else if (call.method == 'onDeepLinkReceived') {
+        DeepLinkHandler.onNativeDeepLink(call.arguments);
       }
     });
 

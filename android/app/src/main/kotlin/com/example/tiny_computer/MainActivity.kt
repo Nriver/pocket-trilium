@@ -32,6 +32,7 @@ class MainActivity: FlutterFragmentActivity() {
 
     private var shareChannel: MethodChannel? = null
     private var pendingShare: Map<String, Any?>? = null
+    private var pendingDeepLink: Map<String, Any?>? = null
 
     private val pickTriliumPackageLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -67,14 +68,22 @@ class MainActivity: FlutterFragmentActivity() {
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val deepLink = extractDeepLinkUrl(intent)
+        if (deepLink != null) {
+            deliverDeepLink(deepLink)
+        }
         super.onCreate(savedInstanceState)
-        handleShareIntent(intent, true)
+        if (deepLink == null) {
+            handleShareIntent(intent, true)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleShareIntent(intent, false)
+        if (!handleDeepLinkIntent(intent)) {
+            handleShareIntent(intent, false)
+        }
     }
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
@@ -123,11 +132,65 @@ class MainActivity: FlutterFragmentActivity() {
                     pendingShare = null
                     result.success(0)
                 }
+                "getPendingDeepLink" -> {
+                    result.success(pendingDeepLink)
+                }
+                "consumePendingDeepLink" -> {
+                    pendingDeepLink = null
+                    result.success(0)
+                }
                 else -> {
                     // 不支持的方法名
                     result.notImplemented()
                 }
             }
+        }
+    }
+
+    private fun handleDeepLinkIntent(intent: Intent?): Boolean {
+        val url = extractDeepLinkUrl(intent) ?: return false
+        deliverDeepLink(url)
+        return true
+    }
+
+    private fun extractDeepLinkUrl(intent: Intent?): String? {
+        if (intent?.action != Intent.ACTION_VIEW) return null
+        val raw = intent.dataString ?: return null
+        val uri = intent.data ?: return null
+        val scheme = uri.scheme?.lowercase() ?: return null
+
+        if (scheme == "trilium") return raw
+        if (scheme != "http" && scheme != "https") return null
+
+        val fragment = uri.fragment ?: return null
+        val notePath = fragment
+            .substringBefore('?')
+            .removePrefix("#")
+            .trim()
+            .trim('/')
+        if (notePath != "root" && !notePath.startsWith("root/")) return null
+
+        val segments = notePath.split('/').filter { it.isNotEmpty() }
+        if (segments.isEmpty()) return null
+
+        val pattern = Regex("^[_a-z0-9]{4,}$", RegexOption.IGNORE_CASE)
+        if (!segments.all { pattern.matches(it) }) return null
+
+        return raw
+    }
+
+    private fun deliverDeepLink(url: String) {
+        val id = System.currentTimeMillis()
+        val payload = mapOf(
+            "url" to url,
+            "id" to id,
+            "timestamp" to id
+        )
+        pendingDeepLink = payload
+        try {
+            shareChannel?.invokeMethod("onDeepLinkReceived", payload)
+        } catch (_: Exception) {
+            // Flutter side is not ready yet; it will pull pendingDeepLink later.
         }
     }
 
