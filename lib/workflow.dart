@@ -1434,14 +1434,75 @@ clear""");
     return '$base/#$normalized';
   }
 
+  static String _noteTargetId(String url) {
+    final String fragment = Uri.parse(url).fragment.split('?').first;
+    final List<String> segments = fragment
+        .split('/')
+        .where((segment) => segment.isNotEmpty)
+        .toList();
+    return segments.isEmpty ? '' : segments.last;
+  }
+
+  static bool _fragmentMatches(String fragment, String targetId) {
+    if (targetId.isEmpty) return true;
+    final String path = fragment.split('?').first;
+    final List<String> segments = path
+        .split('/')
+        .where((segment) => segment.isNotEmpty)
+        .toList();
+    return segments.isNotEmpty && segments.last == targetId;
+  }
+
+  static int _noteNavigationToken = 0;
+
+  static Future<void> _ensureNoteLoaded(
+    String url,
+    String targetId,
+    int token,
+  ) async {
+    const List<Duration> delays = [
+      Duration(milliseconds: 350),
+      Duration(milliseconds: 900),
+      Duration(milliseconds: 1800),
+    ];
+
+    for (final Duration delay in delays) {
+      await Future.delayed(delay);
+      if (token != _noteNavigationToken) return;
+      if (G.currentRouteName != kWebViewRouteName) return;
+
+      final controller = G.controller;
+      if (controller == null) continue;
+
+      try {
+        final current = await controller.getUrl();
+        if (current != null && _fragmentMatches(current.fragment, targetId)) {
+          return;
+        }
+      } catch (_) {}
+
+      try {
+        await controller.evaluateJavascript(
+          source: 'window.location.href = ${jsonEncode(url)};',
+        );
+        debugPrint("重新应用深链跳转: $targetId");
+      } catch (e) {
+        debugPrint("重新应用深链跳转失败: $e");
+      }
+    }
+  }
+
   static Future<void> openNoteFragment(String fragment) async {
     final String url = noteUrlFromFragment(fragment);
+    final String targetId = _noteTargetId(url);
+    final int token = ++_noteNavigationToken;
     final controller = G.controller;
     if (G.currentRouteName == kWebViewRouteName && controller != null) {
       try {
         await controller.evaluateJavascript(
           source: 'window.location.href = ${jsonEncode(url)};',
         );
+        unawaited(_ensureNoteLoaded(url, targetId, token));
         return;
       } catch (e) {
         debugPrint("跳转笔记失败: $e");
@@ -1453,6 +1514,7 @@ clear""");
       (route) => route.settings.name != kWebViewRouteName,
     );
     launchBrowser(url: url);
+    unawaited(_ensureNoteLoaded(url, targetId, token));
   }
 
   //检查是否已经有 Trilium 在运行, 避免 Activity 重建时重复启动容器
