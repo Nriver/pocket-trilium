@@ -42,6 +42,14 @@ class TriliumSelection {
         url = null;
 }
 
+//系统文件选择器返回的本地安装包：path 为复制后的目标路径，name 为用户所选文件的原始名称
+class PickedTriliumPackage {
+  final String path;
+  final String name;
+
+  const PickedTriliumPackage(this.path, this.name);
+}
+
 class Util {
 
   static Future<void> copyAsset(String src, String dst) async {
@@ -67,12 +75,25 @@ class Util {
     G.termPtys[G.currentContainer]!.pty.write(const Utf8Encoder().convert("$str\n"));
   }
 
-  //打开系统文件选择器，把用户选择的安装包复制到destPath，返回该路径；取消时返回null
-  static Future<String?> pickTriliumPackage(String destPath) async {
-    return await D.androidChannel.invokeMethod<String>(
+  //打开系统文件选择器，把用户选择的安装包复制到destPath，返回该路径和原始文件名；取消时返回null
+  static Future<PickedTriliumPackage?> pickTriliumPackage(
+      String destPath) async {
+    final result = await D.androidChannel.invokeMapMethod<String, dynamic>(
       "pickTriliumPackage",
       {"destPath": destPath},
     );
+    if (result == null) {
+      return null;
+    }
+    final String? path = result["path"] as String?;
+    if (path == null || path.isEmpty) {
+      return null;
+    }
+    final String? rawName = (result["name"] as String?)?.trim();
+    final String name = (rawName == null || rawName.isEmpty)
+        ? path.split('/').last
+        : rawName;
+    return PickedTriliumPackage(path, name);
   }
 
   static final LocalAuthentication auth = LocalAuthentication();
@@ -1757,14 +1778,15 @@ class _TriliumVersionSelectorDialogState
 
     try {
       final targetPath = "${G.dataPath}/${D.triliumPackage}";
-      final path = await Util.pickTriliumPackage(targetPath);
+      final picked = await Util.pickTriliumPackage(targetPath);
       if (!mounted) {
         return;
       }
-      if (path == null) {
+      if (picked == null) {
         setState(() => _importing = false);
         return;
       }
+      final path = picked.path;
 
       final bool valid = await Workflow._isValidXzArchive(path);
       if (!mounted) {
@@ -1783,8 +1805,8 @@ class _TriliumVersionSelectorDialogState
 
       setState(() {
         _importing = false;
-        _pickedFilePath = path;
-        _pickedFileName = path.split('/').last;
+        _pickedFilePath = picked.path;
+        _pickedFileName = picked.name;
       });
     } catch (e) {
       debugPrint("导入本地Trilium安装包失败: $e");
@@ -2291,8 +2313,7 @@ class _TriliumVersionSelectorDialogState
                           ? l10n.importingFile
                           : (_pickedFileName ?? l10n.selectPackageFile),
                       style: const TextStyle(fontWeight: FontWeight.w600),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      softWrap: true,
                     ),
                     const SizedBox(height: 2),
                     Text(

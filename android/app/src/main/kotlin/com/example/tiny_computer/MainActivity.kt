@@ -53,12 +53,20 @@ class MainActivity: FlutterFragmentActivity() {
                 try {
                     val destFile = File(destPath)
                     destFile.parentFile?.mkdirs()
+                    val displayName = resolveDisplayName(uri, destFile.name)
                     contentResolver.openInputStream(uri)?.use { input ->
                         destFile.outputStream().use { output ->
                             input.copyTo(output)
                         }
                     } ?: throw IllegalStateException("Cannot open selected file")
-                    runOnUiThread { result.success(destPath) }
+                    runOnUiThread {
+                        result.success(
+                            mapOf(
+                                "path" to destPath,
+                                "name" to displayName
+                            )
+                        )
+                    }
                 } catch (e: Exception) {
                     runOnUiThread {
                         result.error("pick_file_failed", e.message, null)
@@ -66,6 +74,28 @@ class MainActivity: FlutterFragmentActivity() {
                 }
             }
         }
+
+    //读取系统文件选择器返回的原始文件名，用于界面展示
+    private fun resolveDisplayName(uri: Uri, fallback: String): String {
+        return try {
+            contentResolver.query(
+                uri,
+                arrayOf(OpenableColumns.DISPLAY_NAME),
+                null,
+                null,
+                null
+            )?.use { cursor ->
+                val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (index >= 0 && cursor.moveToFirst()) {
+                    cursor.getString(index)?.takeIf { it.isNotBlank() }
+                } else {
+                    null
+                }
+            } ?: fallback
+        } catch (_: Exception) {
+            fallback
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val deepLink = extractDeepLinkUrl(intent)
