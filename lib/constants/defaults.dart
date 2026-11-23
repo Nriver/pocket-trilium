@@ -29,15 +29,15 @@ class D {
       'lang': 'multi',
     },
     {
-      'name': '0.64.1 Plus',
+      'name': '0.64.2 Plus',
       'suffix': '(Gitee)',
-      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/trilium-linux-arm64-server-0.64.1-cn.tar.xz',
+      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/trilium-linux-arm64-server-0.64.2-cn.tar.xz',
       'lang': 'zh-only',
     },
     {
-      'name': '0.64.1 Plus',
+      'name': '0.64.2 Plus',
       'suffix': '(Github)',
-      'url': 'https://github.com/Nriver/trilium-plus/releases/download/v0.64.1/trilium-linux-arm64-server-0.64.1.tar.xz',
+      'url': 'https://github.com/Nriver/trilium-plus/releases/download/v0.64.2/trilium-linux-arm64-server-0.64.2.tar.xz',
       'lang': 'en-only',
     },
   ];
@@ -128,6 +128,18 @@ class D {
       'suffix': '(GitHub)',
       'url': 'https://github.com/TriliumNext/Trilium/releases/download/v0.101.3/TriliumNotes-Server-v0.101.3-linux-arm64.tar.xz',
       'lang': 'multi',
+    },
+    {
+      'name': '0.64.1 Plus',
+      'suffix': '(Gitee)',
+      'url': 'https://gitee.com/nriver/pocket-trilium/releases/download/v1/trilium-linux-arm64-server-0.64.1-cn.tar.xz',
+      'lang': 'zh-only',
+    },
+    {
+      'name': '0.64.1 Plus',
+      'suffix': '(Github)',
+      'url': 'https://github.com/Nriver/trilium-plus/releases/download/v0.64.1/trilium-linux-arm64-server-0.64.1.tar.xz',
+      'lang': 'en-only',
     },
     {
       'name': '0.63.7',

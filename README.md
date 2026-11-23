@@ -112,7 +112,7 @@ Once the app restarts, you'll see a pop-up menu that allows you to select the Tr
 
 ## What is Trilium Plus?
 
-**Trilium Plus** is a continuation of [zadam/trilium](https://github.com/zadam/trilium) at version **0.63.7**. It inherits the code and modifications of the original 0.63.7 version and keeps evolving on top of it, focusing on upgrading security-related dependencies, fixing bugs, and adding practical usability improvements. Trilium Plus uses its own version numbering (currently `0.64.1 Plus`) and is **not** an official Trilium / TriliumNext release.
+**Trilium Plus** is a continuation of [zadam/trilium](https://github.com/zadam/trilium) at version **0.63.7**. It inherits the code and modifications of the original 0.63.7 version and keeps evolving on top of it, focusing on upgrading security-related dependencies, fixing bugs, and adding practical usability improvements. Trilium Plus uses its own version numbering (currently `0.64.2 Plus`) and is **not** an official Trilium / TriliumNext release.
 
 The source code of Trilium Plus is maintained in the [Nriver/trilium-plus](https://github.com/Nriver/trilium-plus) repository. Please report Plus-specific issues there.
 
